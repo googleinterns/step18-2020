@@ -123,8 +123,4 @@
       }
     }
   },
-  "defaultProject": "angular-launchpod",
-  "cli": {
-    "analytics": "86ca9d48-556d-40bd-bcf6-5bc94cc476c5"
-  }
-}
+  "defaultProject": "angular-launchpod"
