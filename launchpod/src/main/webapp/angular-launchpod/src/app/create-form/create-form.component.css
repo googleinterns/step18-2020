@@ -1,11 +1,11 @@
-div {
-    display: inline-block;
-    text-align: center;
-}
-
 button {
     background-color: green;
     color: white;
+}
+
+div {
+    display: inline-block;
+    text-align: center;
 }
 
 #message {

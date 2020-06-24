@@ -8,7 +8,7 @@ import {Component, OnInit} from '@angular/core';
 export class CreateFormComponent implements OnInit {
   constructor() {}
 
-  // fetches input data when user clicks create button
+  // Fetches input data when user clicks create button.
   public getData() {
     // TODO: implement method to actually fetch data
     document.getElementById('message').textContent =
