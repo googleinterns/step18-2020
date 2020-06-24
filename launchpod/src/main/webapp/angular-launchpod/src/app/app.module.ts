@@ -14,12 +14,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { ResultPageComponent } from './result-page/result-page.component'
 
 @NgModule({
   declarations: [
     AppComponent,
     NavbarComponent,
-    CreateFormComponent
+    CreateFormComponent,
+    ResultPageComponent
   ],
   imports: [
     BrowserModule,
@@ -32,7 +35,8 @@ import { MatListModule } from '@angular/material/list';
     MatButtonModule,
     MatSidenavModule,
     MatIconModule,
-    MatListModule
+    MatListModule,
+    ClipboardModule
   ],
   providers: [],
   bootstrap: [AppComponent]
