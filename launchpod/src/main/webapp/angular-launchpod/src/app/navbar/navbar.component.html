@@ -1,6 +1,6 @@
 <mat-sidenav-container class="sidenav-container">
     <mat-sidenav #drawer class="sidenav" fixedInViewport [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
-        [mode]="'over'" [opened]="(isHandset$ | async) === false">
+        [mode]="'over'" [opened]="false">
         <mat-toolbar><img class="logo" src="assets/img/LaunchPodLogo.png" alt="icon">
             <h2>LaunchPod</h2>
         </mat-toolbar>
@@ -21,7 +21,7 @@
     </mat-sidenav>
     <mat-sidenav-content>
         <mat-toolbar color="white">
-            <button type="button" aria-label="Toggle sidenav" mat-icon-button (click)="drawer.toggle()">
+            <button type="button" aria-label="Toggle sidenav" mat-icon-button (click)="drawer.open()">
                 <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
             </button>
             <img class="logo" src="assets/img/LaunchPodLogo.png" alt="icon">
@@ -29,5 +29,6 @@
         </mat-toolbar>
         <!-- Add Content Here -->
         <app-create-form class="center-page"></app-create-form>
+
     </mat-sidenav-content>
 </mat-sidenav-container>
