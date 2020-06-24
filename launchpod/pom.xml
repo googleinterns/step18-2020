@@ -32,11 +32,11 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>1.9.0</version>
+      <version>2.1.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupid>com.fasterxml.jackson.dataformat</groupId>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
       <version>2.9.8</version>
     </dependency>
