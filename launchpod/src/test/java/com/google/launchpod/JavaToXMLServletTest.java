@@ -14,6 +14,19 @@
 
 
 package com.google.launchpod;
+
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.google.launchpod.servlets.JavaToXMLServlet;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,9 +37,34 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
+import org.mockito.InjectMocks;
 
 /** */
 @RunWith(JUnit4.class)
-public class JavaToXMLServletTest {
-    
+public class JavaToXMLServletTest extends Mockito {
+
+    @InjectMocks
+
+    private JavaToXMLServlet servlet = new JavaToXMLServlet();
+
+    @Before
+    public void setUp() {
+        // query = new FindMeetingQuery;
+    }
+
+    @Test
+    public void doPost() throws IOException {
+        // putting XML file in Blobstore
+    }
+
+    @Test 
+    public void fromJavaGenerateXML() throws IOException {
+        XmlMapper xmlMapper = new XmlMapper();
+        xmlMapper.writeValue(new File("simple_bean.xml"), new SimpleBean());
+        File file = new File("simple_bean.xml");
+        assertNotNull(file);
+    }
+
+
 }

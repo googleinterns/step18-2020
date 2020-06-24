@@ -14,10 +14,18 @@
 
 package com.google.launchpod;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.launchpod.servlets.BlobstoreUploadUrlServlet;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,12 +37,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
+import org.mockito.InjectMocks;
 
 /** */
 @RunWith(JUnit4.class)
 public final class BlobstoreUploadUrlServletTest extends Mockito {
     // static final variables
     // private FindMeetingQuery query;
+    @InjectMocks
+
+    private BlobstoreUploadUrlServlet servlet = new BlobstoreUploadUrlServlet();
+
+    private final String TEST_NAME = "TEST_NAME";
+    private final String TEST_FILE_URL = "TEST_FILE_URL";
+    private final String EXPECTED_STRING = "EXPECTED_STRING";
 
     @Before
     public void setUp() {
@@ -43,7 +59,21 @@ public final class BlobstoreUploadUrlServletTest extends Mockito {
 
     @Test
     public void testUpload() throws IOException {
-        
+        HttpServletRequest request = mock(HttpServletRequest.class);       
+        HttpServletResponse response = mock(HttpServletResponse.class);    
+
+        when(request.getParameter("name")).thenReturn(TEST_NAME);
+        when(request.getParameter("fileUrl")).thenReturn(TEST_FILE_URL);
+
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter writer = new PrintWriter(stringWriter);
+        when(response.getWriter()).thenReturn(writer);
+
+        servlet.doGet(request, response);
+
+        verify(request, atLeast(1)).getParameter("name"); // verify name was called
+        writer.flush();
+        assertTrue(stringWriter.toString().contains(EXPECTED_STRING));
     }
 
     @Test

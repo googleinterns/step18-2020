@@ -37,9 +37,6 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public class FormHandlerServletTest extends Mockito {
 
-    @InjectMocks 
-    BlobStoreUploadUrlServlet servlet = new BlobstoreUploadUrlServlet();
-
     @Test
     public void testUpload() throws IOException {
         HttpServletRequest request = mock(HttpServletRequest.class);
