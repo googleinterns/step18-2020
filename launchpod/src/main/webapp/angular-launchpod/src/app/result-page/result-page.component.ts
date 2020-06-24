@@ -8,6 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class ResultPageComponent implements OnInit {
 
+  // TODO: actually get url from backend
   feedValue = "rss-feed-unavailable.launchpod.com";
 
   constructor(public snackBar: MatSnackBar) { }
