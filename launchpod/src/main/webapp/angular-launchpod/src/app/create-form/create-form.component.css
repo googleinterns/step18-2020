@@ -1,0 +1,13 @@
+div {
+    display: inline-block;
+    text-align: center;
+}
+
+button {
+    background-color: green;
+    color: white;
+}
+
+#message {
+    color: red;
+}
