@@ -14,12 +14,19 @@
 
 package com.google.launchpod;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.launchpod.servlets.FormHandlerServlet;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,16 +38,35 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 /** */
 @RunWith(JUnit4.class)
 public class FormHandlerServletTest extends Mockito {
 
+    @InjectMocks
+
+    private FormHandlerServlet servlet = new FormHandlerServlet();
+
+    @Mock
+    HttpServletRequest request;
+
+    @Mock
+    HttpServletResponse response;
+
+    private final String TEST_NAME = "TEST_NAME";
+    private final String TEST_FILE_URL = "TEST_FILE_URL";
+    private final String EXPECTED_STRING = "EXPECTED_STRING";
+
+    @Before 
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+    }
+
     @Test
-    public void testUpload() throws IOException {
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse.response = mock(HttpServletResponse.class);
+    public void doPost() throws IOException {
 
         when(request.getParameter("name")).thenReturn("name"); // TODO: replace "name" with static final variable
         when(request.getParameter("file")).thenReturn("file"); // TODO: replace "file" with static final variable
@@ -49,7 +75,24 @@ public class FormHandlerServletTest extends Mockito {
         PrintWriter writer = new PrintWriter(stringWriter);
         when(response.getWriter()).thenReturn(writer);
 
-        servlet.doGet(request, response);
+        servlet.doPost(request, response);
+        
+        // verify
+        writer.flush();
+        assertEquals(StringWriter.toString(), EXPECTED_STRING);
+    }
+
+    @Test
+    public void getUploadedFileUrl() throws IOException {
+
+        when(request.getParameter("name")).thenReturn("name"); // TODO: replace "name" with static final variable
+        when(request.getParameter("file")).thenReturn("file"); // TODO: replace "file" with static final variable
+
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter writer = new PrintWriter(stringWriter);
+        when(response.getWriter()).thenReturn(writer);
+
+        servlet.doPost(request, response);
         
         // verify
         writer.flush();

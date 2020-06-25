@@ -14,6 +14,7 @@
 
 package com.google.launchpod;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -25,6 +26,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.launchpod.servlets.BlobstoreUploadUrlServlet;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +40,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 /** */
 @RunWith(JUnit4.class)
@@ -48,60 +53,43 @@ public final class BlobstoreUploadUrlServletTest extends Mockito {
 
     private BlobstoreUploadUrlServlet servlet = new BlobstoreUploadUrlServlet();
 
+    @Mock
+    HttpServletRequest request;
+
+    @Mock
+    HttpServletResponse response;
+
+    // @Mock 
+    // BlobstoreService blobstoreService;
+
+
     private final String TEST_NAME = "TEST_NAME";
+    private final String TEST_UPLOAD_URL = "TEST_UPLOAD_URL";
     private final String TEST_FILE_URL = "TEST_FILE_URL";
     private final String EXPECTED_STRING = "EXPECTED_STRING";
+    private final String TEST_URL = "/data";
 
-    @Before
-    public void setUp() {
-        // query = new FindMeetingQuery;
+    @Before 
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
     }
 
-    @Test
-    public void testUpload() throws IOException {
-        HttpServletRequest request = mock(HttpServletRequest.class);       
-        HttpServletResponse response = mock(HttpServletResponse.class);    
 
-        when(request.getParameter("name")).thenReturn(TEST_NAME);
-        when(request.getParameter("fileUrl")).thenReturn(TEST_FILE_URL);
+    @Test
+    public void returnCorrectUrl() throws IOException {
+
+        // I don't know how to mock the BlobstoreServiceFactory (and there blobstoreService creation (because it's a static method)). Also can't test createUploadUrl because of this. My options are: change original code to move blobstoreService outside of method, try powerMock?, or assume things are correct up until setting the content type
+        when(blobstoreService.createUploadUrl(TEST_URL)).thenReturn(TEST_UPLOAD_URL);
 
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
+        when(response.getWriter()).thenReturn(writer); // uploadUrl lives in StringWriter()
 
         servlet.doGet(request, response);
-
-        verify(request, atLeast(1)).getParameter("name"); // verify name was called
-        writer.flush();
-        assertTrue(stringWriter.toString().contains(EXPECTED_STRING));
+        assertEquals(stringWriter.toString(), EXPECTED_STRING);
+        // assertTrue(stringWriter.toString().contains(EXPECTED_STRING));
     }
 
-    @Test
-    public void doGetNoRequest() {
-        // no request parameter in doGet()
-
-        // check for number of parameters
-    }
-
-    @Test
-    public void doGetNoResponse() {
-        // no response parameter in doGet()
-
-        // check for number of parameters
-    }
-
-    @Test
-    public void doGetNoParams() {
-        // no parameters in doGet()
-        
-        // check for number of parameters
-    }
-
-    @Test
-    public void verifyRequestUrl() {
-        // 
-        // make sure it's going to /data servlet
-    }
-
+    // don't need to check for invalid inputs since request and response aren't used in method
 }
 
