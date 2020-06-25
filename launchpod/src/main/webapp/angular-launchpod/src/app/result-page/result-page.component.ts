@@ -21,5 +21,4 @@ export class ResultPageComponent implements OnInit {
 
   ngOnInit(): void {
   }
-
 }
