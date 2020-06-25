@@ -1,52 +1,69 @@
 package com.google.launchpod.servlets;
 
-import com.google.appengine.api.blobstore.BlobInfo;
-import com.google.appengine.api.blobstore.BlobInfoFactory;
-import com.google.appengine.api.blobstore.BlobKey;
-import com.google.appengine.api.blobstore.BlobstoreService;
-import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
-import com.google.appengine.api.images.ServingUrlOptions;
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+
+import java.io.StringReader;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
-import java.util.Map;
-
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@SuppressWarnings("serial")
-@WebServlet("/form-handler")
+@WebServlet("/rss-feed")
 public class FormHandlerServlet extends HttpServlet {
+  
+  private static final String USER_FEED = "UserFeed";
+  private static final String PODCAST_NAME = "name";
+  private static final String TIMESTAMP = "timestamp";
+  private static final String MP3LINK = "mp3link";
 
+  private static final String 
+
+  /**
+   *  request user inputs in form fields then create Entity and place in datastore
+   */
   @Override
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    
-    
+  public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    String name = req.getParameter(NAME);
+    String mp3Link = req.getParameter(MP3LINK);
+    long timestamp = System.currentTimeMillis();
+
+    Entity userFeedEntity = new Entity(USER_FEED);
+    userFeedEntity.setProperty(NAME, name);
+    userFeedEntity.setProperty(MP3LINK, mp3Link);
+    userFeedEntity.setProperty(TIMESTAMP, timestamp);
+
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    datastore.put(userFeedEntity);
   }
 
-  private String getUploadedFileUrl(HttpServletRequest req, String inputName){
-    BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
-    Map<String, List<BlobKey>> blobs = blobstore.getUploads(req);
-    List<BlobKey> keys = blobs.get(inputName);
+  private String xmlString(String name, String mp3L){
+    String xmlString = "";
+    return xmlString
 
-    //When there is nothing uploaded
-    if(keys.isEmpty() || keys == null){
-      return null;
+  }
+
+  public Document generateXMLfromJava(){
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder = null;
+
+    try{
+        //Create DocumentBuilder for string
+        builder = factory.newDocumentBuilder();
+         
+        Document doc = builder.parse(new InputSource(new StringReader(xmlString)));
+        return doc;
+
+    }catch (Exception e) {
+        e.printStackTrace();
     }
-    //Get first input from form
-    BlobKey key = keys.get(0);
-
-    //when user does not select form
-    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(key);
-    if(blobInfo.getSize() == 0){
-      blobstore.delete(key);
-      return null;
-    }
-
-    return "";
+    return null;
   }
 }
