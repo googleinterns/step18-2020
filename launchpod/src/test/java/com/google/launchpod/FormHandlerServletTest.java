@@ -68,8 +68,8 @@ public class FormHandlerServletTest extends Mockito {
     @Test
     public void doPost() throws IOException {
 
-        when(request.getParameter("name")).thenReturn("name"); // TODO: replace "name" with static final variable
-        when(request.getParameter("file")).thenReturn("file"); // TODO: replace "file" with static final variable
+        when(request.getParameter("name")).thenReturn(TEST_NAME);
+        when(request.getParameter("file")).thenReturn(TEST_FILE_URL);
 
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);
@@ -77,26 +77,10 @@ public class FormHandlerServletTest extends Mockito {
 
         servlet.doPost(request, response);
         
-        // verify
         writer.flush();
-        assertEquals(StringWriter.toString(), EXPECTED_STRING);
+        assertEquals(stringWriter.toString(), EXPECTED_STRING);
     }
 
-    @Test
-    public void getUploadedFileUrl() throws IOException {
-
-        when(request.getParameter("name")).thenReturn("name"); // TODO: replace "name" with static final variable
-        when(request.getParameter("file")).thenReturn("file"); // TODO: replace "file" with static final variable
-
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
-
-        servlet.doPost(request, response);
-        
-        // verify
-        writer.flush();
-        assertTrue(StringWriter.toString().contains("My expected string"));
-    }
+    // No tests for private methods getUploadedFileUrl or getParameter
     
 }

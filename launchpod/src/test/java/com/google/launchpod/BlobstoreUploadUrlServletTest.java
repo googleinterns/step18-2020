@@ -63,9 +63,7 @@ public final class BlobstoreUploadUrlServletTest extends Mockito {
     // BlobstoreService blobstoreService;
 
 
-    private final String TEST_NAME = "TEST_NAME";
     private final String TEST_UPLOAD_URL = "TEST_UPLOAD_URL";
-    private final String TEST_FILE_URL = "TEST_FILE_URL";
     private final String EXPECTED_STRING = "EXPECTED_STRING";
     private final String TEST_URL = "/data";
 
@@ -78,7 +76,7 @@ public final class BlobstoreUploadUrlServletTest extends Mockito {
     @Test
     public void returnCorrectUrl() throws IOException {
 
-        // I don't know how to mock the BlobstoreServiceFactory (and there blobstoreService creation (because it's a static method)). Also can't test createUploadUrl because of this. My options are: change original code to move blobstoreService outside of method, try powerMock?, or assume things are correct up until setting the content type
+        // I don't know how to mock the BlobstoreServiceFactory (and the blobstoreService creation (because it's a static method)). Also can't test createUploadUrl because of this. My options are: change original code to move blobstoreService outside of method, try powerMock?, or assume things are correct up until setting the content type
         when(blobstoreService.createUploadUrl(TEST_URL)).thenReturn(TEST_UPLOAD_URL);
 
         StringWriter stringWriter = new StringWriter();
