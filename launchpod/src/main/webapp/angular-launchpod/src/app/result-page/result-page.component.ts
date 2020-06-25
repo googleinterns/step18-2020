@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import {Component, OnInit} from '@angular/core';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-result-page',
@@ -7,11 +7,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./result-page.component.css']
 })
 export class ResultPageComponent implements OnInit {
-
   // TODO: actually get url from backend
-  feedValue = "rss-feed-unavailable.launchpod.com";
+  feedValue = 'rss-feed-unavailable.launchpod.com';
 
-  constructor(public snackBar: MatSnackBar) { }
+  constructor(public snackBar: MatSnackBar) {}
 
   openSnackBar() {
     this.snackBar.open('Copied URL to clipboard', '', {
@@ -19,6 +18,5 @@ export class ResultPageComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 }
