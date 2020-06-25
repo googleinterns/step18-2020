@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package com.google.launchpod;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -25,7 +26,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.launchpod.servlets.JavaToXMLServlet;
+import com.google.launchpod.servlets.RSSFeedServlet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,14 +40,19 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 /** */
 @RunWith(JUnit4.class)
-public class JavaToXMLServletTest extends Mockito {
+public class RSSFeedServletTest extends Mockito {
 
     @InjectMocks
+    private RSSFeedServlet servlet = new RSSFeedServlet();
 
-    private JavaToXMLServlet servlet = new JavaToXMLServlet();
+    @Mock 
+    XmlMapper xmlMapper = new XmlMapper(); 
+
+    private final String XML_NAME = "simple_bean.xml";
 
     @Before
     public void setUp() {
@@ -60,11 +66,9 @@ public class JavaToXMLServletTest extends Mockito {
 
     @Test 
     public void fromJavaGenerateXML() throws IOException {
-        XmlMapper xmlMapper = new XmlMapper();
-        xmlMapper.writeValue(new File("simple_bean.xml"), new SimpleBean());
-        File file = new File("simple_bean.xml");
+        xmlMapper.writeValue(new File(XML_NAME), new SimpleBean());
+        File file = new File(XML_NAME);
         assertNotNull(file);
     }
-
 
 }
