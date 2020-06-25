@@ -7,7 +7,8 @@ import { CreateFormComponent } from './create-form/create-form.component';
 
 const routes: Routes = [
   { path: '', component: CreateFormComponent},
-  { path: 'result', component: ResultPageComponent}
+  { path: 'result', component: ResultPageComponent},
+  { path: '**', redirectTo: '/create', pathMatch: 'full' }
 ];
 
 @NgModule({
