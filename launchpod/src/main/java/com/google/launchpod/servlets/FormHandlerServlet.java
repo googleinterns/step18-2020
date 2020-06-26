@@ -3,14 +3,19 @@ package com.google.launchpod.servlets;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-
-import java.io.StringReader;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.repackaged.com.google.gson.Gson;
+import com.google.launchpod.data.UserFeed;
+import com.google.appengine.api.datastore.Query;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -19,11 +24,15 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/rss-feed")
 public class FormHandlerServlet extends HttpServlet {
   
-  private static final String USER_FEED = "UserFeed";
-  private static final String PODCAST_TITLE = "title";
-  private static final String TIMESTAMP = "timestamp";
-  private static final String MP3LINK = "mp3link";
-  private static final String XML_STRING = "xmlString";
+  private static final long serialVersionUID = 1L;
+
+  public static final String USER_FEED = "UserFeed";
+  public static final String PODCAST_TITLE = "title";
+  public static final String TIMESTAMP = "timestamp";
+  public static final String MP3LINK = "mp3link";
+  public static final String XML_STRING = "xmlString";
+
+  public static final Gson GSON = new Gson();
 
   /**
    *  request user inputs in form fields then create Entity and place in datastore
@@ -33,7 +42,11 @@ public class FormHandlerServlet extends HttpServlet {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String mp3Link = req.getParameter(MP3LINK);
     long timestamp = System.currentTimeMillis();
-    String xmlString - xmlString(name, mp3Link);
+    //Create time
+    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    LocalDateTime publishTime = LocalDateTime.now();
+    //Generate xml string
+    String xmlString = xmlString(podcastTitle, mp3Link, dateFormatter.format(publishTime));
 
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
@@ -45,46 +58,43 @@ public class FormHandlerServlet extends HttpServlet {
     datastore.put(userFeedEntity);
   }
 
-  private String xmlString(String name, String mp3Link){
+  private static String xmlString(String title, String mp3Link, String pubDate){
     String xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"  +
                        "<rss version=\"2.0\">" + 
                        "  <channel>" +
                        "    <language>en</language>"  +
                        "    <itunes:author>User</itunes:author>" + 
-                       "    <title>" + name + "</title>" + 
+                       "    <title>" + title + "</title>" + 
                        "    <item>" +
-                       "      <title>" + name + "</title>" + 
-                       "      <summary>This is episode 4</summary>" + 
-                       "      <description>This is episode 4</description>" + 
+                       "      <title>" + title + "</title>" + 
+                       "      <summary>This is a Test</summary>" + 
+                       "      <description>This is a Test</description>" + 
                        "      <link>" + mp3Link +"</link>" +
                        "      <enclosure url=\"" + mp3Link + "\" type=\"audio/mpeg\" length=\"185000\"/>" +
-                       "      <pubDate>Thu, 20 Apr 2020 04:20:00 +0800</pubDate>" +
+                       "      <pubDate>" + pubDate + "</pubDate>" +
                        "      <itunes:author/>" + 
                        "      <itunes:duration>03:05</itunes:duration>" + 
                        "      <itunes:explicit>No</itunes:explicit>" + 
                        "      <guid isPermaLink=\"false\">uhwefpoihEOUUHSFEOIwqkhdho-=</guid>" + 
-                       "    </item>"
-                       "  </channel>"
+                       "    </item>" + 
+                       "  </channel>" + 
                        "</rss>";
 
     return xmlString;
-
   }
 
-  public Document generateXMLfromJava(){
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    DocumentBuilder builder = null;
+  @Override
+  public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    Query query = new Query("UserFeed").addSort(TIMESTAMP, SortDirection.ASCENDING);
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    PreparedQuery results = datastore.prepare(query);
 
-    try{
-        //Create DocumentBuilder for string
-        builder = factory.newDocumentBuilder();
-         
-        Document doc = builder.parse(new InputSource(new StringReader(xmlString)));
-        return doc;
-
-    }catch (Exception e) {
-        e.printStackTrace();
+    List<UserFeed> userFeeds = new ArrayList<>();
+    for(Entity entity: results.asIterable()){
+      userFeeds.add(UserFeed.fromEntity(entity));
     }
-    return null;
+    // TODO: Parse content to xml for user
+    res.setContentType("application/json");
+    res.getWriter().println(GSON.toJson(userFeeds));
   }
 }
