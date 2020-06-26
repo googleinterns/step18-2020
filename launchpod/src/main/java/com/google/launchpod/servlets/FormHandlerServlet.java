@@ -28,6 +28,7 @@ public class FormHandlerServlet extends HttpServlet {
 
   public static final String USER_FEED = "UserFeed";
   public static final String PODCAST_TITLE = "title";
+  public static final String EMAIL = "email";
   public static final String TIMESTAMP = "timestamp";
   public static final String MP3LINK = "mp3link";
   public static final String XML_STRING = "xmlString";
@@ -50,6 +51,7 @@ public class FormHandlerServlet extends HttpServlet {
 
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
+    userFeedEntity.setProperty(EMAIL, "123@example.com");
     userFeedEntity.setProperty(MP3LINK, mp3Link);
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
     userFeedEntity.setProperty(XML_STRING ,xmlString);
@@ -58,7 +60,17 @@ public class FormHandlerServlet extends HttpServlet {
     datastore.put(userFeedEntity);
   }
 
+  /** Create XML string from given fields
+   *  @return 
+   */
   private static String xmlString(String title, String mp3Link, String pubDate){
+    //Set Default Values to title and mp3 if they are event null or empty
+    if (title.isEmpty() || title == null){
+      title = "Podcast";
+    }
+    if (mp3Link.isEmpty() || mp3Link== null){
+      mp3Link = "None Listed";
+    }
     String xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"  +
                        "<rss version=\"2.0\">" + 
                        "  <channel>" +
@@ -91,10 +103,15 @@ public class FormHandlerServlet extends HttpServlet {
 
     List<UserFeed> userFeeds = new ArrayList<>();
     for(Entity entity: results.asIterable()){
-      userFeeds.add(UserFeed.fromEntity(entity));
+      if(entity.getProperty(EMAIL) == "123@example.com"){ // user log in info here
+        userFeeds.add(UserFeed.fromEntity(entity));
+      }
     }
-    // TODO: Parse content to xml for user
-    res.setContentType("application/json");
-    res.getWriter().println(GSON.toJson(userFeeds));
+
+    res.setContentType("text/html");
+    //display all xml strings related to user logged in
+    for (UserFeed userfeed: userFeeds){
+      res.getWriter().println("<div><p>+" + userfeed.xmlString + "</p></div>");
+    }
   }
 }
