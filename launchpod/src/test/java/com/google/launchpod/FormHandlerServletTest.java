@@ -13,6 +13,7 @@
 // limitations under the License.
 
 package com.google.launchpod;
+
 import static com.google.appengine.api.datastore.FetchOptions.Builder.withLimit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -32,6 +33,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.repackaged.com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import java.util.ArrayList;
@@ -39,8 +41,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -70,13 +74,25 @@ public class FormHandlerServletTest extends Mockito {
     new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig()
     .setDefaultHighRepJobPolicyUnappliedJobPercentage(100));
 
-    private final String XML_NAME = "simple_bean.xml";
-    private final String NAME_INPUT = "name"; // TO-DO: verify key strings with Efrain 
-    private final String FILE_INPUT = "file";
-    private final String TEST_NAME = "TEST_NAME";
-    private final String TEST_FILE_URL = "TEST_FILE_URL";
-    private final String EXPECTED_STRING = "EXPECTED_STRING";
-    private final String EMPTY_STRING = "EMPTY_STRING";
+    // keys
+    private static final String USER_FEED = "UserFeed";
+    private static final String XML_NAME = "simple_bean.xml";
+    private static final String PODCAST_TITLE = "title"; // TO-DO: verify key strings with Efrain
+    private static final String XML_STRING = "xmlString";
+    private static final String MP3LINK = "mp3link"; // URL to existing MP3 file
+    private static final String TIMESTAMP = "timestamp";
+
+    private static final String TEST_PODCAST_TITLE = "TEST_PODCAST_TITLE";
+    private static final String TEST_FILE_URL = "TEST_FILE_URL";
+    private static final String TEST_MP3_LINK = "TEST_MP3_LINK";
+    private static final long TEST_TIMESTAMP = System.currentTimeMillis();
+    private static final String TEST_XML_STRING = "TEST_XML_STRING";
+    private static final String EXPECTED_STRING = "EXPECTED_STRING";
+    private static final String EMPTY_STRING = "";
+
+    private static final Entity userFeedEntity = new Entity(USER_FEED);
+
+
 
     @Before 
     public void setUp() throws Exception {
@@ -89,25 +105,38 @@ public class FormHandlerServletTest extends Mockito {
       helper.tearDown();
     }
 
+    // @Test
+    // public void testEventuallyConsistentGlobalQueryResult() {
+    //   DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    //   // Key ancestor = KeyFactory.createKey("foo", 3);
+    //   //   ds.put(new Entity("yam", ancestor));
+    //   //   ds.put(new Entity("yam", ancestor));
+
+    //   // Global query doesn't see the data.
+    //   assertEquals(0, ds.prepare(new Query("yam")).countEntities(withLimit(10)));
+    //   // Ancestor query does see the data.
+    //   assertEquals(2, ds.prepare(new Query("yam", ancestor)).countEntities(withLimit(10)));
+    // }
+
     @Test
-    public void testEventuallyConsistentGlobalQueryResult() {
-      DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-      Key ancestor = KeyFactory.createKey("foo", 3);
-      ds.put(new Entity("yam", ancestor));
-      ds.put(new Entity("yam", ancestor));
-      // Global query doesn't see the data.
-      assertEquals(0, ds.prepare(new Query("yam")).countEntities(withLimit(10)));
-      // Ancestor query does see the data.
-      assertEquals(2, ds.prepare(new Query("yam", ancestor)).countEntities(withLimit(10)));
+    public void doPostFormInput() throws IOException {
+        // doPost() - gets inputs from UI form
+        when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
+        when(request.getParameter(MP3LINK)).thenReturn(TEST_MP3_LINK);
+
+        userFeedEntity.setProperty(PODCAST_TITLE, TEST_PODCAST_TITLE);
+        userFeedEntity.setProperty(MP3LINK, TEST_MP3_LINK);
+        userFeedEntity.setProperty(TIMESTAMP, TEST_TIMESTAMP);
+        userFeedEntity.setProperty(XML_STRING, TEST_XML_STRING);
+
+        DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+        ds.put(userFeedEntity);
+
+        // TO-DO: verify response.sendRedirect()
     }
 
     @Test
-    public void doPost() throws IOException {
-
-        // gets inputs from UI form
-        when(request.getParameter("name")).thenReturn(TEST_NAME);
-        when(request.getParameter("file")).thenReturn(TEST_FILE_URL);
-
+    public void doPostStoreXML() throws IOException {
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);
         when(response.getWriter()).thenReturn(writer);
@@ -123,10 +152,9 @@ public class FormHandlerServletTest extends Mockito {
 
 
     @Test 
-    public void generateXMLFromJava() throws IOException {
-        xmlMapper.writeValue(new File(XML_NAME), new SimpleBean());
-        File file = new File(XML_NAME);
-        assertNotNull(file);
+    public void generateXMLFromJava() throws JsonProcessingException {
+        String xml = xmlMapper.writeValueAsString(new SimpleBean());
+        assertNotNull(xml);
     }
 
     @Test
