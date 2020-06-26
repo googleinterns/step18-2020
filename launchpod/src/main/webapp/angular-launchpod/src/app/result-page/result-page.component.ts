@@ -1,5 +1,6 @@
-import {Component, OnInit} from '@angular/core';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { FormHandlerService } from '../form-handler.service';
+import { Component, OnInit } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-result-page',
@@ -8,15 +9,22 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 })
 export class ResultPageComponent implements OnInit {
   // TODO: actually get url from backend
-  feedValue = 'rss-feed-unavailable.launchpod.com';
+  feedValue;
 
-  constructor(public snackBar: MatSnackBar) {}
+  constructor(private formHandlerService: FormHandlerService, public snackBar: MatSnackBar) { }
+
+  ngOnInit(): void {
+    this.formHandlerService.getFeedUrl()
+      .subscribe((feedData) => {
+        console.log('hello');
+        console.log(feedData);
+        this.feedValue = feedData;
+    });
+  }
 
   openSnackBar() {
     this.snackBar.open('Copied URL to clipboard', '', {
       duration: 2000,
     });
   }
-
-  ngOnInit(): void {}
 }
