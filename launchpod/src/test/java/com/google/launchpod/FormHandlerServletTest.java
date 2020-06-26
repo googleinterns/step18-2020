@@ -15,9 +15,11 @@
 package com.google.launchpod;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -56,9 +58,16 @@ public class FormHandlerServletTest extends Mockito {
     @Mock
     HttpServletResponse response;
 
+    @Mock 
+    XmlMapper xmlMapper = new XmlMapper(); 
+
+    private final String XML_NAME = "simple_bean.xml";
+    private final String NAME_INPUT = "name"; // TO-DO: verify key strings with Efrain 
+    private final String FILE_INPUT = "file";
     private final String TEST_NAME = "TEST_NAME";
     private final String TEST_FILE_URL = "TEST_FILE_URL";
     private final String EXPECTED_STRING = "EXPECTED_STRING";
+    private final String EMPTY_STRING = "EMPTY_STRING";
 
     @Before 
     public void setUp() throws Exception {
@@ -68,6 +77,7 @@ public class FormHandlerServletTest extends Mockito {
     @Test
     public void doPost() throws IOException {
 
+        // gets inputs from UI form
         when(request.getParameter("name")).thenReturn(TEST_NAME);
         when(request.getParameter("file")).thenReturn(TEST_FILE_URL);
 
@@ -79,8 +89,22 @@ public class FormHandlerServletTest extends Mockito {
         
         writer.flush();
         assertEquals(stringWriter.toString(), EXPECTED_STRING);
+
+        // store RSS feed URL
+        // store XML file to Google Cloud Storage
     }
 
-    // No tests for private methods getUploadedFileUrl or getParameter
+
+    @Test 
+    public void generateXMLFromJava() throws IOException {
+        xmlMapper.writeValue(new File(XML_NAME), new SimpleBean());
+        File file = new File(XML_NAME);
+        assertNotNull(file);
+    }
+
+    @Test
+    public void getUploadedObject() {
+        // create URL from file uploaded to page
+    }
     
 }
