@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 
-const FEED_URL = '/load-feed';
+const FEED_URL = '/load-result';
 
 @Injectable({
   providedIn: 'root'

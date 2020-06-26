@@ -9,7 +9,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class ResultPageComponent implements OnInit {
   // TODO: actually get url from backend
-  feedValue;
+  feedValue: string;
 
   constructor(private formHandlerService: FormHandlerService, public snackBar: MatSnackBar) { }
 
