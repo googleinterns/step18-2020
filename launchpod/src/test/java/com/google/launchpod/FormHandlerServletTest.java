@@ -86,12 +86,30 @@ public class FormHandlerServletTest extends Mockito {
     private static final String TEST_FILE_URL = "TEST_FILE_URL";
     private static final String TEST_MP3_LINK = "TEST_MP3_LINK";
     private static final long TEST_TIMESTAMP = System.currentTimeMillis();
-    private static final String TEST_XML_STRING = "TEST_XML_STRING";
+    private static final String TEST_XML_STRING = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"  +
+                       "<rss version=\"2.0\">" + 
+                       "  <channel>" +
+                       "    <language>en</language>"  +
+                       "    <itunes:author>User</itunes:author>" + 
+                       "    <title>" + name + "</title>" + 
+                       "    <item>" +
+                       "      <title>" + name + "</title>" + 
+                       "      <summary>This is episode 4</summary>" + 
+                       "      <description>This is episode 4</description>" + 
+                       "      <link>" + mp3Link +"</link>" +
+                       "      <enclosure url=\"" + mp3Link + "\" type=\"audio/mpeg\" length=\"185000\"/>" +
+                       "      <pubDate>Thu, 20 Apr 2020 04:20:00 +0800</pubDate>" +
+                       "      <itunes:author/>" + 
+                       "      <itunes:duration>03:05</itunes:duration>" + 
+                       "      <itunes:explicit>No</itunes:explicit>" + 
+                       "      <guid isPermaLink=\"false\">uhwefpoihEOUUHSFEOIwqkhdho-=</guid>" + 
+                       "    </item>" +
+                       "  </channel>" +
+                       "</rss>";
     private static final String EXPECTED_STRING = "EXPECTED_STRING";
     private static final String EMPTY_STRING = "";
 
     private static final Entity userFeedEntity = new Entity(USER_FEED);
-
 
 
     @Before 
