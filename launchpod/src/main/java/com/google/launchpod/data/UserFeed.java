@@ -5,11 +5,11 @@ import com.google.launchpod.servlets.FormHandlerServlet;
 
 public final class UserFeed{
 
-  private final String podcastTitle;
+  public final String podcastTitle;
   private final String email;
   private final String mp3Link;
   private final long timestamp;
-  public final String xmlString;
+  private final String xmlString;
 
   private UserFeed(String podcastTitle, String email, String mp3Link, long timestamp, String xmlString) {
     this.podcastTitle = podcastTitle;

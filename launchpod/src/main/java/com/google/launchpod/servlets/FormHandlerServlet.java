@@ -1,25 +1,25 @@
 package com.google.launchpod.servlets;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query.SortDirection;
-import com.google.appengine.repackaged.com.google.gson.Gson;
-import com.google.launchpod.data.UserFeed;
-import com.google.appengine.api.datastore.Query;
-
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
-import java.time.format.DateTimeFormatter;
-import java.time.LocalDateTime;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.repackaged.com.google.gson.Gson;
+import com.google.launchpod.data.UserFeed;
 
 @WebServlet("/rss-feed")
 public class FormHandlerServlet extends HttpServlet {
@@ -61,7 +61,7 @@ public class FormHandlerServlet extends HttpServlet {
   }
 
   /** Create XML string from given fields
-   *  @return 
+   *  @return xml String
    */
   private static String xmlString(String title, String mp3Link, String pubDate){
     //Set Default Values to title and mp3 if they are event null or empty
@@ -102,16 +102,25 @@ public class FormHandlerServlet extends HttpServlet {
     PreparedQuery results = datastore.prepare(query);
 
     List<UserFeed> userFeeds = new ArrayList<>();
+    List<String> userURLs = new ArrayList<>();
     for(Entity entity: results.asIterable()){
       if(entity.getProperty(EMAIL) == "123@example.com"){ // user log in info here
         userFeeds.add(UserFeed.fromEntity(entity));
+        userURLs.add(KeyFactory.keyToString(entity.getKey()));
       }
+    }
+    //check edge case if there happens to be no RSS feeds belonging to that specific user then display error message.
+    if(userFeeds.isEmpty()){
+      res.getWriter().println("<p>You have not created any RSS feeds</p>");
+      return;
     }
 
     res.setContentType("text/html");
-    //display all xml strings related to user logged in
-    for (UserFeed userfeed: userFeeds){
-      res.getWriter().println("<div><p>+" + userfeed.xmlString + "</p></div>");
+    //display all urls related to user logged in
+    for (int i = 0; i < userURLs.size(); i++){
+      res.getWriter().println("<div>");
+      res.getWriter().println("<p>" + userFeeds.get(i).podcastTitle + " URL: " + userURLs.get(i) + "</p>");
+      res.getWriter().println("</div>");
     }
   }
 }
