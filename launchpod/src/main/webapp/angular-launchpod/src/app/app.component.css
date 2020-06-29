@@ -1,9 +1,9 @@
 .center-page {
     left: 50%;
-    -ms-transform: translate(-50%, -50%);
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
 }
 
 .icons{
@@ -11,7 +11,7 @@
 }
 
 .logo{
-    height:50px;
+    height: 50px;
     width: 50px;
     
 }
@@ -32,7 +32,7 @@
 }
 
 .mat-nav-list a{
-    border-radius:0 50px 50px 0;
+    border-radius: 0 50px 50px 0;
     margin-top: 10px;
     padding-left: 10px;
     transition: 100ms;
@@ -50,9 +50,9 @@
 }
 
 .sidenav-container {
-    box-shadow:0 0 16px rgba(0,0,0,.28);
+    box-shadow: 0 0 16px rgba(0,0,0,.28);
     height: 100%;
-    -webkit-box-shadow:0 0 16px rgba(0,0,0,.28);
+    -webkit-box-shadow: 0 0 16px rgba(0,0,0,.28);
 }
 
 .sidenav .mat-toolbar {
