@@ -7,7 +7,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { CreateFormComponent } from './create-form/create-form.component';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
 import { LayoutModule } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MaterialModule } from './material/material.module';
@@ -28,7 +27,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     BrowserModule,
     ClipboardModule,
     FormsModule,
-    HttpClientModule,
     LayoutModule,
     MatButtonModule,
     MaterialModule,
