@@ -1,0 +1,9 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+handlers:
+- url: /
+  static_files: launchpod-step18-2020/index.html
+  upload: launchpod-step18-2020/index.html
+- url: /
+  static_dir: launchpod-step18-2020
