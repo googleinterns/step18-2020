@@ -23,7 +23,7 @@ import com.google.launchpod.data.UserFeed;
 
 @WebServlet("/rss-feed")
 public class FormHandlerServlet extends HttpServlet {
-  
+
   private static final long serialVersionUID = 1L;
 
   public static final String USER_FEED = "UserFeed";
@@ -36,44 +36,55 @@ public class FormHandlerServlet extends HttpServlet {
   public static final Gson GSON = new Gson();
 
   /**
-   *  request user inputs in form fields then create Entity and place in datastore
+   * request user inputs in form fields then create Entity and place in datastore
    */
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String mp3Link = req.getParameter(MP3LINK);
     long timestamp = System.currentTimeMillis();
-    //Create time
+    // Create time
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     LocalDateTime publishTime = LocalDateTime.now();
-    //Generate xml string
-    String xmlString = xmlString(podcastTitle, mp3Link, dateFormatter.format(publishTime));
 
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
     userFeedEntity.setProperty(EMAIL, "123@example.com");
     userFeedEntity.setProperty(MP3LINK, mp3Link);
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
+    String ID = KeyFactory.keyToString(userFeedEntity.getKey());
+
+    // Generate xml string
+    String xmlString = "";
+    try {
+      xmlString = xmlString(podcastTitle, mp3Link, dateFormatter.format(publishTime), ID);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     userFeedEntity.setProperty(XML_STRING ,xmlString);
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
   }
 
-  /** Create XML string from given fields
-   *  @return xml String
+  /**
+   * Create RSS XML string from given fields
+   * 
+   * @return xml String
+   * @throws Exception
    */
-  private static String xmlString(String title, String mp3Link, String pubDate){
+  private static String xmlString(String title, String mp3Link, String pubDate, String ID) throws Exception {
     //Set Default Values to title and mp3 if they are event null or empty
     if (title.isEmpty() || title == null){
-      title = "Podcast";
+      throw new Exception("There was no title inputted. Try again");
     }
     if (mp3Link.isEmpty() || mp3Link== null){
-      mp3Link = "None Listed";
+      throw new Exception("There was no MP3 link inputted. Try again");
     }
     String xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"  +
                        "<rss version=\"2.0\">" + 
                        "  <channel>" +
+                       "    <link>https://launchpod-step18-2020.appspot.com/?id=</link>" +
                        "    <language>en</language>"  +
                        "    <itunes:author>User</itunes:author>" + 
                        "    <title>" + title + "</title>" + 
@@ -97,6 +108,7 @@ public class FormHandlerServlet extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    res.setContentType("text/html");
     Query query = new Query("UserFeed").addSort(TIMESTAMP, SortDirection.ASCENDING);
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
@@ -114,12 +126,11 @@ public class FormHandlerServlet extends HttpServlet {
       res.getWriter().println("<p>You have not created any RSS feeds</p>");
       return;
     }
-
-    res.setContentType("text/html");
     //display all urls related to user logged in
     for (int i = 0; i < userURLs.size(); i++){
       res.getWriter().println("<div>");
-      res.getWriter().println("<p>" + userFeeds.get(i).podcastTitle + " URL: " + userURLs.get(i) + "</p>");
+      res.getWriter().println("<p>" + userFeeds.get(i).podcastTitle + 
+      "URL: <a href=\"https://launchpod-step18-2020.appspot.com/?id=" + userURLs.get(i) + "\">" + userURLs.get(i) + "</a></p>");
       res.getWriter().println("</div>");
     }
   }
