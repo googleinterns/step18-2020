@@ -58,7 +58,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 /** 
- * Runs unit tests for the FormHandlerServlet that contains doPost(), doGet(), and xmlString() functions.
+ * Runs unit tests for the FormHandlerServlet that contains doPost(), doGet(), and xmlString() methods.
 */
 @RunWith(JUnit4.class)
 public class FormHandlerServletTest extends Mockito {
@@ -81,7 +81,7 @@ public class FormHandlerServletTest extends Mockito {
 
     // keys
     private static final String USER_FEED = "UserFeed";
-    private static final String PODCAST_TITLE = "title"; // TO-DO: verify key strings with Efrain
+    private static final String PODCAST_TITLE = "title";
     private static final String XML_STRING = "xmlString";
     private static final String MP3_LINK = "mp3link"; // URL to existing MP3 file
     private static final String TIMESTAMP = "timestamp";
@@ -120,7 +120,6 @@ public class FormHandlerServletTest extends Mockito {
     private static final String TEST_EMAIL = "123@abc.com";
     private static final String TEST_INCORRECT_EMAIL = "123@cde.com";
     private static final String TEST_EMAIL_TWO = "456@abc.com";
-    private static final String EXPECTED_STRING = "EXPECTED_STRING";
     private static final String EMPTY_STRING = "";
 
     private static final UserFeed TEST_USER_FEED = new UserFeed(TEST_PODCAST_TITLE, TEST_EMAIL, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING);
