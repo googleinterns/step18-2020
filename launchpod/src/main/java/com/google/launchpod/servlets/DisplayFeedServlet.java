@@ -9,38 +9,35 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.launchpod.data.UserFeed;
 
 @WebServlet("/display-feed")
-public class DisplayFeedServlet extends HttpServlet{
+public class DisplayFeedServlet extends HttpServlet {
 
-  private static final long serialVersionUID = 1L;
-  private static final String ID = "id";
+    private static final long serialVersionUID = 1L;
+    private static final String ID = "id";
 
-  protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException{
-    res.setContentType("text/html");
-    //Get ID passed in request
-    String id = req.getParameter(ID);
-    Query query = new Query(FormHandlerServlet.USER_FEED).addSort(FormHandlerServlet.TIMESTAMP, SortDirection.ASCENDING);
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    PreparedQuery results = datastore.prepare(query);
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        res.setContentType("text/html");
+        // Get ID passed in request
+        String id = req.getParameter(ID);
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-    //Turn ID back into a key
-    Key desiredFeedKey = KeyFactory.stringToKey(id);
+        // Turn ID back into a key
+        Key desiredFeedKey = KeyFactory.stringToKey(id);
 
-    //Search datastore for matching key, then display its XML string
-    for(Entity entity: results.asIterable()){
-      if(entity.getKey() == desiredFeedKey){
-          UserFeed desiredUserFeed = UserFeed.fromEntity(entity);
-          res.getWriter().println("<p>" + desiredUserFeed.xmlString + "</p>");
-          return;
-      }
-    }
+        // Search datastore for matching key, then display its XML string
+        UserFeed desiredUserFeed;
+        try {
+            desiredUserFeed = UserFeed.fromEntity(datastore.get(desiredFeedKey));
+            res.getWriter().println("<p>" + desiredUserFeed.xmlString + "</p>");
+        } catch (EntityNotFoundException e) {
+            e.printStackTrace();
+            res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
+        }
+    return;
   }
 }
