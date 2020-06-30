@@ -58,6 +58,7 @@
         <configuration>
           <!-- TODO: set project ID. -->
           <deploy.projectId>launchpod-step18-2020</deploy.projectId>
+          <port>4200</port>
           <deploy.version>1</deploy.version>
         </configuration>
       </plugin>
