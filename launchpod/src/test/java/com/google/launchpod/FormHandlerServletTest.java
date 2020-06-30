@@ -124,7 +124,6 @@ public class FormHandlerServletTest extends Mockito {
 
     private static final UserFeed TEST_USER_FEED = new UserFeed(TEST_PODCAST_TITLE, TEST_EMAIL, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING);
 
-
     @Before 
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -276,7 +275,7 @@ public class FormHandlerServletTest extends Mockito {
         }
     }
 
-    // This test can only be run if xmlString() is public
+    // This test can only be run if xmlString() is public.
     @Test
     public void generateXmlString() {
         String xml = servlet.xmlString(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_PUBDATE);
