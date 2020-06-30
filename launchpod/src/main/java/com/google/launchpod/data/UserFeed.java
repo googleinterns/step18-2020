@@ -9,7 +9,7 @@ public final class UserFeed{
   private final String email;
   private final String mp3Link;
   private final long timestamp;
-  private final String xmlString;
+  public final String xmlString;
 
   private UserFeed(String podcastTitle, String email, String mp3Link, long timestamp, String xmlString) {
     this.podcastTitle = podcastTitle;
