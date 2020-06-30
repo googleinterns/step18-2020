@@ -1,0 +1,9 @@
+<div>
+    <h2>Here's Your New RSS Feed!</h2>
+    <mat-form-field appearance="fill">
+        <input matInput type='text' [(ngModel)]="feedValue" readonly>
+        <button title="Copy to clipboard" [cdkCopyToClipboard]="feedValue" (click)="openSnackBar()" mat-icon-button matSuffix>
+            <mat-icon>content_copy</mat-icon>
+        </button>
+    </mat-form-field>
+</div>
