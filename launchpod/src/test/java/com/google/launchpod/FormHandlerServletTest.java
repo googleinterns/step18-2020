@@ -333,11 +333,11 @@ public class FormHandlerServletTest extends Mockito {
     }
 
     /**
-     * Asserts that doGet() returns the correct URL when there are multiple entities in Datastore belonging to different users.
+     * Asserts that doGet() returns the correct URLs when there are multiple entities in Datastore belonging to different users.
      * @throws Exception
     */
     @Test
-    public void doGetReturnsOneUrlForOneUserMultipleEntities() throws Exception {
+    public void doGetReturnsMultipleUrlsForOneUserMultipleEntities() throws Exception {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
         Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL);
         Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL_TWO);
