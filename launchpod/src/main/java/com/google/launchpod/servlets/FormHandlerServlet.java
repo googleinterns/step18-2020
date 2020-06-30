@@ -88,7 +88,7 @@ public class FormHandlerServlet extends HttpServlet {
     String xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"  +
                        "<rss version=\"2.0\">" + 
                        "  <channel>" +
-                       "    <link>https://launchpod-step18-2020.appspot.com/?id=</link>" +
+                       "    <link>https://launchpod-step18-2020.appspot.com/?id=" + ID + "</link>" +
                        "    <language>en</language>"  +
                        "    <itunes:author>User</itunes:author>" + 
                        "    <title>" + title + "</title>" + 
