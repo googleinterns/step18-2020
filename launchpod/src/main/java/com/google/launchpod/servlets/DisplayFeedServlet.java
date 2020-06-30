@@ -20,6 +20,7 @@ public class DisplayFeedServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final String ID = "id";
 
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         res.setContentType("text/html");
         // Get ID passed in request

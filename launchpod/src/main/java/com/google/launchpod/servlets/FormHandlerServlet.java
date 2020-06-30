@@ -42,6 +42,9 @@ public class FormHandlerServlet extends HttpServlet {
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String mp3Link = req.getParameter(MP3LINK);
+    if((podcastTitle.isEmpty() || podcastTitle == null) || (mp3Link.isEmpty() || mp3Link == null)){
+      throw new IOException("No Title or MP3 link inputted, please try again.");
+    }
     long timestamp = System.currentTimeMillis();
     // Create time
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
@@ -56,12 +59,12 @@ public class FormHandlerServlet extends HttpServlet {
 
     // Generate xml string
     String xmlString = "";
-    try {
+    try{
       xmlString = xmlString(podcastTitle, mp3Link, dateFormatter.format(publishTime), ID);
-    } catch (Exception e) {
+      userFeedEntity.setProperty(XML_STRING ,xmlString);
+    }catch(IOException e){
       e.printStackTrace();
     }
-    userFeedEntity.setProperty(XML_STRING ,xmlString);
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
@@ -71,15 +74,16 @@ public class FormHandlerServlet extends HttpServlet {
    * Create RSS XML string from given fields
    * 
    * @return xml String
+   * @throws IOException
    * @throws Exception
    */
-  private static String xmlString(String title, String mp3Link, String pubDate, String ID) throws Exception {
+  private static String xmlString(String title, String mp3Link, String pubDate, String ID) throws IOException {
     //Set Default Values to title and mp3 if they are event null or empty
     if (title.isEmpty() || title == null){
-      throw new Exception("There was no title inputted. Try again");
+      throw new IOException("Title field is empty, try again.");
     }
     if (mp3Link.isEmpty() || mp3Link== null){
-      throw new Exception("There was no MP3 link inputted. Try again");
+      throw new IOException("MP3 Link field is empty, try again.");
     }
     String xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"  +
                        "<rss version=\"2.0\">" + 
