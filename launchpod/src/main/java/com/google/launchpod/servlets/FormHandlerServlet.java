@@ -59,8 +59,6 @@ public class FormHandlerServlet extends HttpServlet {
     userFeedEntity.setProperty(MP3LINK, mp3Link);
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
     userFeedEntity.setProperty(PUB_DATE, pubDate);
-    //String ID = KeyFactory.keyToString(userFeedEntity.getKey());
-    //TODO: add ID to user feed entity
 
     // Generate xml string
     String xmlString = "";
@@ -73,6 +71,12 @@ public class FormHandlerServlet extends HttpServlet {
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
+
+    //return accessible link to user 
+    String ID = Long.toString(userFeedEntity.getKey().getId());
+    String rssLink = "https://launchpod-step18-2020.appspot.com?id=" + ID;
+    res.setContentType("text/html");
+    res.getWriter().println("<a href=\"" + rssLink + "\">" + rssLink + "</a>");
   }
 
   /**
@@ -85,36 +89,6 @@ public class FormHandlerServlet extends HttpServlet {
   private static String xmlString(Entity userFeedEntity) throws IOException {
     XmlMapper xmlMapper = new XmlMapper();
     String xmlString = xmlMapper.writeValueAsString(UserFeed.fromEntity(userFeedEntity));
-
     return xmlString;
-  }
-
-  @Override
-  public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-    res.setContentType("text/html");
-    Query query = new Query(USER_FEED).addSort(TIMESTAMP, SortDirection.ASCENDING);
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    PreparedQuery results = datastore.prepare(query);
-
-    List<UserFeed> userFeeds = new ArrayList<>();
-    List<String> userURLs = new ArrayList<>();
-    for(Entity entity: results.asIterable()){
-      if(entity.getProperty(EMAIL) == "123@example.com"){ // user log in info here
-        userFeeds.add(UserFeed.fromEntity(entity));
-        userURLs.add(KeyFactory.keyToString(entity.getKey()));
-      }
-    }
-    //check edge case if there happens to be no RSS feeds belonging to that specific user then display error message.
-    if(userFeeds.isEmpty()){
-      res.getWriter().println("<p>You have not created any RSS feeds</p>");
-      return;
-    }
-    //display all urls related to user logged in
-    for (int i = 0; i < userURLs.size(); i++){
-      res.getWriter().println("<div>");
-      res.getWriter().println("<p>" + userFeeds.get(i).podcastTitle + 
-      "URL: <a href=\"https://launchpod-step18-2020.appspot.com/?id=" + userURLs.get(i) + "\">" + userURLs.get(i) + "</a></p>");
-      res.getWriter().println("</div>");
-    }
   }
 }
