@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -32,6 +33,7 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String TIMESTAMP = "timestamp";
   public static final String MP3LINK = "mp3link";
   public static final String XML_STRING = "xmlString";
+  public static final String PUB_DATE= "pubDate";
 
   public static final Gson GSON = new Gson();
 
@@ -49,18 +51,21 @@ public class FormHandlerServlet extends HttpServlet {
     // Create time
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     LocalDateTime publishTime = LocalDateTime.now();
+    String pubDate = dateFormatter.format(publishTime);
 
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
     userFeedEntity.setProperty(EMAIL, "123@example.com");
     userFeedEntity.setProperty(MP3LINK, mp3Link);
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
-    String ID = KeyFactory.keyToString(userFeedEntity.getKey());
+    userFeedEntity.setProperty(PUB_DATE, pubDate);
+    //String ID = KeyFactory.keyToString(userFeedEntity.getKey());
+    //TODO: add ID to user feed entity
 
     // Generate xml string
     String xmlString = "";
     try{
-      xmlString = xmlString(podcastTitle, mp3Link, dateFormatter.format(publishTime), ID);
+      xmlString = xmlString(userFeedEntity);
       userFeedEntity.setProperty(XML_STRING ,xmlString);
     }catch(IOException e){
       e.printStackTrace();
@@ -77,35 +82,9 @@ public class FormHandlerServlet extends HttpServlet {
    * @throws IOException
    * @throws Exception
    */
-  private static String xmlString(String title, String mp3Link, String pubDate, String ID) throws IOException {
-    //Set Default Values to title and mp3 if they are event null or empty
-    if (title.isEmpty() || title == null){
-      throw new IOException("Title field is empty, try again.");
-    }
-    if (mp3Link.isEmpty() || mp3Link== null){
-      throw new IOException("MP3 Link field is empty, try again.");
-    }
-    String xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"  +
-                       "<rss version=\"2.0\">" + 
-                       "  <channel>" +
-                       "    <link>https://launchpod-step18-2020.appspot.com/?id=" + ID + "</link>" +
-                       "    <language>en</language>"  +
-                       "    <itunes:author>User</itunes:author>" + 
-                       "    <title>" + title + "</title>" + 
-                       "    <item>" +
-                       "      <title>" + title + "</title>" + 
-                       "      <summary>This is a Test</summary>" + 
-                       "      <description>This is a Test</description>" + 
-                       "      <link>" + mp3Link +"</link>" +
-                       "      <enclosure url=\"" + mp3Link + "\" type=\"audio/mpeg\" length=\"185000\"/>" +
-                       "      <pubDate>" + pubDate + "</pubDate>" +
-                       "      <itunes:author/>" + 
-                       "      <itunes:duration>03:05</itunes:duration>" + 
-                       "      <itunes:explicit>No</itunes:explicit>" + 
-                       "      <guid isPermaLink=\"false\">uhwefpoihEOUUHSFEOIwqkhdho-=</guid>" + 
-                       "    </item>" + 
-                       "  </channel>" + 
-                       "</rss>";
+  private static String xmlString(Entity userFeedEntity) throws IOException {
+    XmlMapper xmlMapper = new XmlMapper();
+    String xmlString = xmlMapper.writeValueAsString(UserFeed.fromEntity(userFeedEntity));
 
     return xmlString;
   }
@@ -113,7 +92,7 @@ public class FormHandlerServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
     res.setContentType("text/html");
-    Query query = new Query("UserFeed").addSort(TIMESTAMP, SortDirection.ASCENDING);
+    Query query = new Query(USER_FEED).addSort(TIMESTAMP, SortDirection.ASCENDING);
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
 

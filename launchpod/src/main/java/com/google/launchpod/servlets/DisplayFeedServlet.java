@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.EntityNotFoundException;
@@ -34,7 +35,9 @@ public class DisplayFeedServlet extends HttpServlet {
         UserFeed desiredUserFeed;
         try {
             desiredUserFeed = UserFeed.fromEntity(datastore.get(desiredFeedKey));
-            res.getWriter().println("<p>" + desiredUserFeed.xmlString + "</p>");
+            XmlMapper xmlMapper = new XmlMapper();
+            String xmlString = xmlMapper.writeValueAsString(desiredUserFeed);
+            res.getWriter().println("<p>" + xmlString + "</p>");
         } catch (EntityNotFoundException e) {
             e.printStackTrace();
             res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
