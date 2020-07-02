@@ -10,7 +10,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class ResultPageComponent implements OnInit {
 
-  // data_url = '/load-result';
   feedValue: string;
 
   constructor(private formHandlerService: FormHandlerService, private http: HttpClient, public snackBar: MatSnackBar) { }
@@ -21,12 +20,6 @@ export class ResultPageComponent implements OnInit {
         console.log(feedData);
         this.feedValue = feedData;
       });
-
-    // this.http.get(data_url, { responseType: 'text' })
-    //   .subscribe((feedData) => {
-    //     console.log(feedData);
-    //     this.feedValue = feedData;
-    // });
   }
 
   openSnackBar() {
