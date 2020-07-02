@@ -18,4 +18,8 @@ export class FormHandlerService {
   getFeedUrl(): Observable<string>{
     return this.http.get(FEED_URL,{ responseType: 'text' });
   }
+
+  postFormData(formData): Observable<any> {
+    return this.http.post(FEED_URL, formData);
+  }
 }

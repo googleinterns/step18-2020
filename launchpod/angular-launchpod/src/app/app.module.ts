@@ -12,9 +12,11 @@ import { LayoutModule } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MaterialModule } from './material/material.module';
 import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';import { ResultPageComponent } from './result-page/result-page.component'
+import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { ReactiveFormsModule } from '@angular/forms';
+import { ResultPageComponent } from './result-page/result-page.component'
 
 @NgModule({
   declarations: [
@@ -35,7 +37,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatIconModule,
     MatListModule,
     MatSidenavModule,
-    MatToolbarModule
+    MatToolbarModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

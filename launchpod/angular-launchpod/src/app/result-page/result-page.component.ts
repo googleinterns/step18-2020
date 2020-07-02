@@ -1,5 +1,6 @@
 import { FormHandlerService } from '../form-handler.service';
 import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -8,18 +9,24 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./result-page.component.css']
 })
 export class ResultPageComponent implements OnInit {
-  // TODO: actually get url from backend
+
+  // data_url = '/load-result';
   feedValue: string;
 
-  constructor(private formHandlerService: FormHandlerService, public snackBar: MatSnackBar) { }
+  constructor(private formHandlerService: FormHandlerService, private http: HttpClient, public snackBar: MatSnackBar) { }
 
   ngOnInit(): void {
     this.formHandlerService.getFeedUrl()
       .subscribe((feedData) => {
-        console.log('hello');
         console.log(feedData);
         this.feedValue = feedData;
-    });
+      });
+
+    // this.http.get(data_url, { responseType: 'text' })
+    //   .subscribe((feedData) => {
+    //     console.log(feedData);
+    //     this.feedValue = feedData;
+    // });
   }
 
   openSnackBar() {

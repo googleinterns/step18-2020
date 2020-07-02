@@ -14,6 +14,9 @@
 
 package com.google.launchpod.servlets;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -27,5 +30,20 @@ public class DataServlet extends HttpServlet {
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType("text/html;");
     response.getWriter().println("launchpod-step18-2020.appspot.com");
+  }
+
+  @Override
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String title = request.getParameter("title");
+    String mp3Link = request.getParameter("mp3Link");
+
+    // Create entity with the comment from the input form.
+    Entity feedEntity = new Entity("Feed");
+    feedEntity.setProperty("title", title);
+    feedEntity.setProperty("mp3Link", mp3Link);
+
+    // Add the entity to the datastore.
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    datastore.put(feedEntity);
   }
 }

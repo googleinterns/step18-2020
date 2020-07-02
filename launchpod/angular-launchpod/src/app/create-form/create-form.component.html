@@ -2,17 +2,17 @@
     <h2>Enter the Name of Your Podcast</h2>
     <mat-form-field appearance="outline">
         <mat-label>Podcast Title</mat-label>
-        <input matInput name="title" placeholder="Ex. This American Life">
+        <input matInput name="title" id="title" placeholder="Ex. This American Life">
     </mat-form-field>
     <br />
 
     <h2>Provide Your mp3 Link</h2>
     <mat-form-field appearance="outline">
         <mat-label>mp3 Link</mat-label>
-        <input matInput name="mp3Link" placeholder="Paste the mp3 link here">
+        <input matInput name="mp3Link" id="mp3Link" placeholder="Paste the mp3 link here">
     </mat-form-field>
     <br />
 
-    <button mat-raised-button (click)="getData()" routerLink="/result">Create RSS Feed</button>
+    <button mat-raised-button type="button" routerLink="/result" (click)="postFormData()">Create RSS Feed</button>
     <p id="message"></p>
 </form>
