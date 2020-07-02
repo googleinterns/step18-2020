@@ -19,6 +19,9 @@ export class FormHandlerService {
     return this.http.get(FEED_URL,{ responseType: 'text' });
   }
 
+  /**
+   * Post form inputs to back-end
+   */
   postFormData(formData): Observable<any> {
     return this.http.post(FEED_URL, formData);
   }
