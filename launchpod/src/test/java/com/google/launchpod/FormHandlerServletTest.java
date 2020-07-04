@@ -20,13 +20,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.security.interfaces.DSAKey;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.google.launchpod.servlets.FormHandlerServlet;
 import com.google.launchpod.data.UserFeed;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -86,6 +90,7 @@ public class FormHandlerServletTest extends Mockito {
     private static final String MP3_LINK = "mp3link"; // URL to existing MP3 file
     private static final String TIMESTAMP = "timestamp";
     private static final String EMAIL = "email"; 
+    private static final String ID = "id";
 
     private static final String TEST_PODCAST_TITLE = "TEST_PODCAST_TITLE";
     private static final String TEST_EMPTY_PODCAST_TITLE = "";
@@ -96,31 +101,13 @@ public class FormHandlerServletTest extends Mockito {
     private static final long TEST_TIMESTAMP = System.currentTimeMillis();
     private static final String TEST_ID = "123456";
     private static final String TEST_ID_TWO = "789012";
-    private static final String TEST_XML_STRING = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"  +
-                       "<rss version=\"2.0\">" + 
-                       "  <channel>" +
-                       "    <language>en</language>"  +
-                       "    <itunes:author>User</itunes:author>" + 
-                       "    <title>" + TEST_PODCAST_TITLE + "</title>" + 
-                       "    <item>" +
-                       "      <title>" + TEST_PODCAST_TITLE + "</title>" + 
-                       "      <summary>This is episode 4</summary>" + 
-                       "      <description>This is episode 4</description>" + 
-                       "      <link>" + TEST_MP3_LINK +"</link>" +
-                       "      <enclosure url=\"" + TEST_MP3_LINK + "\" type=\"audio/mpeg\" length=\"185000\"/>" +
-                       "      <pubDate>Thu, 20 Apr 2020 04:20:00 +0800</pubDate>" +
-                       "      <itunes:author/>" + 
-                       "      <itunes:duration>03:05</itunes:duration>" + 
-                       "      <itunes:explicit>No</itunes:explicit>" + 
-                       "      <guid isPermaLink=\"false\">uhwefpoihEOUUHSFEOIwqkhdho-=</guid>" + 
-                       "    </item>" +
-                       "  </channel>" +
-                       "</rss>";
+    private static final String TEST_XML_STRING;
     private static final String TEST_PUBDATE = "2020/06/26 01:32:06";
     private static final String TEST_EMAIL = "123@abc.com";
     private static final String TEST_INCORRECT_EMAIL = "123@cde.com";
     private static final String TEST_EMAIL_TWO = "456@abc.com";
     private static final String EMPTY_STRING = "";
+    private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com?id=";
 
     private static final UserFeed TEST_USER_FEED = new UserFeed(TEST_PODCAST_TITLE, TEST_EMAIL, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING);
 
@@ -133,15 +120,6 @@ public class FormHandlerServletTest extends Mockito {
     @After 
     public void tearDown() {
       helper.tearDown();
-    }
-
-    /**
-     * Creates a test DatastoreService with two test entities from two different users.
-    */
-    private void setUpTestData() {
-        DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-        ds.put(makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL));
-        ds.put(makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL_TWO));
     }
 
     /**
@@ -166,33 +144,58 @@ public class FormHandlerServletTest extends Mockito {
     }
 
     /**
-     * Asserts that doPost() takes in form inputs from client and successfully stores that information in a Datastore entity.
-     * @throws Exception
+     * Create RSS XML string given a user feed entity.
+     * @return xml String
+     * @throws IOException
+    */
+    private static String xmlString(Entity userFeedEntity) throws IOException {
+        XmlMapper xmlMapper = new XmlMapper();
+        String xmlString = xmlMapper.writeValueAsString(UserFeed.fromEntity(userFeedEntity));
+        return xmlString;
+    }
+
+    /**
+     * Asserts that doPost() takes in form inputs from client, successfully stores that information in a Datastore entity, 
+     * and returns a URL link to the generated RSS feed.
+     * @return URL link to the generated RSS Feed
+     * @throws IOException
     */
     @Test
-    public void doPostStoresCorrectFormInput() throws Exception {
+    public void doPostStoresCorrectFormInputReturnsCorrectUrl() throws IOException {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
         when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
         when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
+
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter writer = new PrintWriter(stringWriter);
+        when(response.getWriter()).thenReturn(writer);
 
         servlet.doPost(request, response);
     
         assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
 
         Query query = new Query("UserFeed");
-        PreparedQuery results = ds.prepare(query);
-        for (Entity entity : results.asIterable()) {
-            assertEquals(entity.getProperty(PODCAST_TITLE), TEST_PODCAST_TITLE);
-            assertEquals(entity.getProperty(MP3_LINK), TEST_MP3_LINK);
-        }
+        Entity entity = ds.prepare(query).asSingleEntity();
+
+        assertEquals(entity.getProperty(PODCAST_TITLE), TEST_PODCAST_TITLE);
+        assertEquals(entity.getProperty(MP3_LINK), TEST_MP3_LINK);
+        TEST_XML_STRING = xmlString(entity);
+        assertEquals(entity.getProperty(XML_STRING), TEST_XML_STRING);
+
+        String id = Long.toString(entity.getKey().getId());
+        String rssLink = BASE_URL + id;
+
+        verify(response, atLeast(1)).setContentType("text/html");
+        String expectedUrl = "<a href=\"" + rssLink + "\">" + rssLink + "</a>";
+        assertEquals(expectedUrl, stringWriter.toString());
     }
 
     /**
-     * Expects doPost() to throw an Exception when the title field is empty.
-     * @throws Exception
+     * Expects doPost() to throw an IOException when the title field is empty.
+     * @throws IOException
     */
     @Test 
-    public void doPostFormInputEmptyTitle() throws Exception {
+    public void doPostFormInputEmptyTitle() throws IOException {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
         when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_EMPTY_PODCAST_TITLE);
         when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
@@ -203,18 +206,17 @@ public class FormHandlerServletTest extends Mockito {
 
         Query query = new Query(USER_FEED);
         PreparedQuery results = ds.prepare(query);
-        for (Entity entity : results.asIterable()) {
-            thrown.expect(Exception.class);
-            thrown.expectMessage("There was no title inputted. Try again");
-        }
+        Entity entity = ds.prepare(query).asSingleEntity();
+        thrown.expect(IOException.class);
+        thrown.expectMessage("There was no title inputted. Try again");
     }
 
     /**
-     * Expects doPost() to throw an Exception when the title field is null.
-     * @throws Exception
+     * Expects doPost() to throw an IOException when the title field is null.
+     * @throws IOException
     */
     @Test 
-    public void doPostFormInputNullTitle() throws Exception {
+    public void doPostFormInputNullTitle() throws IOException {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
         when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_NULL_PODCAST_TITLE);
         when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
@@ -224,19 +226,17 @@ public class FormHandlerServletTest extends Mockito {
         assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
 
         Query query = new Query(USER_FEED);
-        PreparedQuery results = ds.prepare(query);
-        for (Entity entity : results.asIterable()) {
-            thrown.expect(Exception.class);
-            thrown.expectMessage("There was no title inputted. Try again");
-        }
+        Entity entity = ds.prepare(query).asSingleEntity();
+        thrown.expect(IOException.class);
+        thrown.expectMessage("There was no title inputted. Try again");
     }
 
     /**
-     * Expects doPost() to throw an Exception when the MP3 link field is empty.
-     * @throws Exception
+     * Expects doPost() to throw an IOException when the MP3 link field is empty.
+     * @throws IOException
     */
     @Test 
-    public void doPostFormInputEmptyMp3Link() throws Exception {
+    public void doPostFormInputEmptyMp3Link() throws IOException {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
         when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
         when(request.getParameter(MP3_LINK)).thenReturn(TEST_EMPTY_MP3_LINK);
@@ -247,18 +247,17 @@ public class FormHandlerServletTest extends Mockito {
 
         Query query = new Query(USER_FEED);
         PreparedQuery results = ds.prepare(query);
-        for (Entity entity : results.asIterable()) {
-            thrown.expect(Exception.class);
-            thrown.expectMessage("There was no MP3 link inputted. Try again");
-        }
+        Entity entity = ds.prepare(query).asSingleEntity();
+        thrown.expect(IOException.class);
+        thrown.expectMessage("There was no MP3 link inputted. Try again");
     }
 
     /**
-     * Expects doPost() to throw an Exception when the MP3 link field is null.
-     * @throws Exception
+     * Expects doPost() to throw an IOException when the MP3 link field is null.
+     * @throws IOException
     */
     @Test
-    public void doPostFormInputNullMp3Link() throws Exception {
+    public void doPostFormInputNullMp3Link() throws IOException {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
         when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
         when(request.getParameter(MP3_LINK)).thenReturn(TEST_NULL_MP3_LINK);
@@ -268,50 +267,18 @@ public class FormHandlerServletTest extends Mockito {
         assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
 
         Query query = new Query(USER_FEED);
-        PreparedQuery results = ds.prepare(query);
-        for (Entity entity : results.asIterable()) {
-            thrown.expect(Exception.class);
-            thrown.expectMessage("There was no MP3 link inputted. Try again");
-        }
-    }
-
-    // This test can only be run if xmlString() is public.
-    @Test
-    public void generateXmlString() {
-        String xml = servlet.xmlString(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_PUBDATE);
-        assertNotNull(xml);
-        assertEquals(xml, TEST_XML_STRING);
+        Entity entity = ds.prepare(query).asSingleEntity();
+        thrown.expect(IOException.class);
+        thrown.expectMessage("There was no MP3 link inputted. Try again");
     }
 
     /**
-     * Asserts that doGet() returns correct URL when there's only one entity in Datastore period.
-     * @throws Exception
+     * Asserts that doGet() returns correct XML string when given an entity ID.
+     * @return XML string 
+     * @throws IOException
     */
     @Test
-    public void doGetReturnsOneUrlForOneUserOneEntity() throws Exception {
-        DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-        Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL);
-        ds.put(entity);
-        String id = KeyFactory.keyToString(entity.getKey());
-        
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
-
-        servlet.doGet(request, response);
-        
-        verify(response, atLeast(1)).setContentType("text/html");
-        writer.flush();
-        String testUrl = createUrl(TEST_PODCAST_TITLE, id);
-        assertEquals(stringWriter.toString(), testUrl); // only one URL in Datastore
-    }
-
-    /**
-     * Asserts that doGet() returns correct URLs when there are multiple entities in Datastore belonging to the same user.
-     * @throws Exception
-    */
-    @Test
-    public void doGetReturnsMultipleUrlsForOneUser() throws Exception {
+    public void doGetReturnsCorrectXmlString() throws IOException {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
         Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL);
         Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL);
@@ -319,54 +286,38 @@ public class FormHandlerServletTest extends Mockito {
         String idTwo = KeyFactory.keyToString(entityTwo.getKey());
         ds.put(entity);
         ds.put(entityTwo);
-        
+
+        when(request.getParameter(ID)).thenReturn(id);
+
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);
         when(response.getWriter()).thenReturn(writer);
 
         servlet.doGet(request, response);
-        
+
+        TEST_XML_STRING = xmlString(entity);
+
         verify(response, atLeast(1)).setContentType("text/html");
         writer.flush();
-        String testUrls = createUrl(TEST_PODCAST_TITLE, id) + createUrl(TEST_PODCAST_TITLE, idTwo);
-        assertEquals(stringWriter.toString(), testUrls);
+        assertEquals(stringWriter.toString(), "<p>" + TEST_XML_STRING + "</p>");
     }
 
     /**
-     * Asserts that doGet() returns the correct URLs when there are multiple entities in Datastore belonging to different users.
-     * @throws Exception
+     * Expects that doGet() returns an error message when an entity with request id does not exist in Datastore.
+     * @return invalid link message
+     * @throws IOException
     */
     @Test
-    public void doGetReturnsMultipleUrlsForOneUserMultipleEntities() throws Exception {
+    public void doGetEntityNotFound() throws IOException {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
         Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL);
-        Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL_TWO);
+        Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL);
         String id = KeyFactory.keyToString(entity.getKey());
         String idTwo = KeyFactory.keyToString(entityTwo.getKey());
         ds.put(entity);
         ds.put(entityTwo);
-        
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
 
-        servlet.doGet(request, response);
-        
-        verify(response, atLeast(1)).setContentType("text/html");
-        writer.flush();
-        String testUrls = createUrl(TEST_PODCAST_TITLE, id) + createUrl(TEST_PODCAST_TITLE, idTwo);
-        assertEquals(stringWriter.toString(), testUrls);
-    }
-
-    /**
-     * Asserts that doGet() returns an error message when the request contains the incorrect user address.
-     * @throws Exception
-    */
-    @Test
-    public void doGetReturnsErrorMsgForIncorrectEmailAddress() throws Exception {
-        setUpTestData();
-
-        when(request.getParameter(EMAIL)).thenReturn(TEST_INCORRECT_EMAIL);
+        when(request.getParameter(ID)).thenReturn(id);
 
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);
@@ -376,35 +327,15 @@ public class FormHandlerServletTest extends Mockito {
 
         verify(response, atLeast(1)).setContentType("text/html");
         writer.flush();
-        assertEquals(stringWriter.toString(), "You have not created any RSS feeds.");
-    }
-    
-    /**
-     * Asserts that doGet() returns an error message when there are no entities in Datastore belonging to the user.
-     * @throws Exception
-    */
-    @Test 
-    public void doGetReturnsErrorMsgForNoEntitiesforUser() throws Exception {
-        setUpTestData();
-
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
-
-        servlet.doGet(request, response);
-
-        verify(response, atLeast(1)).setContentType("text/html");
-        writer.flush();
-        assertEquals(stringWriter.toString(), "You have not created any RSS feeds.");
+        assertEquals("<p>Sorry. This is not a valid link.</p>", stringWriter.toString());
     }
 
-    // This test is the same as the one above because the cases of no entities for the user and no entities period in datastore have the same output. in this case, should I keep both tests just to keep track of what cases I've covered or should I just keep one?
     /**
      * Asserts that doGet() returns an error message when there are no entities in Datastore period.
-     * @throws Exception
+     * @throws IOException
     */
     @Test
-    public void doGetReturnsErrorMsgForNoEntitiesInDatastore() {
+    public void doGetReturnsErrorMsgForNoEntitiesInDatastore() throws IOException {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 
         StringWriter stringWriter = new StringWriter();
