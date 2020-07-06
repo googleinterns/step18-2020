@@ -7,7 +7,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class RSS {
     
   @JacksonXmlProperty
-  private final Channel channel;
+  private Channel channel;
 
   public RSS(String podcastTitle, String mp3Link, String pubDate){
     this.channel = new Channel(podcastTitle, mp3Link, pubDate);

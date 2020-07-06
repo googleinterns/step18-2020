@@ -7,16 +7,16 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Item {
   
   @JacksonXmlProperty
-  private final String title;
+  private String title;
 
   @JacksonXmlProperty
-  private final String link;
+  private String link;
 
   @JacksonXmlProperty
-  private final String description;
+  private String description;
 
   @JacksonXmlProperty
-  private final String pubDate;
+  private String pubDate;
 
   public Item(String title, String link, String pubDate){
     this.title = title;

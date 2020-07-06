@@ -4,22 +4,22 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement(localName = "channel")
-public final class Channel {
+public class Channel {
 
   @JacksonXmlProperty
-  private final String title = "Launchpod";
+  private String title = "Launchpod";
 
   @JacksonXmlProperty
-  private final String link = "https://launchpod-step18-2020.appspot.com";
+  private String link = "https://launchpod-step18-2020.appspot.com";
 
   @JacksonXmlProperty
-  private final String language = "en";
+  private String language = "en";
 
   @JacksonXmlProperty
-  private final String description = "Launchpod generated RSS";
+  private String description = "Launchpod generated RSS";
 
   @JacksonXmlProperty
-  private final Item item;
+  private Item item;
 
   public Channel(String podcastTitle, String mp3Link, String pubDate){
     this.item = new Item(podcastTitle, mp3Link, pubDate);
