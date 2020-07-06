@@ -1,17 +1,18 @@
 package com.google.launchpod.data;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.appengine.api.datastore.Entity;
 import com.google.launchpod.servlets.FormHandlerServlet;
 
 public final class UserFeed{
 
-  @JacksonXmlProperty
-  private final RSS rss;
+  private final String podcastTitle;
+  private final String mp3Link;
+  private final String pubDate;
 
   private UserFeed(String podcastTitle, String mp3Link, String pubDate) {
-    this.rss = new RSS(podcastTitle, mp3Link, pubDate);
+    this.podcastTitle = podcastTitle;
+    this.mp3Link = mp3Link;
+    this.pubDate = pubDate;
   }
   /** Create UserFeed Object from Entity
    *  @param entity : entity that is being used to create user feed object
@@ -23,5 +24,17 @@ public final class UserFeed{
     String pubDate = (String) entity.getProperty(FormHandlerServlet.PUB_DATE);
 
     return new UserFeed(podcastTitle, mp3Link, pubDate);
+  }
+
+  public String getTitle(){
+    return this.podcastTitle;
+  }
+
+  public String getLink(){
+    return this.mp3Link;
+  }
+
+  public String getPubDate(){
+    return this.pubDate;
   }
 }
