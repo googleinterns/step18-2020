@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {map} from 'rxjs/operators';
 
-const FEED_URL = '/load-result';
+const FEED_URL = '/rss-feed';
 
 @Injectable({
   providedIn: 'root'

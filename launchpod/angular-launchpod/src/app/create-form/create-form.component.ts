@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { FormHandlerService } from '../form-handler.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpParams } from '@angular/common/http';
 
 @Component({
   selector: 'app-create-form',
@@ -11,10 +11,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 })
 
 export class CreateFormComponent implements OnInit {
-  
-  data_url = '/load-result';
 
-  constructor(private formHandlerService: FormHandlerService, private http: HttpClient) {}
+  constructor(private formHandlerService: FormHandlerService) {}
 
   ngOnInit(): void {}
 

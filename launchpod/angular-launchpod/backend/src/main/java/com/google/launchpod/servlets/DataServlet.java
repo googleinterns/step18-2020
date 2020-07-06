@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /** Servlet that returns some example content. */
-@WebServlet("/load-result")
+@WebServlet("/rss-feed")
 public class DataServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -34,16 +34,6 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String title = request.getParameter("title");
-    String mp3Link = request.getParameter("mp3Link");
-
-    // Create entity with the comment from the input form.
-    Entity feedEntity = new Entity("Feed");
-    feedEntity.setProperty("title", title);
-    feedEntity.setProperty("mp3Link", mp3Link);
-
-    // Add the entity to the datastore.
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    datastore.put(feedEntity);
+    // TODO: implement this method in form handler servlet
   }
 }
