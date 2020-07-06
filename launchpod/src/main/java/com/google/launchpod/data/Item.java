@@ -13,15 +13,14 @@ public class Item {
   private String link;
 
   @JacksonXmlProperty
-  private String description;
+  private String description = "Episode 1";
 
   @JacksonXmlProperty
   private String pubDate;
 
-  public Item(String title, String link, String pubDate){
-    this.title = title;
-    this.link = link;
-    this.description = "Episode 1";
+  public Item(String podcastTitle, String mp3Link, String pubDate){
+    this.title = podcastTitle;
+    this.link = mp3Link;
     this.pubDate = pubDate;
   }
 }

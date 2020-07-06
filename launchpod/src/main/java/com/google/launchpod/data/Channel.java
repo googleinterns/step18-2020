@@ -1,5 +1,10 @@
 package com.google.launchpod.data;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -17,11 +22,12 @@ public class Channel {
 
   @JacksonXmlProperty
   private String description = "Launchpod generated RSS";
-
+  
+  @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
-  private Item item;
+  private List item;
 
   public Channel(String podcastTitle, String mp3Link, String pubDate){
-    this.item = new Item(podcastTitle, mp3Link, pubDate);
+    this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, mp3Link, pubDate)));
   }    
 }
