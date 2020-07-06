@@ -9,8 +9,8 @@ public class Item {
   @JacksonXmlProperty
   private final String title;
 
-  @JacksonXmlProperty(localName = "link")
-  private final String mp3Link;
+  @JacksonXmlProperty
+  private final String link;
 
   @JacksonXmlProperty
   private final String description;
@@ -18,9 +18,9 @@ public class Item {
   @JacksonXmlProperty
   private final String pubDate;
 
-  public Item(String title, String mp3Link, String pubDate){
+  public Item(String title, String link, String pubDate){
     this.title = title;
-    this.mp3Link = mp3Link;
+    this.link = link;
     this.description = "Episode 1";
     this.pubDate = pubDate;
   }
