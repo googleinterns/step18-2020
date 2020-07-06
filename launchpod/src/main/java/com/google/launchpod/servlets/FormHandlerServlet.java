@@ -3,8 +3,6 @@ package com.google.launchpod.servlets;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -15,10 +13,9 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.launchpod.data.UserFeed;
 
@@ -34,6 +31,8 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String MP3LINK = "mp3link";
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE= "pubDate";
+  
+  private static final String ID = "id";
 
   public static final Gson GSON = new Gson();
 
@@ -53,9 +52,9 @@ public class FormHandlerServlet extends HttpServlet {
     LocalDateTime publishTime = LocalDateTime.now();
     String pubDate = dateFormatter.format(publishTime);
 
+    //Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
-    userFeedEntity.setProperty(EMAIL, "123@example.com");
     userFeedEntity.setProperty(MP3LINK, mp3Link);
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
     userFeedEntity.setProperty(PUB_DATE, pubDate);
@@ -73,10 +72,40 @@ public class FormHandlerServlet extends HttpServlet {
     datastore.put(userFeedEntity);
 
     //return accessible link to user 
-    String ID = Long.toString(userFeedEntity.getKey().getId());
-    String rssLink = "https://launchpod-step18-2020.appspot.com?id=" + ID;
+    String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
+    String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?id=" + urlID;
     res.setContentType("text/html");
     res.getWriter().println("<a href=\"" + rssLink + "\">" + rssLink + "</a>");
+  }
+
+  /**
+  * Display RSS feed xml string that user tries recalling  with the given ID
+  */
+  @Override
+  public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    // Get ID passed in request
+    String id = req.getParameter(ID);
+    Key urlID = KeyFactory.stringToKey(id);
+    // Search key in datastore
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    // create entity that contains id from datastore
+    Entity desiredFeedEntity;
+    try {
+      desiredFeedEntity = datastore.get(urlID);
+      // generate xml string
+      UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
+      XmlMapper xmlMapper = new XmlMapper();
+      String xmlString = xmlMapper.writeValueAsString(desiredUserFeed);
+      res.setContentType("text/xml");
+      res.getWriter().println("<p>" + xmlString + "</p>");
+
+    //If there is no entity that matches the key
+    } catch (EntityNotFoundException e) {
+      e.printStackTrace();
+      res.setContentType("text/html");
+      res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
+      return;
+    }
   }
 
   /**
