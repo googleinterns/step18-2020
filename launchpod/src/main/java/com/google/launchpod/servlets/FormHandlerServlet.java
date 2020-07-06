@@ -31,7 +31,7 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String MP3LINK = "mp3link";
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE= "pubDate";
-  
+
   private static final String ID = "id";
 
   public static final Gson GSON = new Gson();
@@ -65,7 +65,7 @@ public class FormHandlerServlet extends HttpServlet {
       xmlString = xmlString(userFeedEntity);
       userFeedEntity.setProperty(XML_STRING ,xmlString);
     }catch(IOException e){
-      e.printStackTrace();
+      throw new IOException("Unable to create XML string.");
     }
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
