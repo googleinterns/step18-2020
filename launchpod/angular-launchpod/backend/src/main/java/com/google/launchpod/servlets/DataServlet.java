@@ -28,12 +28,12 @@ import javax.servlet.http.HttpServletResponse;
 public class DataServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    response.setContentType("text/html;");
-    response.getWriter().println("launchpod-step18-2020.appspot.com");
   }
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
     // TODO: implement this method in form handler servlet
+    response.setContentType("text/html;");
+    response.getWriter().println("launchpod-step18-2020.appspot.com");
   }
 }

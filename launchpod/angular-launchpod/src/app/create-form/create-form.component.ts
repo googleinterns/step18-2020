@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { FormHandlerService } from '../form-handler.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -12,6 +12,8 @@ import { HttpParams } from '@angular/common/http';
 
 export class CreateFormComponent implements OnInit {
 
+  feedValue: string;
+
   constructor(private formHandlerService: FormHandlerService) {}
 
   ngOnInit(): void {}
@@ -23,8 +25,10 @@ export class CreateFormComponent implements OnInit {
     formData = formData.set('mp3Link', (document.getElementById("mp3Link") as HTMLInputElement).value);
 
     this.formHandlerService.postFormData(formData)
-      .subscribe(
-        (response) => console.log(response),
-      );
+      .subscribe((response) => {
+        this.feedValue = response;
+        console.log("Create feedValue: " + this.feedValue);
+        this.formHandlerService.sendFeedValue(response);
+      });
   }
 }

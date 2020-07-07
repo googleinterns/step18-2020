@@ -40,7 +40,7 @@ import { ResultPageComponent } from './result-page/result-page.component'
     MatToolbarModule,
     ReactiveFormsModule
   ],
-  providers: [],
+  providers: [CreateFormComponent],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
