@@ -29,7 +29,7 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String PODCAST_TITLE = "title";
   public static final String EMAIL = "email";
   public static final String TIMESTAMP = "timestamp";
-  public static final String MP3LINK = "mp3link";
+  public static final String MP3LINK = "mp3Link";
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE= "pubDate";
 
