@@ -17,6 +17,7 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.repackaged.com.google.gson.Gson;
+import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
 
 @WebServlet("/rss-feed")
@@ -89,15 +90,18 @@ public class FormHandlerServlet extends HttpServlet {
     // Search key in datastore
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     // create entity that contains id from datastore
-    Entity desiredFeedEntity;
     try {
-      desiredFeedEntity = datastore.get(urlID);
-      // generate xml string
+      Entity desiredFeedEntity = datastore.get(urlID);
+      
+      //Create user feed object to access rss feed attributes then create RSS feed
       UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
+      RSS rssFeed = new RSS(desiredUserFeed.getTitle(), desiredUserFeed.getLink(), desiredUserFeed.getPubDate());
+
+      // generate xml string
       XmlMapper xmlMapper = new XmlMapper();
-      String xmlString = xmlMapper.writeValueAsString(desiredUserFeed);
+      String xmlString = xmlMapper.writeValueAsString(rssFeed);
       res.setContentType("text/xml");
-      res.getWriter().println("<p>" + xmlString + "</p>");
+      res.getWriter().println(xmlString);
 
     //If there is no entity that matches the key
     } catch (EntityNotFoundException e) {
