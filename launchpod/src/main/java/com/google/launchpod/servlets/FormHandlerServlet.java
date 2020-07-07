@@ -1,8 +1,6 @@
 package com.google.launchpod.servlets;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -17,6 +15,7 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.repackaged.com.google.gson.Gson;
+import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
 
 @WebServlet("/rss-feed")
@@ -28,7 +27,7 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String PODCAST_TITLE = "title";
   public static final String EMAIL = "email";
   public static final String TIMESTAMP = "timestamp";
-  public static final String MP3LINK = "mp3link";
+  public static final String MP3LINK = "mp3Link";
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE= "pubDate";
 
@@ -46,18 +45,11 @@ public class FormHandlerServlet extends HttpServlet {
     if((podcastTitle.isEmpty() || podcastTitle == null) || (mp3Link.isEmpty() || mp3Link == null)){
       throw new IOException("No Title or MP3 link inputted, please try again.");
     }
-    long timestamp = System.currentTimeMillis();
-    // Create time
-    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-    LocalDateTime publishTime = LocalDateTime.now();
-    String pubDate = dateFormatter.format(publishTime);
 
     //Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
     userFeedEntity.setProperty(MP3LINK, mp3Link);
-    userFeedEntity.setProperty(TIMESTAMP, timestamp);
-    userFeedEntity.setProperty(PUB_DATE, pubDate);
 
     // Generate xml string
     String xmlString = "";
@@ -89,15 +81,18 @@ public class FormHandlerServlet extends HttpServlet {
     // Search key in datastore
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     // create entity that contains id from datastore
-    Entity desiredFeedEntity;
     try {
-      desiredFeedEntity = datastore.get(urlID);
-      // generate xml string
+      Entity desiredFeedEntity = datastore.get(urlID);
+      
+      //Create user feed object to access rss feed attributes then create RSS feed
       UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
+      RSS rssFeed = new RSS(desiredUserFeed.getTitle(), desiredUserFeed.getLink(), desiredUserFeed.getPubDate());
+
+      // generate xml string
       XmlMapper xmlMapper = new XmlMapper();
-      String xmlString = xmlMapper.writeValueAsString(desiredUserFeed);
+      String xmlString = xmlMapper.writeValueAsString(rssFeed);
       res.setContentType("text/xml");
-      res.getWriter().println("<p>" + xmlString + "</p>");
+      res.getWriter().println(xmlString);
 
     //If there is no entity that matches the key
     } catch (EntityNotFoundException e) {

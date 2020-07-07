@@ -1,5 +1,8 @@
 package com.google.launchpod.data;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -7,21 +10,28 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Item {
   
   @JacksonXmlProperty
-  private final String title;
-
-  @JacksonXmlProperty(localName = "link")
-  private final String mp3Link;
+  private String title;
 
   @JacksonXmlProperty
-  private final String description;
+  private String link;
 
   @JacksonXmlProperty
-  private final String pubDate;
+  private String description = "Episode 1";
 
-  public Item(String title, String mp3Link, String pubDate){
-    this.title = title;
-    this.mp3Link = mp3Link;
-    this.description = "Episode 1";
-    this.pubDate = pubDate;
+  @JacksonXmlProperty
+  private String pubDate;
+
+  public Item(String podcastTitle, String mp3Link, String pubDate){
+    this.title = podcastTitle;
+    this.link = mp3Link;
+    this.pubDate = createDate();
+  }
+  public String createDate(){
+    // Create time
+    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    LocalDateTime publishTime = LocalDateTime.now();
+    String pubDate = dateFormatter.format(publishTime);
+
+    return pubDate;
   }
 }
