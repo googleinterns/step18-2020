@@ -1,8 +1,6 @@
 package com.google.launchpod.servlets;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -47,18 +45,11 @@ public class FormHandlerServlet extends HttpServlet {
     if((podcastTitle.isEmpty() || podcastTitle == null) || (mp3Link.isEmpty() || mp3Link == null)){
       throw new IOException("No Title or MP3 link inputted, please try again.");
     }
-    long timestamp = System.currentTimeMillis();
-    // Create time
-    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-    LocalDateTime publishTime = LocalDateTime.now();
-    String pubDate = dateFormatter.format(publishTime);
 
     //Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
     userFeedEntity.setProperty(MP3LINK, mp3Link);
-    userFeedEntity.setProperty(TIMESTAMP, timestamp);
-    userFeedEntity.setProperty(PUB_DATE, pubDate);
 
     // Generate xml string
     String xmlString = "";
