@@ -28,7 +28,7 @@ public class Item {
   }
   public String createDate(){
     // Create time
-    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
     LocalDateTime publishTime = LocalDateTime.now();
     String pubDate = dateFormatter.format(publishTime);
 
