@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.google.launchpod.servlets.FormHandlerServlet;
 import com.google.launchpod.data.UserFeed;
+import com.google.launchpod.data.RSS;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -109,7 +110,7 @@ public class FormHandlerServletTest extends Mockito {
     private static final String EMPTY_STRING = "";
     private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com?id=";
 
-    private static final UserFeed TEST_USER_FEED = new UserFeed(TEST_PODCAST_TITLE, TEST_EMAIL, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING);
+    // private static final UserFeed TEST_USER_FEED = new UserFeed(TEST_PODCAST_TITLE, TEST_EMAIL, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING);
 
     @Before 
     public void setUp() {
@@ -125,13 +126,11 @@ public class FormHandlerServletTest extends Mockito {
     /**
      * Creates a test user feed entity.
     */
-    private Entity makeEntity(String title, String mp3Link, long timestamp, String xmlString, String email) {
+    private Entity makeEntity(String title, String mp3Link, String xmlString) {
         Entity userFeedEntity = new Entity(USER_FEED);
         userFeedEntity.setProperty(PODCAST_TITLE, title);
         userFeedEntity.setProperty(MP3_LINK, mp3Link);
-        userFeedEntity.setProperty(TIMESTAMP, timestamp);
         userFeedEntity.setProperty(XML_STRING, xmlString);
-        userFeedEntity.setProperty(EMAIL, email);
         return userFeedEntity;
     }
 
@@ -148,9 +147,9 @@ public class FormHandlerServletTest extends Mockito {
      * @return xml String
      * @throws IOException
     */
-    private static String xmlString(Entity userFeedEntity) throws IOException {
+    private static String xmlString(RSS rssFeed) throws IOException {
         XmlMapper xmlMapper = new XmlMapper();
-        String xmlString = xmlMapper.writeValueAsString(UserFeed.fromEntity(userFeedEntity));
+        String xmlString = xmlMapper.writeValueAsString(rssFeed);
         return xmlString;
     }
 
@@ -280,8 +279,8 @@ public class FormHandlerServletTest extends Mockito {
     @Test
     public void doGetReturnsCorrectXmlString() throws IOException {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-        Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL);
-        Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL);
+        Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_XML_STRING);
+        Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_XML_STRING);
         String id = KeyFactory.keyToString(entity.getKey());
         String idTwo = KeyFactory.keyToString(entityTwo.getKey());
         ds.put(entity);
@@ -295,7 +294,8 @@ public class FormHandlerServletTest extends Mockito {
 
         servlet.doGet(request, response);
 
-        TEST_XML_STRING = xmlString(entity);
+        RSS rss = new RSS(entity.getProperty(PODCAST_TITLE), entity.getProperty(MP3_LINK));
+        TEST_XML_STRING = xmlString(rss);
 
         verify(response, atLeast(1)).setContentType("text/html");
         writer.flush();
@@ -310,8 +310,8 @@ public class FormHandlerServletTest extends Mockito {
     @Test
     public void doGetEntityNotFound() throws IOException {
         DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-        Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL);
-        Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING, TEST_EMAIL);
+        Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_XML_STRING);
+        Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_XML_STRING);
         String id = KeyFactory.keyToString(entity.getKey());
         String idTwo = KeyFactory.keyToString(entityTwo.getKey());
         ds.put(entity);
