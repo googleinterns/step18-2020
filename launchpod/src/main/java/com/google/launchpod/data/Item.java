@@ -21,7 +21,7 @@ public class Item {
   @JacksonXmlProperty
   private String pubDate;
 
-  public Item(String podcastTitle, String mp3Link, String pubDate){
+  public Item(String podcastTitle, String mp3Link){
     this.title = podcastTitle;
     this.link = mp3Link;
     this.pubDate = createDate();

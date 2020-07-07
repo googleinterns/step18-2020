@@ -14,7 +14,7 @@ public class RSS {
   @JacksonXmlProperty
   private Channel channel;
 
-  public RSS(String podcastTitle, String mp3Link, String pubDate){
-    this.channel = new Channel(podcastTitle, mp3Link, pubDate);
+  public RSS(String podcastTitle, String mp3Link){
+    this.channel = new Channel(podcastTitle, mp3Link);
   }  
 }

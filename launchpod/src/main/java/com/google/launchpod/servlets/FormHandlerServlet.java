@@ -26,11 +26,10 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String USER_FEED = "UserFeed";
   public static final String PODCAST_TITLE = "title";
   public static final String EMAIL = "email";
-  public static final String TIMESTAMP = "timestamp";
   public static final String MP3LINK = "mp3Link";
   public static final String XML_STRING = "xmlString";
-  public static final String PUB_DATE= "pubDate";
 
+  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
 
   public static final Gson GSON = new Gson();
@@ -52,9 +51,10 @@ public class FormHandlerServlet extends HttpServlet {
     userFeedEntity.setProperty(MP3LINK, mp3Link);
 
     // Generate xml string
+    RSS rssFeed = new RSS(podcastTitle, mp3Link);
     String xmlString = "";
     try{
-      xmlString = xmlString(userFeedEntity);
+      xmlString = xmlString(rssFeed);
       userFeedEntity.setProperty(XML_STRING ,xmlString);
     }catch(IOException e){
       throw new IOException("Unable to create XML string.");
@@ -65,7 +65,7 @@ public class FormHandlerServlet extends HttpServlet {
 
     //return accessible link to user 
     String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
-    String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?id=" + urlID;
+    String rssLink = BASE_URL + urlID;
     res.setContentType("text/html");
     res.getWriter().println("<a href=\"" + rssLink + "\">" + rssLink + "</a>");
   }
@@ -86,11 +86,10 @@ public class FormHandlerServlet extends HttpServlet {
       
       //Create user feed object to access rss feed attributes then create RSS feed
       UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
-      RSS rssFeed = new RSS(desiredUserFeed.getTitle(), desiredUserFeed.getLink(), desiredUserFeed.getPubDate());
+      RSS rssFeed = new RSS(desiredUserFeed.getTitle(), desiredUserFeed.getLink());
 
       // generate xml string
-      XmlMapper xmlMapper = new XmlMapper();
-      String xmlString = xmlMapper.writeValueAsString(rssFeed);
+      String xmlString = xmlString(rssFeed);
       res.setContentType("text/xml");
       res.getWriter().println(xmlString);
 
@@ -110,9 +109,9 @@ public class FormHandlerServlet extends HttpServlet {
    * @throws IOException
    * @throws Exception
    */
-  private static String xmlString(Entity userFeedEntity) throws IOException {
+  private static String xmlString(RSS rssFeed) throws IOException {
     XmlMapper xmlMapper = new XmlMapper();
-    String xmlString = xmlMapper.writeValueAsString(UserFeed.fromEntity(userFeedEntity));
+    String xmlString = xmlMapper.writeValueAsString(rssFeed);
     return xmlString;
   }
 }

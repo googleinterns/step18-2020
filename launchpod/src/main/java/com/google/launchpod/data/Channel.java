@@ -27,7 +27,7 @@ public class Channel {
   @JacksonXmlProperty
   private List <Item> item;
 
-  public Channel(String podcastTitle, String mp3Link, String pubDate){
-    this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, mp3Link, pubDate)));
+  public Channel(String podcastTitle, String mp3Link){
+    this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, mp3Link)));
   }    
 }
