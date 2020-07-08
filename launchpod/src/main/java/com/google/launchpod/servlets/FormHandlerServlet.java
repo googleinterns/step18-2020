@@ -41,8 +41,10 @@ public class FormHandlerServlet extends HttpServlet {
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String mp3Link = req.getParameter(MP3LINK);
-    if((podcastTitle.isEmpty() || podcastTitle == null) || (mp3Link.isEmpty() || mp3Link == null)){
-      throw new IOException("No Title or MP3 link inputted, please try again.");
+    if(podcastTitle.isEmpty() || podcastTitle == null){
+      throw new IOException("No Title inputted, please try again.");
+    } else if (mp3Link.isEmpty() || mp3Link == null){
+      throw new IOException("No Mp3 inputted, please try again.");
     }
 
     //Create entity with all desired attributes
