@@ -54,7 +54,12 @@ public class FormHandlerServlet extends HttpServlet {
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String mp3Link = req.getParameter(MP3LINK);
-    Part mp3FilePart = req.getPart(MP3FILE); // Retrieves <input type="mp3File" name="mp3File">
+    Part mp3FilePart;
+    try {
+      mp3FilePart = req.getPart(MP3FILE);
+    } catch (ServletException e1) {
+      throw new ServletException("Unable to retrieve MP3 file from client.");
+    } // Retrieves <input type="mp3File" name="mp3File">
     String mp3FileName = Paths.get(mp3FilePart.getSubmittedFileName()).getFileName().toString(); // MSIE fix.
     InputStream fileContent = mp3FilePart.getInputStream();
     // ... (do your job here)
