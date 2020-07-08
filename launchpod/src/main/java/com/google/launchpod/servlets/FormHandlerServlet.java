@@ -1,11 +1,16 @@
 package com.google.launchpod.servlets;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
 
+import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -19,6 +24,7 @@ import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
 
 @WebServlet("/rss-feed")
+@MultipartConfig
 public class FormHandlerServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
@@ -28,22 +34,31 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String EMAIL = "email";
   public static final String TIMESTAMP = "timestamp";
   public static final String MP3LINK = "mp3Link";
+  public static final String MP3FILE = "mp3File";
   public static final String XML_STRING = "xmlString";
-  public static final String PUB_DATE= "pubDate";
+  public static final String PUB_DATE = "pubDate";
 
   private static final String ID = "id";
 
   public static final Gson GSON = new Gson();
   // public static boolean bucketCreated = false;
-  // TO-DO: check in doPost if bucketCreated == true, if so upload object, if not create bucket
+  // TO-DO: check in doPost if bucketCreated == true, if so upload object, if not
+  // create bucket
 
   /**
    * request user inputs in form fields then create Entity and place in datastore
+   * 
+   * @throws ServletException
    */
   @Override
-  public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+  public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String mp3Link = req.getParameter(MP3LINK);
+    Part mp3FilePart = req.getPart(MP3FILE); // Retrieves <input type="mp3File" name="mp3File">
+    String mp3FileName = Paths.get(mp3FilePart.getSubmittedFileName()).getFileName().toString(); // MSIE fix.
+    InputStream fileContent = mp3FilePart.getInputStream();
+    // ... (do your job here)
+
     if((podcastTitle.isEmpty() || podcastTitle == null) || (mp3Link.isEmpty() || mp3Link == null)){
       throw new IOException("No Title or MP3 link inputted, please try again.");
     }
