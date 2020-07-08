@@ -66,7 +66,7 @@ public class FormHandlerServlet extends HttpServlet {
     String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
     String rssLink = BASE_URL + urlID;
     res.setContentType("text/html");
-    res.getWriter().println("<a href=\"" + rssLink + "\">" + rssLink + "</a>");
+    res.getWriter().println(rssLink);
   }
 
   /**
