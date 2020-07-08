@@ -11,10 +11,10 @@ import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
 const routes: Routes = [
   { path: '', component: CreateFormComponent },
   { path: 'create', component: CreateFormComponent },
-  { path: 'result', component: ResultPageComponent },
   { path: 'transcribe', component: TranscribeFormComponent },
   { path: 'translate', component: TranslateFormComponent },
   { path: 'my-feeds', component: MyFeedsPageComponent },
+  { path: 'result', component: ResultPageComponent },
   { path: '**', redirectTo: '/create', pathMatch: 'full' }
 ];
 
