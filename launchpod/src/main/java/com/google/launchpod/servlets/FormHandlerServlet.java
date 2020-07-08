@@ -34,6 +34,8 @@ public class FormHandlerServlet extends HttpServlet {
   private static final String ID = "id";
 
   public static final Gson GSON = new Gson();
+  // public static boolean bucketCreated = false;
+  // TO-DO: check in doPost if bucketCreated == true, if so upload object, if not create bucket
 
   /**
    * request user inputs in form fields then create Entity and place in datastore
@@ -68,6 +70,33 @@ public class FormHandlerServlet extends HttpServlet {
     String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?id=" + urlID;
     res.setContentType("text/html");
     res.getWriter().println("<a href=\"" + rssLink + "\">" + rssLink + "</a>");
+  }
+
+  /**
+   * Uploads an object to Cloud Storage.
+   * @throws IOException
+   */
+  public static void uploadObject(
+      String projectId, String bucketName, String objectName, String filePath) throws IOException {
+    // The ID of your GCP project
+    // String projectId = "launchpod-step18-2020";
+
+    // The ID of your GCS bucket
+    // String bucketName = "launchpod-mp3-files";
+
+    // The ID of your GCS object
+    // String objectName = "your-object-name";
+
+    // The path to your file to upload
+    // String filePath = "path/to/your/file"
+
+    Storage storage = StorageOptions.newBuilder().setProjectId(projectId).build().getService();
+    BlobId blobId = BlobId.of(bucketName, objectName);
+    BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+    storage.create(blobInfo, Files.readAllBytes(Paths.get(filePath)));
+
+    System.out.println(
+        "File " + filePath + " uploaded to bucket " + bucketName + " as " + objectName);
   }
 
   /**
