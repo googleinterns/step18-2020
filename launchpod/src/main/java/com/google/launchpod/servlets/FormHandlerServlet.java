@@ -29,6 +29,7 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String MP3LINK = "mp3Link";
   public static final String XML_STRING = "xmlString";
 
+
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
 
@@ -47,18 +48,15 @@ public class FormHandlerServlet extends HttpServlet {
 
     //Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
+
     // Generate xml string
     RSS rssFeed = new RSS(podcastTitle, mp3Link);
-    userFeedEntity.setProperty("RSS", rssFeed);
-    /*
-    String xmlString = "";
     try{
-      xmlString = xmlString(rssFeed);
+      String xmlString = xmlString(rssFeed);
       userFeedEntity.setProperty(XML_STRING ,xmlString);
     }catch(IOException e){
       throw new IOException("Unable to create XML string.");
     }
-    */
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
@@ -83,9 +81,9 @@ public class FormHandlerServlet extends HttpServlet {
     // create entity that contains id from datastore
     try {
       Entity desiredFeedEntity = datastore.get(urlID);
+      
       // generate xml string
-      RSS rssFeed = (RSS) desiredFeedEntity.getProperty("RSS");
-      String xmlString = xmlString(rssFeed);
+      String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
       res.setContentType("text/xml");
       res.getWriter().println(xmlString);
 

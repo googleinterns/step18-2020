@@ -5,22 +5,21 @@ import com.google.launchpod.servlets.FormHandlerServlet;
 
 public final class UserFeed{
 
-  private RSS rssFeed;
+  private String xmlString;
 
-  private UserFeed(RSS rssFeed) {
-    this.rssFeed = rssFeed;
+  private UserFeed(String xmlString) {
+    this.xmlString = xmlString;
   }
   /** Create UserFeed Object from Entity
    *  @param entity : entity that is being used to create user feed object
    *  @return UserFeed object
    */
   public static UserFeed fromEntity(Entity entity){
-    RSS rssFeed = (RSS) entity.getProperty("RSS");
-
-    return new UserFeed(rssFeed);
+    String xmlString = (String) entity.getProperty(FormHandlerServlet.XML_STRING);
+    return new UserFeed(xmlString);
   }
 
-  public RSS getRSS(){
-    return this.rssFeed;
+  public String getXmlString(){
+    return this.xmlString;
   }
 }
