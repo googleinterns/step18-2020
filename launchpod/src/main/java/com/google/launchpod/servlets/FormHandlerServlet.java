@@ -16,7 +16,6 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.launchpod.data.RSS;
-import com.google.launchpod.data.UserFeed;
 
 @WebServlet("/rss-feed")
 public class FormHandlerServlet extends HttpServlet {
