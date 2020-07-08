@@ -13,7 +13,8 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/angular-launchpod",
+            "outputPath": "backend/src/main/webapp",
+            "deleteOutputPath": false,
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -123,5 +124,8 @@
       }
     }
   },
-  "defaultProject": "angular-launchpod"
+  "defaultProject": "angular-launchpod",
+  "cli": {
+    "analytics": "8aba0300-794a-4ca4-8039-e0072167e0e6"
+  }
 }
