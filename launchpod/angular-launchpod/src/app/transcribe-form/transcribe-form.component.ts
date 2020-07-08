@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { FormHandlerService } from '../form-handler.service';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpParams } from '@angular/common/http';
 
 @Component({
   selector: 'app-transcribe-form',
@@ -7,9 +10,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class TranscribeFormComponent implements OnInit {
 
-  constructor() { }
+  feedValue: string;
+
+  constructor(private formHandlerService: FormHandlerService) { }
 
   ngOnInit(): void {
+  }
+
+  // Sends input data to backend when user clicks create button.
+  public postFormData() {
+    //TODO: implement this method
   }
 
 }

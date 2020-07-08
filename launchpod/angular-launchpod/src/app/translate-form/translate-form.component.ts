@@ -1,4 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { FormHandlerService } from '../form-handler.service';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpParams } from '@angular/common/http';
+
+interface Language {
+  value: string;
+  viewValue: string;
+}
 
 @Component({
   selector: 'app-translate-form',
@@ -7,9 +15,20 @@ import { Component, OnInit } from '@angular/core';
 })
 export class TranslateFormComponent implements OnInit {
 
+  feedValue: string;
+  
+  languages: Language[] = [
+    {value: 'es', viewValue: 'Spanish'},
+  ];
+
   constructor() { }
 
   ngOnInit(): void {
+  }
+
+  // Sends input data to backend when user clicks create button.
+  public postFormData() {
+    //TODO: implement this method
   }
 
 }

@@ -1,1 +1,11 @@
-<p>transcribe-form works!</p>
+<form>
+    <h2>Add the Rss Feed You Want to Transcribe</h2>
+    <mat-form-field appearance="outline">
+        <mat-label>Rss Feed Link</mat-label>
+        <input matInput name="rssFeedLink" id="rssFeedLink">
+    </mat-form-field>
+    <br />
+
+    <button mat-raised-button type="button" (click)="postFormData()" routerLink="/result">Transcribe RSS Feed</button>
+    <p id="message"></p>
+</form>

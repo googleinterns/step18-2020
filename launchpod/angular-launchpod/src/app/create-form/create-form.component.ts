@@ -1,5 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
 import { FormHandlerService } from '../form-handler.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
@@ -16,7 +15,8 @@ export class CreateFormComponent implements OnInit {
 
   constructor(private formHandlerService: FormHandlerService) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  }
 
   // Sends input data to backend when user clicks create button.
   public postFormData() {
