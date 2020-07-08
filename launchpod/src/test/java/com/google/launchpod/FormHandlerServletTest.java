@@ -178,7 +178,8 @@ public class FormHandlerServletTest extends Mockito {
 
         assertEquals(entity.getProperty(PODCAST_TITLE), TEST_PODCAST_TITLE);
         assertEquals(entity.getProperty(MP3_LINK), TEST_MP3_LINK);
-        TEST_XML_STRING = xmlString(entity);
+        RSS rssFeed = new RSS(TEST_PODCAST_TITLE, TEST_MP3_LINK);
+        TEST_XML_STRING = xmlString(rssFeed);
         assertEquals(entity.getProperty(XML_STRING), TEST_XML_STRING);
 
         String id = Long.toString(entity.getKey().getId());
