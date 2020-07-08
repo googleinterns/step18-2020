@@ -208,7 +208,7 @@ public class FormHandlerServletTest extends Mockito {
         PreparedQuery results = ds.prepare(query);
         Entity entity = ds.prepare(query).asSingleEntity();
         thrown.expect(IOException.class);
-        thrown.expectMessage("There was no title inputted. Try again");
+        thrown.expectMessage("No Title inputted, please try again.");
     }
 
     /**
@@ -228,7 +228,7 @@ public class FormHandlerServletTest extends Mockito {
         Query query = new Query(USER_FEED);
         Entity entity = ds.prepare(query).asSingleEntity();
         thrown.expect(IOException.class);
-        thrown.expectMessage("There was no title inputted. Try again");
+        thrown.expectMessage("No Title inputted, please try again.");
     }
 
     /**
@@ -249,7 +249,7 @@ public class FormHandlerServletTest extends Mockito {
         PreparedQuery results = ds.prepare(query);
         Entity entity = ds.prepare(query).asSingleEntity();
         thrown.expect(IOException.class);
-        thrown.expectMessage("There was no MP3 link inputted. Try again");
+        thrown.expectMessage("No Mp3 inputted, please try again.");
     }
 
     /**
@@ -269,7 +269,7 @@ public class FormHandlerServletTest extends Mockito {
         Query query = new Query(USER_FEED);
         Entity entity = ds.prepare(query).asSingleEntity();
         thrown.expect(IOException.class);
-        thrown.expectMessage("There was no MP3 link inputted. Try again");
+        thrown.expectMessage("No Mp3 inputted, please try again.");
     }
 
     /**
