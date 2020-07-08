@@ -47,11 +47,10 @@ public class FormHandlerServlet extends HttpServlet {
 
     //Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
-    userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
-    userFeedEntity.setProperty(MP3LINK, mp3Link);
-
     // Generate xml string
     RSS rssFeed = new RSS(podcastTitle, mp3Link);
+    userFeedEntity.setProperty("RSS", rssFeed);
+    /*
     String xmlString = "";
     try{
       xmlString = xmlString(rssFeed);
@@ -59,6 +58,7 @@ public class FormHandlerServlet extends HttpServlet {
     }catch(IOException e){
       throw new IOException("Unable to create XML string.");
     }
+    */
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
@@ -83,12 +83,8 @@ public class FormHandlerServlet extends HttpServlet {
     // create entity that contains id from datastore
     try {
       Entity desiredFeedEntity = datastore.get(urlID);
-      
-      //Create user feed object to access rss feed attributes then create RSS feed
-      UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
-      RSS rssFeed = new RSS(desiredUserFeed.getTitle(), desiredUserFeed.getLink());
-
       // generate xml string
+      RSS rssFeed = (RSS) desiredFeedEntity.getProperty("RSS");
       String xmlString = xmlString(rssFeed);
       res.setContentType("text/xml");
       res.getWriter().println(xmlString);
