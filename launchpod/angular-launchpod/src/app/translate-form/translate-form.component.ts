@@ -21,14 +21,13 @@ export class TranslateFormComponent implements OnInit {
     {value: 'es', viewValue: 'Spanish'},
   ];
 
-  constructor() { }
+  constructor() {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   // Sends input data to backend when user clicks create button.
   public postFormData() {
-    //TODO: implement this method
+    //TODO: implement this method https://github.com/googleinterns/step18-2020/issues/28
   }
 
 }

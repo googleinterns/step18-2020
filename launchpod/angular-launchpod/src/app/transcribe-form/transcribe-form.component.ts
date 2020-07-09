@@ -12,14 +12,13 @@ export class TranscribeFormComponent implements OnInit {
 
   feedValue: string;
 
-  constructor(private formHandlerService: FormHandlerService) { }
+  constructor(private formHandlerService: FormHandlerService) {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   // Sends input data to backend when user clicks create button.
   public postFormData() {
-    //TODO: implement this method
+    //TODO: implement this method https://github.com/googleinterns/step18-2020/issues/28
   }
 
 }

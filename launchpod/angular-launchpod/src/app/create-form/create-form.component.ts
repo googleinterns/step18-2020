@@ -15,8 +15,7 @@ export class CreateFormComponent implements OnInit {
 
   constructor(private formHandlerService: FormHandlerService) {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   // Sends input data to backend when user clicks create button.
   public postFormData() {
