@@ -22,12 +22,12 @@ public class Channel {
 
   @JacksonXmlProperty
   private String description = "Launchpod generated RSS";
-  
+
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
-  private List <Item> item;
+  private List<Item> item;
 
-  public Channel(String podcastTitle, String mp3Link){
+  public Channel(String podcastTitle, String mp3Link) {
     this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, mp3Link)));
-  }    
+  }
 }

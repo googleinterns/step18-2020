@@ -9,12 +9,12 @@ public class RSS {
 
   @JacksonXmlProperty(isAttribute = true)
   private double version = 2.0;
-   
+
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
   private Channel channel;
 
-  public RSS(String podcastTitle, String mp3Link){
+  public RSS(String podcastTitle, String mp3Link) {
     this.channel = new Channel(podcastTitle, mp3Link);
-  }  
+  }
 }
