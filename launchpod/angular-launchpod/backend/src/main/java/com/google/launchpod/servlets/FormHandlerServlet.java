@@ -3,6 +3,8 @@ package com.google.launchpod.servlets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -22,6 +24,11 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.PostPolicyV4;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
+
 
 @WebServlet("/rss-feed")
 @MultipartConfig
@@ -47,7 +54,7 @@ public class FormHandlerServlet extends HttpServlet {
 
   /**
    * request user inputs in form fields then create Entity and place in datastore
-   * 
+   *
    * @throws ServletException
    */
   @Override
@@ -85,38 +92,57 @@ public class FormHandlerServlet extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
 
-    //return accessible link to user 
+    //return accessible link to user
     String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
     String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?id=" + urlID;
     res.setContentType("text/html");
     res.getWriter().println(rssLink);
   }
 
-  /**
-   * Uploads an object to Cloud Storage.
-   * @throws IOException
-   */
-  public static void uploadObject(
-      String projectId, String bucketName, String objectName, String filePath) throws IOException {
+  public static void generateSignedPostPolicyV4(String projectId, String bucketName, String blobName) {
     // The ID of your GCP project
     // String projectId = "launchpod-step18-2020";
 
-    // The ID of your GCS bucket
-    // String bucketName = "launchpod-mp3-files";
+    // The ID of the GCS bucket to upload to
+    // String bucketName = "launchpod-mp3-files"
 
-    // The ID of your GCS object
-    // String objectName = "your-object-name";
-
-    // The path to your file to upload
-    // String filePath = "path/to/your/file"
+    // The name to give the object uploaded to GCS
+    // String blobName = "your-object-name"
+    // this should be the Datastore entity ID of that MP3 object
 
     Storage storage = StorageOptions.newBuilder().setProjectId(projectId).build().getService();
-    BlobId blobId = BlobId.of(bucketName, objectName);
-    BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
-    storage.create(blobInfo, Files.readAllBytes(Paths.get(filePath)));
 
-    System.out.println(
-        "File " + filePath + " uploaded to bucket " + bucketName + " as " + objectName);
+    PostPolicyV4.PostFieldsV4 fields =
+        PostPolicyV4.PostFieldsV4.newBuilder().AddCustomMetadataField("test", "data").build();
+
+    PostPolicyV4 policy =
+        storage.generateSignedPostPolicyV4(
+            BlobInfo.newBuilder(bucketName, blobName).build(), 10, TimeUnit.MINUTES, fields);
+
+    // send policy to the front end
+
+    // StringBuilder htmlForm =
+    //     new StringBuilder(
+    //         "<form action='"
+    //             + policy.getUrl()
+    //             + "' method='POST' enctype='multipart/form-data'>\n");
+    // for (Map.Entry<String, String> entry : policy.getFields().entrySet()) {
+    //   htmlForm.append(
+    //       "  <input name='"
+    //           + entry.getKey()
+    //           + "' value='"
+    //           + entry.getValue()
+    //           + "' type='hidden' />\n");
+    // }
+    // htmlForm.append("  <input type='file' name='file'/><br />\n");
+    // htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
+    // htmlForm.append("</form>\n");
+
+    // System.out.println(
+    //     "You can use the following HTML form to upload an object to bucket "
+    //         + bucketName
+    //         + " for the next ten minutes:");
+    // System.out.println(htmlForm.toString());
   }
 
   /**
@@ -132,7 +158,7 @@ public class FormHandlerServlet extends HttpServlet {
     // create entity that contains id from datastore
     try {
       Entity desiredFeedEntity = datastore.get(urlID);
-      
+
       //Create user feed object to access rss feed attributes then create RSS feed
       UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
       RSS rssFeed = new RSS(desiredUserFeed.getTitle(), desiredUserFeed.getLink(), desiredUserFeed.getPubDate());
@@ -154,7 +180,7 @@ public class FormHandlerServlet extends HttpServlet {
 
   /**
    * Create RSS XML string from given fields
-   * 
+   *
    * @return xml String
    * @throws IOException
    * @throws Exception
