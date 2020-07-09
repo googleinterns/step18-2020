@@ -101,7 +101,6 @@ public class FormHandlerServlet extends HttpServlet {
    * 
    * @return xml String
    * @throws IOException
-   * @throws Exception
    */
   public static String xmlString(RSS rssFeed) throws IOException {
     return xmlMapper.writeValueAsString(rssFeed);
