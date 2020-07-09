@@ -10,6 +10,10 @@
   padding-right: 10px;
 }
 
+#login-container {
+  text-align: right;
+}
+
 .logo {
   height: 50px;
   width: 50px;
