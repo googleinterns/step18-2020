@@ -29,8 +29,6 @@ public class FormHandlerServlet extends HttpServlet {
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
 
-  private static final XmlMapper xmlMapper = new XmlMapper();
-
   /**
    * request user inputs in form fields then create Entity and place in datastore
    * 
@@ -52,7 +50,7 @@ public class FormHandlerServlet extends HttpServlet {
     // Generate xml string
     RSS rssFeed = new RSS(podcastTitle, mp3Link);
     try {
-      String xmlString = xmlString(rssFeed);
+      String xmlString = RSS.toXmlString(rssFeed);
       userFeedEntity.setProperty(XML_STRING, xmlString);
     } catch (IOException e) {
       throw new IOException("Unable to create XML string.");
@@ -94,15 +92,5 @@ public class FormHandlerServlet extends HttpServlet {
       res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
       return;
     }
-  }
-
-  /**
-   * Create RSS XML string from given fields
-   * 
-   * @return xml String
-   * @throws IOException
-   */
-  public static String xmlString(RSS rssFeed) throws IOException {
-    return xmlMapper.writeValueAsString(rssFeed);
   }
 }
