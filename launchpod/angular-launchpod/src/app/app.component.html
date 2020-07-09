@@ -25,13 +25,11 @@
       </button>
       <img class="logo" src="assets/img/LaunchPodLogo.png" alt="icon" />
       <span>LaunchPod</span>
-      <span id="login-container">
-        <p>You are logged in</p>
-      </span>
     </mat-toolbar>
     <!-- Add Content Here -->
+    <app-login-popup class="center-page" id="login-popup"></app-login-popup>
     <div class="center-page">
-      <router-outlet></router-outlet>
+      <router-outlet id="form"></router-outlet>
     </div>
     <!-- <app-create-form class="center-page"></app-create-form> -->
     <!-- TODO: Add routing from create form to result component -->
