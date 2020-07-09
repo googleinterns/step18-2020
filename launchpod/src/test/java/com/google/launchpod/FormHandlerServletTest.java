@@ -110,8 +110,6 @@ public class FormHandlerServletTest extends Mockito {
     private static final String EMPTY_STRING = "";
     private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com?id=";
 
-    // private static final UserFeed TEST_USER_FEED = new UserFeed(TEST_PODCAST_TITLE, TEST_EMAIL, TEST_MP3_LINK, TEST_TIMESTAMP, TEST_XML_STRING);
-
     @Before 
     public void setUp() {
         MockitoAnnotations.initMocks(this);
