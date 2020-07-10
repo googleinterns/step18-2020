@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/login-status")
-public class LoginDataServlet extends HttpServlet {
+public class LoginServlet extends HttpServlet {
   private static final Gson GSON = new Gson();
 
   @Override
