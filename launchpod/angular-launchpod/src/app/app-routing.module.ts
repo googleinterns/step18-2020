@@ -3,11 +3,18 @@ import { Routes, RouterModule } from '@angular/router';
 import { ResultPageComponent } from './result-page/result-page.component';
 import { AppComponent } from './app.component';
 import { CreateFormComponent } from './create-form/create-form.component';
+import { TranscribeFormComponent } from './transcribe-form/transcribe-form.component';
+import { TranslateFormComponent } from './translate-form/translate-form.component';
+import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
 
 
 const routes: Routes = [
-  { path: '', component: CreateFormComponent},
-  { path: 'result', component: ResultPageComponent},
+  { path: '', component: CreateFormComponent },
+  { path: 'create', component: CreateFormComponent },
+  { path: 'transcribe', component: TranscribeFormComponent },
+  { path: 'translate', component: TranslateFormComponent },
+  { path: 'my-feeds', component: MyFeedsPageComponent },
+  { path: 'result', component: ResultPageComponent },
   { path: '**', redirectTo: '/create', pathMatch: 'full' }
 ];
 

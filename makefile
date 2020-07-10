@@ -8,9 +8,9 @@ node_modules:
 	npm install clang-format prettier css-validator html-validate eslint eslint-config-google
 
 pretty: node_modules
-	$(PRETTIER) --write launchpod/src/main/webapp/angular-launchpod/src/app/*.component.{html,css}
-	find launchpod/src/main/java -iname *.java | xargs $(CLANG_FORMAT) -i
-	find launchpod/src/main/webapp -iname *.component.ts | xargs $(CLANG_FORMAT) -i
+	$(PRETTIER) --write launchpod/angular-launchpod/src/app/*.component.{html,css}
+	find launchpod/angular-launchpod/backend/src/main/java -iname *.java | xargs $(CLANG_FORMAT) -i
+	find launchpod/angular-launchpod/src/app/*.component.ts | xargs $(CLANG_FORMAT) -i
 
 package:
 	mvn package

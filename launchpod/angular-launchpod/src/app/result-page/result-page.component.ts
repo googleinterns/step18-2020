@@ -12,7 +12,7 @@ export class ResultPageComponent implements OnInit {
 
   feedValue: string;
 
-  constructor(private formHandlerService: FormHandlerService, private createFormComponent: CreateFormComponent, public snackBar: MatSnackBar) { }
+  constructor(private formHandlerService: FormHandlerService, private createFormComponent: CreateFormComponent, public snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.formHandlerService.feedValue.subscribe((feedValue) => {
