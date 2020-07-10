@@ -1,5 +1,4 @@
 import { FormHandlerService } from '../form-handler.service';
-import { CreateFormComponent } from '../create-form/create-form.component';
 import { Component, Input, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -12,7 +11,7 @@ export class ResultPageComponent implements OnInit {
 
   feedValue: string;
 
-  constructor(private formHandlerService: FormHandlerService, private createFormComponent: CreateFormComponent, public snackBar: MatSnackBar) {}
+  constructor(private formHandlerService: FormHandlerService, public snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.formHandlerService.feedValue.subscribe((feedValue) => {

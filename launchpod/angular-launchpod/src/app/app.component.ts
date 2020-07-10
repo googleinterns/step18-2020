@@ -1,7 +1,9 @@
 import {BreakpointObserver, Breakpoints} from '@angular/cdk/layout';
 import {Component} from '@angular/core';
+import {LoginPopupComponent} from './login-popup/login-popup.component';
 import {Observable} from 'rxjs';
 import {map, shareReplay} from 'rxjs/operators';
+import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
 
 @Component({
   selector: 'app-root',
@@ -15,5 +17,14 @@ export class AppComponent {
       this.breakpointObserver.observe(Breakpoints.Handset)
           .pipe(map(result => result.matches), shareReplay());
 
-  constructor(private breakpointObserver: BreakpointObserver) {}
+  constructor(private breakpointObserver: BreakpointObserver, public dialog: MatDialog) {}
+
+  openDialog() {
+    const dialogConfig = new MatDialogConfig();
+
+    dialogConfig.disableClose = true;
+    dialogConfig.autoFocus = true;
+
+    this.dialog.open(LoginPopupComponent, dialogConfig);
+  }
 }
