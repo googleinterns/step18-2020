@@ -44,7 +44,7 @@ public class FormHandlerServlet extends HttpServlet {
 
   /**
    * request user inputs in form fields then create Entity and place in datastore
-   * 
+   *
    * @throws IOException,IllegalArgumentException
    */
   @Override
