@@ -60,16 +60,10 @@ public class FormHandlerServlet extends HttpServlet {
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
-    String mp3Link = req.getParameter(MP3LINK);
-    Part mp3FilePart;
-    try {
-      mp3FilePart = req.getPart(MP3FILE);
-    } catch (ServletException e1) {
-      throw new ServletException("Unable to retrieve MP3 file from client.");
-    } // Retrieves <input type="mp3File" name="mp3File">
-    String mp3FileName = Paths.get(mp3FilePart.getSubmittedFileName()).getFileName().toString(); // MSIE fix.
-    InputStream fileContent = mp3FilePart.getInputStream();
-    // ... (do your job here)
+    //String mp3Link = req.getParameter(MP3LINK); //storageapis.com/bucket_name/object_name
+
+    //
+
 
     if((podcastTitle.isEmpty() || podcastTitle == null) || (mp3Link.isEmpty() || mp3Link == null)){
       throw new IOException("No Title or MP3 link inputted, please try again.");
@@ -79,6 +73,10 @@ public class FormHandlerServlet extends HttpServlet {
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
     userFeedEntity.setProperty(MP3LINK, mp3Link);
+    // TO-DO: see if you can do .setProperty(String, Object)
+    // set property to be 'mp3' to the mp3 object
+
+    //
 
     // Generate xml string
     String xmlString = "";
@@ -94,12 +92,17 @@ public class FormHandlerServlet extends HttpServlet {
 
     //return accessible link to user
     String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
-    String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?id=" + urlID;
+    String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + urlID;
     res.setContentType("text/html");
     res.getWriter().println(rssLink);
+
+    //write the file upload form
+    String formHtml = generateSignedPostPolicyV4(projectId, bucketName, blobName);
+    res.getWriter().println(formHtml);
+
   }
 
-  public static void generateSignedPostPolicyV4(String projectId, String bucketName, String blobName) {
+  public  String generateSignedPostPolicyV4(String projectId, String bucketName, String blobName) {
     // The ID of your GCP project
     // String projectId = "launchpod-step18-2020";
 
@@ -119,30 +122,32 @@ public class FormHandlerServlet extends HttpServlet {
         storage.generateSignedPostPolicyV4(
             BlobInfo.newBuilder(bucketName, blobName).build(), 10, TimeUnit.MINUTES, fields);
 
-    // send policy to the front end
+    StringBuilder htmlForm =
+        new StringBuilder(
+            "<form action='"
+                + policy.getUrl()
+                + "' method='POST' enctype='multipart/form-data'>\n");
+    for (Map.Entry<String, String> entry : policy.getFields().entrySet()) {
+      htmlForm.append(
+          "  <input name='"
+              + entry.getKey()
+              + "' value='"
+              + entry.getValue()
+              + "' type='hidden' />\n");
+    }
+    htmlForm.append("  <input type='file' name='file'/><br />\n");
+    String myRedirectUrl="xxxx/?action=generateRssLink";
+    htmlForm.append(" <input name='successxxx-redirect-url' value=" + myRedirectUrl + "/>\n");
+    htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
+    htmlForm.append("</form>\n");
 
-    // StringBuilder htmlForm =
-    //     new StringBuilder(
-    //         "<form action='"
-    //             + policy.getUrl()
-    //             + "' method='POST' enctype='multipart/form-data'>\n");
-    // for (Map.Entry<String, String> entry : policy.getFields().entrySet()) {
-    //   htmlForm.append(
-    //       "  <input name='"
-    //           + entry.getKey()
-    //           + "' value='"
-    //           + entry.getValue()
-    //           + "' type='hidden' />\n");
-    // }
-    // htmlForm.append("  <input type='file' name='file'/><br />\n");
-    // htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
-    // htmlForm.append("</form>\n");
+    System.out.println(
+        "You can use the following HTML form to upload an object to bucket "
+            + bucketName
+            + " for the next ten minutes:");
+    System.out.println(htmlForm.toString());
 
-    // System.out.println(
-    //     "You can use the following HTML form to upload an object to bucket "
-    //         + bucketName
-    //         + " for the next ten minutes:");
-    // System.out.println(htmlForm.toString());
+    return htmlForm.toString();
   }
 
   /**
@@ -150,32 +155,39 @@ public class FormHandlerServlet extends HttpServlet {
   */
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-    // Get ID passed in request
-    String id = req.getParameter(ID);
-    Key urlID = KeyFactory.stringToKey(id);
-    // Search key in datastore
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    // create entity that contains id from datastore
-    try {
-      Entity desiredFeedEntity = datastore.get(urlID);
+    String action = req.getParameter("action");
 
-      //Create user feed object to access rss feed attributes then create RSS feed
-      UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
-      RSS rssFeed = new RSS(desiredUserFeed.getTitle(), desiredUserFeed.getLink(), desiredUserFeed.getPubDate());
+    if(action==null || action.isEmpty() || action.equals("generateXml")) {
+      // Get ID passed in request
+      String id = req.getParameter(ID);
+      Key urlID = KeyFactory.stringToKey(id);
+      // Search key in datastore
+      DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+      // create entity that contains id from datastore
+      try {
+        Entity desiredFeedEntity = datastore.get(urlID);
 
-      // generate xml string
-      XmlMapper xmlMapper = new XmlMapper();
-      String xmlString = xmlMapper.writeValueAsString(rssFeed);
-      res.setContentType("text/xml");
-      res.getWriter().println(xmlString);
+        //Create user feed object to access rss feed attributes then create RSS feed
+        UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
+        RSS rssFeed = new RSS(desiredUserFeed.getTitle(), desiredUserFeed.getLink(), desiredUserFeed.getPubDate());
 
-    //If there is no entity that matches the key
-    } catch (EntityNotFoundException e) {
-      e.printStackTrace();
-      res.setContentType("text/html");
-      res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
-      return;
-    }
+        // generate xml string
+        XmlMapper xmlMapper = new XmlMapper();
+        String xmlString = xmlMapper.writeValueAsString(rssFeed);
+        res.setContentType("text/xml");
+        res.getWriter().println(xmlString);
+
+      //If there is no entity that matches the key
+      } catch (EntityNotFoundException e) {
+        e.printStackTrace();
+        res.setContentType("text/html");
+        res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
+        return;
+      }
+   } else if (action.equals("generateRSSLink")) {
+    // get desiredFeedEntity
+    // generate RSS link like in doPost
+   }
   }
 
   /**

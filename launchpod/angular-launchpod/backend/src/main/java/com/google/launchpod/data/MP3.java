@@ -2,6 +2,7 @@ package com.google.launchpod.data;
 
 public final class MP3 {
 
+  // TO-DO: rename fileName
   private final String fileName;
   private final String mp3Link;
   private final String userEmail;
