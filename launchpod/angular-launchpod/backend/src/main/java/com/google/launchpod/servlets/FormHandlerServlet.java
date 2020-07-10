@@ -34,36 +34,33 @@ import com.google.cloud.storage.StorageOptions;
 @MultipartConfig
 public class FormHandlerServlet extends HttpServlet {
 
-  private static final long serialVersionUID = 1L;
+  public static final String PROJECT_ID = "launchpod-step18-2020"; // The ID of your GCP project
+  public static final String BUCKET_NAME = "launchpod-mp3-files"; // The ID of the GCS bucket to upload to
 
   public static final String USER_FEED = "UserFeed";
   public static final String PODCAST_TITLE = "title";
+  public static final String DESCRIPTION = "description";
+  public static final String LANGUAGE = "language";
   public static final String EMAIL = "email";
   public static final String TIMESTAMP = "timestamp";
-  public static final String MP3LINK = "mp3Link";
-  public static final String MP3FILE = "mp3File";
+  public static final String MP3 = "mp3";
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE = "pubDate";
+  public static final Gson GSON = new Gson();
 
+  private static final long serialVersionUID = 1L;
   private static final String ID = "id";
 
-  public static final Gson GSON = new Gson();
-  // public static boolean bucketCreated = false;
-  // TO-DO: check in doPost if bucketCreated == true, if so upload object, if not
-  // create bucket
-
   /**
-   * request user inputs in form fields then create Entity and place in datastore
-   *
+   * Requests user inputs in form fields, then creates Entity and places in Datastore.
    * @throws ServletException
    */
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
-    //String mp3Link = req.getParameter(MP3LINK); //storageapis.com/bucket_name/object_name
-
-    //
-
+    String description = req.getParameter(DESCRIPTION);
+    String language = req.getParameter(LANGUAGE);
+    String email = req.getParameter(EMAIL);
 
     if((podcastTitle.isEmpty() || podcastTitle == null) || (mp3Link.isEmpty() || mp3Link == null)){
       throw new IOException("No Title or MP3 link inputted, please try again.");
@@ -72,11 +69,8 @@ public class FormHandlerServlet extends HttpServlet {
     //Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
-    userFeedEntity.setProperty(MP3LINK, mp3Link);
     // TO-DO: see if you can do .setProperty(String, Object)
     // set property to be 'mp3' to the mp3 object
-
-    //
 
     // Generate xml string
     String xmlString = "";
@@ -90,25 +84,25 @@ public class FormHandlerServlet extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
 
-    //return accessible link to user
-    String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
-    String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + urlID;
-    res.setContentType("text/html");
-    res.getWriter().println(rssLink);
+    String entityId = KeyFactory.keyToString(userFeedEntity.getKey());
+    MP3 mp3 = new MP3(entityId, email);
+    // update entity by adding MP3 property
+    userFeedEntity = Entity.newBuilder(datastore.get(entityId)).set(MP3, mp3);
+    datastore.update(userFeedEntity);
+
+    // // return accessible link to user
+    // String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
+    // String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + urlID;
+    // res.setContentType("text/html");
+    // res.getWriter().println(rssLink);
 
     //write the file upload form
-    String formHtml = generateSignedPostPolicyV4(projectId, bucketName, blobName);
+    String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, entityId);
     res.getWriter().println(formHtml);
 
   }
 
   public  String generateSignedPostPolicyV4(String projectId, String bucketName, String blobName) {
-    // The ID of your GCP project
-    // String projectId = "launchpod-step18-2020";
-
-    // The ID of the GCS bucket to upload to
-    // String bucketName = "launchpod-mp3-files"
-
     // The name to give the object uploaded to GCS
     // String blobName = "your-object-name"
     // this should be the Datastore entity ID of that MP3 object
