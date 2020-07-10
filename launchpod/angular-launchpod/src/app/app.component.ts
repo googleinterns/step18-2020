@@ -1,5 +1,5 @@
 import {BreakpointObserver, Breakpoints} from '@angular/cdk/layout';
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {LoginPopupComponent} from './login-popup/login-popup.component';
 import {Observable} from 'rxjs';
 import {map, shareReplay} from 'rxjs/operators';
@@ -10,7 +10,7 @@ import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   title = 'angular-launchpod';
 
   isHandset$: Observable<boolean> =
@@ -19,7 +19,11 @@ export class AppComponent {
 
   constructor(private breakpointObserver: BreakpointObserver, public dialog: MatDialog) {}
 
-  openDialog() {
+  ngOnInit(): void {
+    this.getLoginStatus();
+  }
+
+  getLoginStatus() {
     const dialogConfig = new MatDialogConfig();
 
     dialogConfig.disableClose = true;
