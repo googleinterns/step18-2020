@@ -8,13 +8,18 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/transcribe-feed")
 public class TranscriptionServlet extends HttpServlet {
 
-  public void doPost(HttpServletRequest req, HttpServletResponse res) {}
+    private static String GCS_URI = "gcs_uri";
+
+  public void doPost(HttpServletRequest req, HttpServletResponse res) {
+    String gcs_uri = req.getParameter(GCS_URI);
+    String transcribedFile = asyncRecognizeGcs(gcs_uri);
+  }
 
   /**
    * Performs non-blocking speech recognition on remote FLAC file and prints the transcription.
    * @param gcsUri the path to remote file to be transcribed
    */
-  public static void asyncRecognizeGcs(String gcsUri) throws Exception {
+  public static String asyncRecognizeGcs(String gcsUri) throws Exception {
       //create client credentials
     try (SpeechClient speech = SpeechClient.create()) {
       // Configure remote file request for FLAC
@@ -47,7 +52,7 @@ public class TranscriptionServlet extends HttpServlet {
         SpeechRecognitionAlternative alternative = result
           .getAlternativesList()
           .get(0);
-        System.out.printf("Transcription: %s\n", alternative.getTranscript());
+        return alternative.getTranscript();
       }
     }
   }
