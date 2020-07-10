@@ -8,15 +8,17 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/transcribe-feed")
 public class TranscriptionServlet extends HttpServlet {
 
-    private static String GCS_URI = "gcs_uri";
+    private static final String ID = "id";
+    private static String mp3Link = "launchpod-mp3-files";
 
   public void doPost(HttpServletRequest req, HttpServletResponse res) {
-    String gcs_uri = req.getParameter(GCS_URI);
+    String id = req.getParameter(id);
+    mp3Link += id;
     String transcribedFile = asyncRecognizeGcs(gcs_uri);
   }
 
   /**
-   * Performs non-blocking speech recognition on remote FLAC file and prints the transcription.
+   * Performs speech recognition and saves the text
    * @param gcsUri the path to remote file to be transcribed
    */
   public static String asyncRecognizeGcs(String gcsUri) throws Exception {
@@ -47,8 +49,7 @@ public class TranscriptionServlet extends HttpServlet {
       List<SpeechRecognitionResult> results = response.get().getResultsList();
 
       for (SpeechRecognitionResult result : results) {
-        // There can be several alternative transcripts for a given chunk of speech. Just use the
-        // first (most likely) one here.
+        //get first transcript generated inside of the results
         SpeechRecognitionAlternative alternative = result
           .getAlternativesList()
           .get(0);
