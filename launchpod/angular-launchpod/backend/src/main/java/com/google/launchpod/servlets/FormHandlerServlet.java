@@ -36,7 +36,7 @@ public class FormHandlerServlet extends HttpServlet {
 
   private static final String USER_FEED = "UserFeed";
   private static final String PODCAST_TITLE = "title";
-  private static final String MP3LINK = "mp3Link";
+  private static final String MP3_LINK = "mp3Link";
   public static final String XML_STRING = "xmlString";
 
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
@@ -50,10 +50,10 @@ public class FormHandlerServlet extends HttpServlet {
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IllegalArgumentException, IOException {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
-    String mp3Link = req.getParameter(MP3LINK);
-    if (podcastTitle.isEmpty() || podcastTitle == null) {
+    String mp3Link = req.getParameter(MP3_LINK);
+    if (podcastTitle == null || podcastTitle.isEmpty()) {
       throw new IllegalArgumentException("No Title inputted, please try again.");
-    } else if (mp3Link.isEmpty() || mp3Link == null) {
+    } else if (mp3Link == null || mp3Link.isEmpty()) {
       throw new IllegalArgumentException("No Mp3 inputted, please try again.");
     }
 
@@ -73,10 +73,11 @@ public class FormHandlerServlet extends HttpServlet {
     datastore.put(userFeedEntity);
 
     // return accessible link to user
+    // this is named urlID, but it's the key string associated with the entity, not the numeric ID.
     String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
     String rssLink = BASE_URL + urlID;
     res.setContentType("text/html");
-    res.getWriter().println(rssLink);
+    res.getWriter().print(rssLink);
   }
 
   /**
@@ -86,6 +87,10 @@ public class FormHandlerServlet extends HttpServlet {
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
     // Get ID passed in request
     String id = req.getParameter(ID);
+    System.out.println("******************THIS IS THE ID: " + id);
+    if (id == null) {
+      throw new IllegalArgumentException("Sorry, no matching Id was found in Datastore.");
+    }
     Key urlID = KeyFactory.stringToKey(id);
     // Search key in datastore
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -96,13 +101,13 @@ public class FormHandlerServlet extends HttpServlet {
       // generate xml string
       String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
       res.setContentType("text/xml");
-      res.getWriter().println(xmlString);
+      res.getWriter().print(xmlString);
 
       // If there is no entity that matches the key
     } catch (EntityNotFoundException e) {
       e.printStackTrace();
       res.setContentType("text/html");
-      res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
+      res.getWriter().print("<p>Sorry. This is not a valid link.</p>");
       return;
     }
   }
