@@ -43,7 +43,7 @@ public class FormHandlerServlet extends HttpServlet {
   private static final String ID = "id";
 
   /**
-   * request user inputs in form fields then create Entity and place in datastore
+   * Request user inputs in form fields, then creates Entity to place in Datastore.
    *
    * @throws IOException,IllegalArgumentException
    */
@@ -57,7 +57,7 @@ public class FormHandlerServlet extends HttpServlet {
       throw new IllegalArgumentException("No Mp3 inputted, please try again.");
     }
 
-    // Create entity with all desired attributes
+    // Creates entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
 
     // Generate xml string
@@ -72,16 +72,16 @@ public class FormHandlerServlet extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
 
-    // return accessible link to user
-    // this is named urlID, but it's the key string associated with the entity, not the numeric ID.
-    String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
+    // Return accessible link to user
+    String urlID = KeyFactory.keyToString(userFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID
     String rssLink = BASE_URL + urlID;
     res.setContentType("text/html");
     res.getWriter().print(rssLink);
   }
 
   /**
-   * Display RSS feed xml string that user tries recalling with the given ID
+   * Display RSS feed xml string that user tries recalling with the given ID.
+   * @throws IOException
    */
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {

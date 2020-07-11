@@ -81,11 +81,7 @@ public class FormHandlerServletTest extends Mockito {
   @Rule // JUnit 4 uses Rules for testing specific messages
   public ExpectedException thrown = ExpectedException.none();
 
-  // private final LocalServiceTestHelper helper = new LocalServiceTestHelper(
-  //     new LocalDatastoreServiceTestConfig().setDefaultHighRepJobPolicyUnappliedJobPercentage(100));
-  private final LocalServiceTestHelper helper =
-      new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
-
+  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
 
   // keys
   private static final String USER_FEED = "UserFeed";
@@ -194,15 +190,16 @@ public class FormHandlerServletTest extends Mockito {
     String rssLink = BASE_URL + id;
     System.out.println("THIS IS THE EXPECTED LINK: " + rssLink);
     System.out.println("THIS IS THE ACTUAL   LINK: " + stringWriter.toString());
-    System.out.println("length 1="+rssLink.length());
-    System.out.println("length 2="+stringWriter.toString().length());
+    System.out.println("length 1=" + rssLink.length());
+    System.out.println("length 2=" + stringWriter.toString().length());
 
     verify(response, times(1)).setContentType("text/html");
     assertEquals(0, rssLink.compareTo(stringWriter.toString()));
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the title field is empty.
+   * Expects doPost() to throw an IllegalArgumentException when the title field is
+   * empty.
    */
   @Test
   public void doPost_FormInputEmptyTitle_ThrowsErrorMessage() throws IOException {
@@ -222,7 +219,8 @@ public class FormHandlerServletTest extends Mockito {
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the title field is null.
+   * Expects doPost() to throw an IllegalArgumentException when the title field is
+   * null.
    */
   @Test
   public void doPost_FormInputNullTitle_ThrowsErrorMessage() throws IOException {
@@ -241,7 +239,8 @@ public class FormHandlerServletTest extends Mockito {
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the MP3 link field is empty.
+   * Expects doPost() to throw an IllegalArgumentException when the MP3 link field
+   * is empty.
    */
   @Test
   public void doPost_FormInputEmptyMp3Link_ThrowsErrorMessage() throws IOException {
@@ -261,7 +260,8 @@ public class FormHandlerServletTest extends Mockito {
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the MP3 link field is null.
+   * Expects doPost() to throw an IllegalArgumentException when the MP3 link field
+   * is null.
    */
   @Test
   public void doPost_FormInputNullMp3Link_ThrowsErrorMessage() throws IOException {
@@ -290,7 +290,7 @@ public class FormHandlerServletTest extends Mockito {
     String test_xml_string = RSS.toXmlString(rss);
     Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, test_xml_string);
     ds.put(entity);
-    
+
     String id = KeyFactory.keyToString(entity.getKey());
 
     when(request.getParameter(ID)).thenReturn(id);
