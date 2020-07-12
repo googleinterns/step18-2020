@@ -69,8 +69,6 @@ public class FormHandlerServlet extends HttpServlet {
     //Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
-    // TO-DO: see if you can do .setProperty(String, Object)
-    // set property to be 'mp3' to the mp3 object
 
     // Generate xml string
     String xmlString = "";
@@ -105,7 +103,7 @@ public class FormHandlerServlet extends HttpServlet {
   public  String generateSignedPostPolicyV4(String projectId, String bucketName, String blobName) {
     // The name to give the object uploaded to GCS
     // String blobName = "your-object-name"
-    // this should be the Datastore entity ID of that MP3 object
+    // blobName is the Datastore entity ID of that MP3 object
 
     Storage storage = StorageOptions.newBuilder().setProjectId(projectId).build().getService();
 
@@ -130,7 +128,8 @@ public class FormHandlerServlet extends HttpServlet {
               + "' type='hidden' />\n");
     }
     htmlForm.append("  <input type='file' name='file'/><br />\n");
-    String myRedirectUrl="xxxx/?action=generateRssLink";
+    //TO-DO: check this
+    String myRedirectUrl="https://launchpod-step18-2020.appspot.com/rss-feed/?action=generateRssLink";
     htmlForm.append(" <input name='successxxx-redirect-url' value=" + myRedirectUrl + "/>\n");
     htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
     htmlForm.append("</form>\n");
@@ -145,16 +144,16 @@ public class FormHandlerServlet extends HttpServlet {
   }
 
   /**
-  * Display RSS feed xml string that user tries recalling  with the given ID
+  * Display RSS feed xml string that user tries recalling with the given ID
   */
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
     String action = req.getParameter("action");
+    // Get ID passed in request
+    String id = req.getParameter(ID);
+    Key urlID = KeyFactory.stringToKey(id);
 
     if(action==null || action.isEmpty() || action.equals("generateXml")) {
-      // Get ID passed in request
-      String id = req.getParameter(ID);
-      Key urlID = KeyFactory.stringToKey(id);
       // Search key in datastore
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
       // create entity that contains id from datastore
@@ -179,8 +178,9 @@ public class FormHandlerServlet extends HttpServlet {
         return;
       }
    } else if (action.equals("generateRSSLink")) {
-    // get desiredFeedEntity
-    // generate RSS link like in doPost
+      String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + urlID;
+      res.setContentType("text/html");
+      res.getWriter().println(rssLink);
    }
   }
 
