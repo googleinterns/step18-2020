@@ -33,17 +33,15 @@ import com.google.launchpod.data.RSS;
 public class FormHandlerServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
-
   private static final String USER_FEED = "UserFeed";
   private static final String PODCAST_TITLE = "title";
   private static final String MP3_LINK = "mp3Link";
-  public static final String XML_STRING = "xmlString";
-
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
+  public static final String XML_STRING = "xmlString";
 
   /**
-   * Request user inputs in form fields, then creates Entity to place in Datastore.
+   * Requests user inputs in form fields, then creates Entity and places in Datastore.
    *
    * @throws IOException,IllegalArgumentException
    */
@@ -72,8 +70,8 @@ public class FormHandlerServlet extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
 
-    // Return accessible link to user
-    String urlID = KeyFactory.keyToString(userFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID
+    // return accessible link to user
+    String urlID = KeyFactory.keyToString(userFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID.
     String rssLink = BASE_URL + urlID;
     res.setContentType("text/html");
     res.getWriter().print(rssLink);
@@ -87,7 +85,6 @@ public class FormHandlerServlet extends HttpServlet {
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
     // Get ID passed in request
     String id = req.getParameter(ID);
-    System.out.println("******************THIS IS THE ID: " + id);
     if (id == null) {
       throw new IllegalArgumentException("Sorry, no matching Id was found in Datastore.");
     }

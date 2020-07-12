@@ -369,7 +369,6 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doGet_NoEntitiesInDatastore_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    // when(request.getParameter(ID)).thenReturn(fakeId);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
