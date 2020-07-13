@@ -8,7 +8,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement(localName = "item")
 public class Item {
-  
+
   @JacksonXmlProperty
   private String title;
 
@@ -16,22 +16,26 @@ public class Item {
   private String link;
 
   @JacksonXmlProperty
-  private String description = "Episode 1";
+  private String description;
+
+  @JacksonXmlProperty
+  private String language;
+
+  @JacksonXmlProperty
+  private String email;
 
   @JacksonXmlProperty
   private String pubDate;
 
-  public Item(String podcastTitle, String mp3Link, String pubDate){
-    this.title = podcastTitle;
-    this.link = mp3Link;
-    this.pubDate = createDate();
-  }
-  public String createDate(){
-    // Create time
-    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-    LocalDateTime publishTime = LocalDateTime.now();
-    String pubDate = dateFormatter.format(publishTime);
+  private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
+  private static final LocalDateTime publishTime = LocalDateTime.now();
 
-    return pubDate;
+  public Item(String podcastTitle, String description, String language, String email, String mp3Link) {
+    this.title = podcastTitle;
+    this.description = description;
+    this.language = language; 
+    this.email = email;
+    this.link = mp3Link;
+    this.pubDate = dateFormatter.format(publishTime);
   }
 }

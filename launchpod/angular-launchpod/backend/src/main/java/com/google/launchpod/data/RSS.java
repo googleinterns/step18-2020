@@ -1,5 +1,7 @@
 package com.google.launchpod.data;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -9,12 +11,24 @@ public class RSS {
 
   @JacksonXmlProperty(isAttribute = true)
   private double version = 2.0;
-   
+
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
   private Channel channel;
 
-  public RSS(String podcastTitle, String mp3Link, String pubDate){
-    this.channel = new Channel(podcastTitle, mp3Link, pubDate);
-  }  
+  private static final XmlMapper xmlMapper = new XmlMapper();
+
+  public RSS(String podcastTitle, String description, String language, String email, String mp3Link) {
+    this.channel = new Channel(podcastTitle, description, language, email, mp3Link);
+  }
+
+  /**
+   * Create RSS XML string from given fields
+   * 
+   * @return xml String
+   * @throws JsonProcessingException
+   */
+  public static String toXmlString(RSS rssFeed) throws JsonProcessingException {
+    return xmlMapper.writeValueAsString(rssFeed);
+  }
 }

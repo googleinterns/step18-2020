@@ -24,11 +24,11 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
+import com.google.launchpod.data.MP3;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.PostPolicyV4;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-
 
 @WebServlet("/rss-feed")
 @MultipartConfig
@@ -44,6 +44,7 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String EMAIL = "email";
   public static final String TIMESTAMP = "timestamp";
   public static final String MP3 = "mp3";
+  public static final String MP3_LINK = "mp3Link";
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE = "pubDate";
   public static final Gson GSON = new Gson();
@@ -89,11 +90,16 @@ public class FormHandlerServlet extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
 
-    String entityId = KeyFactory.keyToString(userFeedEntity.getKey());
+    Key entityKey = userFeedEntity.getKey();
+    String entityId = KeyFactory.keyToString(entityKey);
     MP3 mp3 = new MP3(entityId, email);
-    // update entity by adding MP3 property
-    userFeedEntity = Entity.newBuilder(datastore.get(entityId)).set(MP3, mp3);
-    datastore.update(userFeedEntity);
+    String mp3Link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
+    // update entity by adding MP3 object and MP3 link
+    userFeedEntity.setProperty(MP3, mp3);
+    userFeedEntity.setProperty(MP3_LINK, mp3Link);
+    // userFeedEntity = Entity.newBuilder(datastore.get(entityKey)).set(MP3, mp3);
+    // userFeedEntity = Entity.newBuilder(datastore.get(entityKey)).set(MP3_LINK, mp3Link);
+    datastore.put(userFeedEntity);
 
     // // return accessible link to user
     // String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
@@ -108,8 +114,7 @@ public class FormHandlerServlet extends HttpServlet {
 
   public  String generateSignedPostPolicyV4(String projectId, String bucketName, String blobName) {
     // The name to give the object uploaded to GCS
-    // String blobName = "your-object-name"
-    // blobName is the Datastore entity ID of that MP3 object
+    // String blobName = "your-object-name", the Datastore entity ID of that MP3 object
 
     Storage storage = StorageOptions.newBuilder().setProjectId(projectId).build().getService();
 
@@ -134,8 +139,7 @@ public class FormHandlerServlet extends HttpServlet {
               + "' type='hidden' />\n");
     }
     htmlForm.append("  <input type='file' name='file'/><br />\n");
-    //TO-DO: check this
-    String myRedirectUrl="https://launchpod-step18-2020.appspot.com/rss-feed/?action=generateRssLink&id=" + entityId;
+    String myRedirectUrl="https://launchpod-step18-2020.appspot.com/rss-feed/?action=generateRssLink&id=" + blobName;
     htmlForm.append(" <input name='success-action-redirect' value=" + myRedirectUrl + "/>\n");
     htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
     htmlForm.append("</form>\n");
@@ -159,17 +163,23 @@ public class FormHandlerServlet extends HttpServlet {
       try {
         Entity desiredFeedEntity = datastore.get(urlID);
 
-        //Create user feed object to access rss feed attributes then create RSS feed
-        UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
-        RSS rssFeed = new RSS(desiredUserFeed.getTitle(), desiredUserFeed.getLink(), desiredUserFeed.getPubDate());
+        String podcastTitle = desiredFeedEntity.getProperty(PODCAST_TITLE).toString();
+        String description = desiredFeedEntity.getProperty(DESCRIPTION).toString();
+        String language = desiredFeedEntity.getProperty(LANGUAGE).toString();
+        String email = desiredFeedEntity.getProperty(EMAIL).toString();
+        String mp3Link = desiredFeedEntity.getProperty(MP3_LINK).toString();
 
-        // generate xml string
+        RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
+        
+        //Create user feed object to create XML String
+        UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
+
         XmlMapper xmlMapper = new XmlMapper();
         String xmlString = xmlMapper.writeValueAsString(rssFeed);
         res.setContentType("text/xml");
         res.getWriter().println(xmlString);
 
-      //If there is no entity that matches the key
+      // If there is no entity that matches the key
       } catch (EntityNotFoundException e) {
         e.printStackTrace();
         res.setContentType("text/html");

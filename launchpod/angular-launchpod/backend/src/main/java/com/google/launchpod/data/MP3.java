@@ -10,7 +10,7 @@ public final class MP3 {
    * @param entityId : name of the MP3 file (renamed to be the entity ID)
    * @param userEmail : email of user who uploaded the file
    */
-  private MP3(String entityId, String userEmail) {
+  public MP3(String entityId, String userEmail) {
     this.entityId = entityId;
     this.userEmail = userEmail;
   }
