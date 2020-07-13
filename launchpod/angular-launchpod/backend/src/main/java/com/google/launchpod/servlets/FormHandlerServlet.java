@@ -56,17 +56,21 @@ public class FormHandlerServlet extends HttpServlet {
    * @throws ServletException
    */
   @Override
-  public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
+  public void doPost(HttpServletRequest req, HttpServletResponse res) throws IllegalArgumentException, IOException {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String description = req.getParameter(DESCRIPTION);
     String language = req.getParameter(LANGUAGE);
     String email = req.getParameter(EMAIL);
 
-    if((podcastTitle.isEmpty() || podcastTitle == null) || (mp3Link.isEmpty() || mp3Link == null)){
-      throw new IOException("No Title or MP3 link inputted, please try again.");
+    if (podcastTitle == null || podcastTitle.isEmpty()) {
+      throw new IllegalArgumentException("No Title inputted, please try again.");
+    } else if (description == null || description.isEmpty()) {
+      throw new IllegalArgumentException("No description inputted, please try again.");
+    } else if (language == null || language.isEmpty()) {
+      throw new IllegalArgumentException("No language inputted, please try again.");
+    } else if (email == null || email.isEmpty()) {
+      throw new IllegalArgumentException("You are not logged in. Please try again.");
     }
-
-    // TO-DO: check null description, language, email
 
     //Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
