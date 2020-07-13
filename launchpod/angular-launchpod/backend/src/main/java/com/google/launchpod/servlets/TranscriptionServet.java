@@ -9,12 +9,15 @@ import javax.servlet.http.HttpServletResponse;
 public class TranscriptionServlet extends HttpServlet {
 
     private static final String ID = "id";
-    private static String mp3Link = "launchpod-mp3-files";
+    private static String mp3Link = "https://storage.googleapis.com/launchpod-mp3-files/";
 
   public void doPost(HttpServletRequest req, HttpServletResponse res) {
+    //TODO: wait for billing to pass, then finish doPost to send transcribed file back to the user
     String id = req.getParameter(id);
     mp3Link += id;
     String transcribedFile = asyncRecognizeGcs(gcs_uri);
+    res.setContentType("text/html");
+    res.getWriter().println(transcribedFile);
   }
 
   /**
