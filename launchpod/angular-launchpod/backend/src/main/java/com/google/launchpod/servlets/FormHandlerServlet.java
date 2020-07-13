@@ -66,16 +66,19 @@ public class FormHandlerServlet extends HttpServlet {
       throw new IOException("No Title or MP3 link inputted, please try again.");
     }
 
+    // TO-DO: check null description, language, email
+
     //Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
+    // set other properties
 
     // Generate xml string
     String xmlString = "";
-    try{
+    try {
       xmlString = xmlString(userFeedEntity);
       userFeedEntity.setProperty(XML_STRING ,xmlString);
-    }catch(IOException e){
+    } catch(IOException e){
       throw new IOException("Unable to create XML string.");
     }
 
@@ -97,7 +100,6 @@ public class FormHandlerServlet extends HttpServlet {
     //write the file upload form
     String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, entityId);
     res.getWriter().println(formHtml);
-
   }
 
   public  String generateSignedPostPolicyV4(String projectId, String bucketName, String blobName) {
@@ -129,16 +131,10 @@ public class FormHandlerServlet extends HttpServlet {
     }
     htmlForm.append("  <input type='file' name='file'/><br />\n");
     //TO-DO: check this
-    String myRedirectUrl="https://launchpod-step18-2020.appspot.com/rss-feed/?action=generateRssLink";
-    htmlForm.append(" <input name='successxxx-redirect-url' value=" + myRedirectUrl + "/>\n");
+    String myRedirectUrl="https://launchpod-step18-2020.appspot.com/rss-feed/?action=generateRssLink&id=" + entityId;
+    htmlForm.append(" <input name='success-action-redirect' value=" + myRedirectUrl + "/>\n");
     htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
     htmlForm.append("</form>\n");
-
-    System.out.println(
-        "You can use the following HTML form to upload an object to bucket "
-            + bucketName
-            + " for the next ten minutes:");
-    System.out.println(htmlForm.toString());
 
     return htmlForm.toString();
   }
@@ -149,11 +145,10 @@ public class FormHandlerServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
     String action = req.getParameter("action");
-    // Get ID passed in request
     String id = req.getParameter(ID);
     Key urlID = KeyFactory.stringToKey(id);
 
-    if(action==null || action.isEmpty() || action.equals("generateXml")) {
+    if (action==null || action.isEmpty() || action.equals("generateXml")) {
       // Search key in datastore
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
       // create entity that contains id from datastore
