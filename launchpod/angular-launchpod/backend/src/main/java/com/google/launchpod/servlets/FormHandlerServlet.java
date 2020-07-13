@@ -18,6 +18,8 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.PropertyContainer;
+import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -47,6 +49,7 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String MP3_LINK = "mp3Link";
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE = "pubDate";
+  public static final String ENTITY_ID = "entityId";
   public static final Gson GSON = new Gson();
 
   private static final long serialVersionUID = 1L;
@@ -92,20 +95,19 @@ public class FormHandlerServlet extends HttpServlet {
 
     Key entityKey = userFeedEntity.getKey();
     String entityId = KeyFactory.keyToString(entityKey);
-    MP3 mp3 = new MP3(entityId, email);
     String mp3Link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
-    // update entity by adding MP3 object and MP3 link
+    // MP3 mp3 = new MP3(entityId, email);
+    EmbeddedEntity mp3 = new EmbeddedEntity();
+    mp3.setProperty(ENTITY_ID, entityId);
+    mp3.setProperty(MP3_LINK, mp3Link);
+    mp3.setProperty(EMAIL, email);
+
+    // update entity by adding embedded MP3 entity as a property
     userFeedEntity.setProperty(MP3, mp3);
-    userFeedEntity.setProperty(MP3_LINK, mp3Link);
+
     // userFeedEntity = Entity.newBuilder(datastore.get(entityKey)).set(MP3, mp3);
     // userFeedEntity = Entity.newBuilder(datastore.get(entityKey)).set(MP3_LINK, mp3Link);
     datastore.put(userFeedEntity);
-
-    // // return accessible link to user
-    // String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
-    // String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + urlID;
-    // res.setContentType("text/html");
-    // res.getWriter().println(rssLink);
 
     //write the file upload form
     String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, entityId);

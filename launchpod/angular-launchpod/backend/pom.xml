@@ -36,7 +36,7 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-storage</artifactId>
-      <version>1.111.2</version>
+      <version>1.111.2</version>       <!-- 1.38.0 --> 
     </dependency>
     <dependency>
       <groupId>com.google.appengine</groupId>
