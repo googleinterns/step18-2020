@@ -7,7 +7,12 @@ import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
+
 import java.io.IOException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/translate-feed")
 public class TranslateText {
