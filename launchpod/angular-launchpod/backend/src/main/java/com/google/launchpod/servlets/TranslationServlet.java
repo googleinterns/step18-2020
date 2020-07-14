@@ -12,6 +12,9 @@ import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
+import com.google.launchpod.data.RSS;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import java.io.IOException;
@@ -27,14 +30,15 @@ public class TranslationServlet {
   private static final String XML_STRING = "xmlString";
   private static final XmlMapper XML_MAPPER = new XmlMapper();
 
-  public void doPost(HttpServletRequest req, HttpServletResponse res) {
+  public void doPost(HttpServletRequest req, HttpServletResponse res)
+      throws JsonParseException, JsonMappingException, IOException {
     String id = req.getParameter(ID);
     Key desiredFeedKey = KeyFactory.stringToKey(id);
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     try {
       Entity desiredFeedEntity = datastore.get(desiredFeedKey);
-      String xmlString = (String) desiredFeedEntity.getProperty(propertyName)
-      RSS rssFeed = XML_MAPPER.readValue(, valueType)
+      String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+      RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
     } catch (EntityNotFoundException e) {
       //TODO: add code to run when there is an exception
       return;
