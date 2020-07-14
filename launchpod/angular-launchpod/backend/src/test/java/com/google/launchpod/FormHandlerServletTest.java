@@ -16,7 +16,6 @@ package com.google.launchpod;
 
 import static com.google.appengine.api.datastore.FetchOptions.Builder.withLimit;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -31,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.launchpod.servlets.FormHandlerServlet;
 import com.google.launchpod.data.UserFeed;
 import com.google.launchpod.data.RSS;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -39,15 +37,8 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.SortDirection;
-import com.google.appengine.repackaged.com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -183,15 +174,11 @@ public class FormHandlerServletTest extends Mockito {
     String expectedXmlString = RSS.toXmlString(TEST_RSS_FEED);
     assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
 
-    String test_xml_string = RSS.toXmlString(TEST_RSS_FEED);
-    assertEquals(test_xml_string, desiredEntity.getProperty(XML_STRING).toString());
+    String testXmlString = RSS.toXmlString(TEST_RSS_FEED);
+    assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
 
     String id = KeyFactory.keyToString(desiredEntity.getKey());
     String rssLink = BASE_URL + id;
-    System.out.println("THIS IS THE EXPECTED LINK: " + rssLink);
-    System.out.println("THIS IS THE ACTUAL   LINK: " + stringWriter.toString());
-    System.out.println("length 1=" + rssLink.length());
-    System.out.println("length 2=" + stringWriter.toString().length());
 
     verify(response, times(1)).setContentType("text/html");
     assertEquals(0, rssLink.compareTo(stringWriter.toString()));
@@ -212,10 +199,6 @@ public class FormHandlerServletTest extends Mockito {
     servlet.doPost(request, response);
 
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
-
-    Query query = new Query(USER_FEED);
-    PreparedQuery results = ds.prepare(query);
-    Entity entity = ds.prepare(query).asSingleEntity();
   }
 
   /**
@@ -233,9 +216,6 @@ public class FormHandlerServletTest extends Mockito {
     servlet.doPost(request, response);
 
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
-
-    Query query = new Query(USER_FEED);
-    Entity entity = ds.prepare(query).asSingleEntity();
   }
 
   /**
@@ -253,10 +233,6 @@ public class FormHandlerServletTest extends Mockito {
     servlet.doPost(request, response);
 
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
-
-    Query query = new Query(USER_FEED);
-    PreparedQuery results = ds.prepare(query);
-    Entity entity = ds.prepare(query).asSingleEntity();
   }
 
   /**
@@ -274,9 +250,6 @@ public class FormHandlerServletTest extends Mockito {
     servlet.doPost(request, response);
 
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
-
-    Query query = new Query(USER_FEED);
-    Entity entity = ds.prepare(query).asSingleEntity();
   }
 
   /**
@@ -287,8 +260,8 @@ public class FormHandlerServletTest extends Mockito {
   public void doGet_SingleEntity_ReturnsCorrectXmlString() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     RSS rss = new RSS(TEST_PODCAST_TITLE, TEST_MP3_LINK);
-    String test_xml_string = RSS.toXmlString(rss);
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, test_xml_string);
+    String testXmlString = RSS.toXmlString(rss);
+    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);
     ds.put(entity);
 
     String id = KeyFactory.keyToString(entity.getKey());
@@ -303,7 +276,7 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/xml");
     writer.flush();
-    assertEquals(test_xml_string, stringWriter.toString());
+    assertEquals(testXmlString, stringWriter.toString());
   }
 
   /**
@@ -314,10 +287,10 @@ public class FormHandlerServletTest extends Mockito {
   public void doGet_MultipleEntities_ReturnsCorrectXmlString() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     RSS rss = new RSS(TEST_PODCAST_TITLE, TEST_MP3_LINK);
-    String test_xml_string = RSS.toXmlString(rss);
+    String testXmlString = RSS.toXmlString(rss);
 
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, test_xml_string);
-    Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, test_xml_string);
+    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);
+    Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);
     ds.put(entity);
     ds.put(entityTwo);
 
@@ -334,7 +307,7 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/xml");
     writer.flush();
-    assertEquals(test_xml_string, stringWriter.toString());
+    assertEquals(testXmlString, stringWriter.toString());
   }
 
   /**
@@ -368,7 +341,6 @@ public class FormHandlerServletTest extends Mockito {
    */
   @Test
   public void doGet_NoEntitiesInDatastore_ThrowsErrorMessage() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
