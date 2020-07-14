@@ -1,12 +1,18 @@
 package com.google.launchpod.servlets;
 
 import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 
 import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
@@ -15,13 +21,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/translate-feed")
-public class TranslateText {
+public class TranslationServlet {
 
-    private static final String ID = "id";
+  private static final String ID = "id";
+  private static final String XML_STRING = "xmlString";
+  private static final XmlMapper XML_MAPPER = new XmlMapper();
 
-  public void doPost(HttpServletRequest req, HttpServletResponse res){
+  public void doPost(HttpServletRequest req, HttpServletResponse res) {
     String id = req.getParameter(ID);
+    Key desiredFeedKey = KeyFactory.stringToKey(id);
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    try {
+      Entity desiredFeedEntity = datastore.get(desiredFeedKey);
+      String xmlString = (String) desiredFeedEntity.getProperty(propertyName)
+      RSS rssFeed = XML_MAPPER.readValue(, valueType)
+    } catch (EntityNotFoundException e) {
+      //TODO: add code to run when there is an exception
+      return;
+    }
 
     String projectId = "launchpod-step18-2020";
     // Supported Languages: https://cloud.google.com/translate/docs/languages
