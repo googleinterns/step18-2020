@@ -16,6 +16,7 @@ import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.TranslationServiceClient;
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
+
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -30,6 +31,7 @@ public class TranslationServlet extends HttpServlet {
   private static final String LANGUAGE = "language";
   private static final String XML_STRING = "xmlString";
   private static final XmlMapper XML_MAPPER = new XmlMapper();
+  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
 
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res)
@@ -64,15 +66,27 @@ public class TranslationServlet extends HttpServlet {
         translation = translate.translate(item.getDescription());
         item.setDescription(translation.getTranslatedText());
       }
+
+      // Generate Translated XML string then place it into datastore
+      String translatedXmlString = RSS.toXmlString(rssFeed);
+      Entity translatedUserFeedEntity = new Entity(XML_STRING, translatedXmlString);
+      String translatedFeedId = KeyFactory.keyToString(datastore.put(translatedUserFeedEntity));
+
+      //display new translated string to the user
+      res.setContentType("text/html");
+      res.getWriter().println(BASE_URL + translatedFeedId);
+
     } catch (EntityNotFoundException e) {
-      // TODO: add code to run when there is an exception
+      res.setContentType("text/html");
+      res.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested Entity was not found.");
       return;
     }
-
+    /*
     String projectId = "launchpod-step18-2020";
     // Supported Languages: https://cloud.google.com/translate/docs/languages
     String text = "transcribed feed here";
     translateText(projectId, targetLanguage, text);
+    */
   }
 
   /**
