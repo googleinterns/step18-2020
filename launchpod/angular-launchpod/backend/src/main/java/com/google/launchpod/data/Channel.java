@@ -31,6 +31,7 @@ public class Channel {
     this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, description, language, email, mp3Link)));
   }
 
+  //Setters
   public void setLanguage(String newLanguage){
     this.language = newLanguage;
   }
@@ -39,6 +40,7 @@ public class Channel {
     this.description = newDescription;
   }
 
+  //Getters
   public String getDescription(){
     return this.description;
   }

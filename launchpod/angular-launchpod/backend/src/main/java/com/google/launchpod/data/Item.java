@@ -38,4 +38,22 @@ public class Item {
     this.link = mp3Link;
     this.pubDate = dateFormatter.format(publishTime);
   }
+
+  //Setters
+  public void setTitle(String newTitle){
+    this.title = newTitle;
+  }
+
+  public void setDescription(String newDescription){
+    this.description = newDescription;
+  }
+
+  //Getters
+  public String getTitle(){
+    return this.title;
+  }
+
+  public String getDescription(){
+    return this.description;
+  }
 }

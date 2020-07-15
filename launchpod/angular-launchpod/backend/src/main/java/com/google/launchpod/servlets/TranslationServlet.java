@@ -9,11 +9,18 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.cloud.translate.*;
+import com.google.cloud.translate.v3.LocationName;
+import com.google.cloud.translate.v3.TranslateTextRequest;
+import com.google.cloud.translate.v3.TranslateTextResponse;
+import com.google.cloud.translate.v3.TranslationServiceClient;
+/*
 import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
+*/
 import com.google.launchpod.data.Channel;
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
@@ -36,7 +43,7 @@ public class TranslationServlet extends HttpServlet {
   public void doPost(HttpServletRequest req, HttpServletResponse res)
       throws JsonParseException, JsonMappingException, IOException {
     String id = req.getParameter(ID);
-    String language = req.getParameter(LANGUAGE);
+    String targetLanguage = req.getParameter(LANGUAGE);
 
     Key desiredFeedKey = KeyFactory.stringToKey(id);
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -44,6 +51,14 @@ public class TranslationServlet extends HttpServlet {
       Entity desiredFeedEntity = datastore.get(desiredFeedKey);
       String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
       RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
+
+    //Translate fields to new language;
+    Translate translate = TranslateOptions.getDefaultInstance().getService();
+      //description
+    Translation translation = translate.translate(rssFeed.getChannel().getDescription());
+    rssFeed.getChannel().setDescription(translation.getTranslatedText());
+      //Language
+    rssFeed.getChannel().setLanguage(targetLanguage);
     //TODO: Implement translation on fields for RSS
 
       //Translate title
@@ -55,7 +70,6 @@ public class TranslationServlet extends HttpServlet {
 
     String projectId = "launchpod-step18-2020";
     // Supported Languages: https://cloud.google.com/translate/docs/languages
-    String targetLanguage = "es";
     String text = "transcribed feed here";
     translateText(projectId, targetLanguage, text);
   }
@@ -81,7 +95,7 @@ public class TranslationServlet extends HttpServlet {
 
       // Display the translation for each input text provided
       String translatedDiv = "<p>";
-      for (Translation translation : response.getTranslationsList()) {
+      for (com.google.cloud.translate.v3.Translation translation : response.getTranslationsList()) {
         translatedDiv += translation.getTranslatedText();
       }
       translatedDiv += "</p>";
