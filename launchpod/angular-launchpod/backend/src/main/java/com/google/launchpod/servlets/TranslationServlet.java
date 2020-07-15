@@ -14,14 +14,6 @@ import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.TranslationServiceClient;
-/*
-import com.google.cloud.translate.v3.LocationName;
-import com.google.cloud.translate.v3.TranslateTextRequest;
-import com.google.cloud.translate.v3.TranslateTextResponse;
-import com.google.cloud.translate.v3.Translation;
-import com.google.cloud.translate.v3.TranslationServiceClient;
-*/
-import com.google.launchpod.data.Channel;
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
 import java.io.IOException;
@@ -52,17 +44,26 @@ public class TranslationServlet extends HttpServlet {
       String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
       RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
 
-    //Translate fields to new language;
-    Translate translate = TranslateOptions.getDefaultInstance().getService();
-      //description
-    Translation translation = translate.translate(rssFeed.getChannel().getDescription());
-    rssFeed.getChannel().setDescription(translation.getTranslatedText());
-      //Language
-    rssFeed.getChannel().setLanguage(targetLanguage);
-    //TODO: Implement translation on fields for RSS
+      // Translate fields to new language
+      Translate translate = TranslateOptions.getDefaultInstance().getService();
 
-      //Translate title
+      // Channel description
+      Translation translation = translate.translate(rssFeed.getChannel().getDescription());
+      rssFeed.getChannel().setDescription(translation.getTranslatedText());
 
+      // Language
+      rssFeed.getChannel().setLanguage(targetLanguage);
+
+      // Episodes
+      for (Item item : rssFeed.getChannel().getItem()) {
+        // Episode title
+        translation = translate.translate(item.getTitle());
+        item.setTitle(translation.getTranslatedText());
+
+        // Episode description
+        translation = translate.translate(item.getDescription());
+        item.setDescription(translation.getTranslatedText());
+      }
     } catch (EntityNotFoundException e) {
       // TODO: add code to run when there is an exception
       return;
