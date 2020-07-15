@@ -15,7 +15,6 @@ export class ResultPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.formHandlerService.feedValue.subscribe((feedValue) => {
-      console.log("Result: " + feedValue)
       this.feedValue = feedValue;
     });
   }
