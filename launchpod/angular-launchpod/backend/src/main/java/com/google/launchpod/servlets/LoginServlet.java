@@ -38,8 +38,7 @@ public class LoginServlet extends HttpServlet {
       String urlToRedirectToAfterUserLogsOut = "/index.html";
       String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
 
-      String loginMessage = "<p>Logged in as " + userEmail + "</p>"
-          + "<p>Logout <a href=\"" + logoutUrl + "\">here</a>.</p>";
+      String loginMessage = "<p>Logged in as " + userEmail + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
       LoginStatus loginStatus = new LoginStatus(true, loginMessage);
 
       response.getWriter().println(GSON.toJson(loginStatus));
@@ -47,8 +46,7 @@ public class LoginServlet extends HttpServlet {
       String urlToRedirectToAfterUserLogsIn = "/index.html";
       String loginUrl = userService.createLoginURL(urlToRedirectToAfterUserLogsIn);
 
-      String loginMessage = "<p>You are not logged in.</p>"
-          + "<p>Login <a href=\"" + loginUrl + "\">here</a>.</p>";
+      String loginMessage = loginUrl;
       LoginStatus loginStatus = new LoginStatus(false, loginMessage);
 
       response.getWriter().println(GSON.toJson(loginStatus));
