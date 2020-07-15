@@ -14,6 +14,8 @@ import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
+import com.google.launchpod.data.Channel;
+import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
@@ -42,6 +44,7 @@ public class TranslationServlet extends HttpServlet {
       Entity desiredFeedEntity = datastore.get(desiredFeedKey);
       String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
       RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
+    //TODO: Implement translation on fields for RSS
 
       //Translate title
 

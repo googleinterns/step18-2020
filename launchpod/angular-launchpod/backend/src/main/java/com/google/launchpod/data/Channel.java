@@ -12,16 +12,16 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Channel {
 
   @JacksonXmlProperty
-  private String title;
+  private String title = "Launchpod";
 
   @JacksonXmlProperty
-  private String link;
+  private String link = "https://launchpod-step18-2020.appspot.com";
 
   @JacksonXmlProperty
-  private String language;
+  private String language = "en";
 
   @JacksonXmlProperty
-  private String description;
+  private String description = "Launchpod generated RSS";
 
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
@@ -29,5 +29,21 @@ public class Channel {
 
   public Channel(String podcastTitle, String description, String language, String email, String mp3Link) {
     this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, description, language, email, mp3Link)));
+  }
+
+  public void setLanguage(String newLanguage){
+    this.language = newLanguage;
+  }
+
+  public void setDescription(String newDescription){
+    this.description = newDescription;
+  }
+
+  public String getDescription(){
+    return this.description;
+  }
+
+  public List<Item> getItem(){
+    return this.item;
   }
 }
