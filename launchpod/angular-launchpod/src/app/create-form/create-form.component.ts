@@ -11,8 +11,6 @@ import { HttpParams } from '@angular/common/http';
 
 export class CreateFormComponent implements OnInit {
 
-  feedValue: string;
-
   constructor(private formHandlerService: FormHandlerService) {}
 
   ngOnInit(): void {}
@@ -25,8 +23,6 @@ export class CreateFormComponent implements OnInit {
 
     this.formHandlerService.postFormData(formData)
       .subscribe((response) => {
-        this.feedValue = response;
-        console.log("Create feedValue: " + this.feedValue);
         this.formHandlerService.sendFeedValue(response);
       });
   }

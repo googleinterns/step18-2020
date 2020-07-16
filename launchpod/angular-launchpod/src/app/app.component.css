@@ -57,3 +57,7 @@
 .sidenav .mat-toolbar {
   background: inherit;
 }
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
