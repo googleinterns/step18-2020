@@ -16,13 +16,15 @@ import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ResultPageComponent } from './result-page/result-page.component'
+import { ResultPageComponent } from './result-page/result-page.component';
+import { Mp3FormComponent } from './mp3-form/mp3-form.component'
 
 @NgModule({
   declarations: [
     AppComponent,
     CreateFormComponent,
-    ResultPageComponent
+    ResultPageComponent,
+    Mp3FormComponent
   ],
   imports: [
     AppRoutingModule,

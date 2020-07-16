@@ -2,6 +2,7 @@ import { FormHandlerService } from '../form-handler.service';
 import { CreateFormComponent } from '../create-form/create-form.component';
 import { Component, Input, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { HttpParams } from '@angular/common/http';
 
 @Component({
   selector: 'app-result-page',
@@ -15,10 +16,13 @@ export class ResultPageComponent implements OnInit {
   constructor(private formHandlerService: FormHandlerService, private createFormComponent: CreateFormComponent, public snackBar: MatSnackBar) { }
 
   ngOnInit(): void {
-    this.formHandlerService.feedValue.subscribe((feedValue) => {
-      console.log("Result: " + feedValue)
-      this.feedValue = feedValue;
-    });
+
+    this.formHandlerService.getLinkToCopy()
+      .subscribe((response) => {
+        this.feedValue = response;
+        // console.log("Create feedValue: " + this.feedValue);
+        // this.formHandlerService.sendFeedValue(response);
+      });
   }
 
   openSnackBar() {

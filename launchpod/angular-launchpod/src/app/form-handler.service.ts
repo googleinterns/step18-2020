@@ -29,4 +29,12 @@ export class FormHandlerService {
   postFormData(formData): Observable<string> {
     return this.http.post(FEED_URL, formData, { responseType: 'text' });
   }
+
+  /**
+   * Get action needed to generate link to RSS feed.
+   */
+  getLinkToCopy(): Observable<any> {
+    return this.http.get(FEED_URL, { responseType: 'text' });
+  }
+
 }
