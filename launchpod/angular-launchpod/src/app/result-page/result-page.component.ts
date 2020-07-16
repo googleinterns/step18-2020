@@ -1,5 +1,6 @@
 import { FormHandlerService } from '../form-handler.service';
-import { Component, OnInit } from '@angular/core';
+import { CreateFormComponent } from '../create-form/create-form.component';
+import { Component, Input, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -11,10 +12,11 @@ export class ResultPageComponent implements OnInit {
 
   feedValue: string;
 
-  constructor(private formHandlerService: FormHandlerService, public snackBar: MatSnackBar) {}
+  constructor(private formHandlerService: FormHandlerService, private createFormComponent: CreateFormComponent, public snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.formHandlerService.feedValue.subscribe((feedValue) => {
+      console.log("Result: " + feedValue)
       this.feedValue = feedValue;
     });
   }

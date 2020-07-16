@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { FormHandlerService } from '../form-handler.service';
 
 @Component({
   selector: 'app-login-popup',
@@ -8,12 +7,8 @@ import { FormHandlerService } from '../form-handler.service';
 })
 export class LoginPopupComponent implements OnInit {
 
-  constructor(private formHandlerService: FormHandlerService) {}
+  constructor() {}
 
-  ngOnInit(): void {
-    this.formHandlerService.loginLink.subscribe((link) => {
-      document.getElementById("login-button").setAttribute("href", link);
-    });
-  }
+  ngOnInit(): void {}
 
 }
