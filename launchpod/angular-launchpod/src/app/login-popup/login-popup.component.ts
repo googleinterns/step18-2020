@@ -15,5 +15,4 @@ export class LoginPopupComponent implements OnInit {
       document.getElementById("login-button").setAttribute("href", link);
     });
   }
-
 }
