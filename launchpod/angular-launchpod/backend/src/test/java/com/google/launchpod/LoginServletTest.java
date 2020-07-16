@@ -28,6 +28,7 @@ import java.security.interfaces.DSAKey;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import com.google.launchpod.data.LoginStatus;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -69,6 +70,9 @@ public class LoginServletTest extends Mockito {
 
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalUserServiceTestConfig());
 
+  private static final Gson GSON = new Gson();
+  JsonParser parser = new JsonParser();
+
   private static final String EMAIL = "email";
 
   private static final String TEST_EMAIL = "123@abc.com";
@@ -107,7 +111,7 @@ public class LoginServletTest extends Mockito {
     String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
     LoginStatus loginStatus = new LoginStatus(true, loginMessage);
     verify(response, atLeast(1)).setContentType("application/json");
-    assertEquals(loginStatus, stringWriter.toString());
+    assertEquals(parser.parse(GSON.toJson(loginStatus)), parser.parse(stringWriter.toString()));
   }
 
   /**
@@ -132,6 +136,6 @@ public class LoginServletTest extends Mockito {
     String loginMessage = loginUrl;
     LoginStatus loginStatus = new LoginStatus(false, loginMessage);
     verify(response, atLeast(1)).setContentType("application/json");
-    assertEquals(loginStatus, stringWriter.toString());
+    assertEquals(parser.parse(GSON.toJson(loginStatus)), parser.parse(stringWriter.toString()));
   }
 }
