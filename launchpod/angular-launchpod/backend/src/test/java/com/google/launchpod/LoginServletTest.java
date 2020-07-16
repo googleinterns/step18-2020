@@ -106,7 +106,6 @@ public class LoginServletTest extends Mockito {
     String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
     String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
     LoginStatus loginStatus = new LoginStatus(true, loginMessage);
-    System.out.println("Login message: " + loginMessage);
     verify(response, atLeast(1)).setContentType("application/json");
     assertEquals(loginStatus, stringWriter.toString());
   }
@@ -121,5 +120,18 @@ public class LoginServletTest extends Mockito {
     UserService userService = UserServiceFactory.getUserService();
 
     assertTrue(!userService.isUserLoggedIn());
+
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter writer = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(writer);
+
+    servlet.doGet(request, response);
+
+    String urlToRedirectToAfterUserLogsOut = "/index.html";
+    String loginUrl = userService.createLoginURL(urlToRedirectToAfterUserLogsOut);
+    String loginMessage = loginUrl;
+    LoginStatus loginStatus = new LoginStatus(false, loginMessage);
+    verify(response, atLeast(1)).setContentType("application/json");
+    assertEquals(loginStatus, stringWriter.toString());
   }
 }
