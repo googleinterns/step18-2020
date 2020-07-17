@@ -16,13 +16,7 @@ export class CreateFormComponent implements OnInit {
 
   constructor(private formHandlerService: FormHandlerService) {}
 
-  ngOnInit(): void {
-    this.formHandlerService.postFormData.add().subscribe((feedValue) => {
-      console.log("Result: " + feedValue)
-      // this.feedValue = feedValue;
-      document.getElementById('mp3-upload').innerHTML = feedValue;
-    });
-  }
+  ngOnInit(): void {}
 
   // Sends input data to backend when user clicks create button.
   public postFormData() {

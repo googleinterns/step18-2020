@@ -80,7 +80,9 @@ public class FormHandlerServlet extends HttpServlet {
     //Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
-    // set other properties
+    userFeedEntity.setProperty(DESCRIPTION, description);
+    userFeedEntity.setProperty(LANGUAGE, language);
+    userFeedEntity.setProperty(EMAIL, email);
 
     // Generate xml string
     String xmlString = "";
@@ -103,6 +105,8 @@ public class FormHandlerServlet extends HttpServlet {
     mp3.setProperty(MP3_LINK, mp3Link);
     mp3.setProperty(EMAIL, email);
 
+    // to-do: generate xml after adding mp3link
+
     // update entity by adding embedded MP3 entity as a property
     userFeedEntity.setProperty(MP3, mp3);
 
@@ -112,6 +116,7 @@ public class FormHandlerServlet extends HttpServlet {
 
     //write the file upload form
     String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, entityId);
+    res.setContentType("text/html");
     res.getWriter().println(formHtml);
   }
 
@@ -130,7 +135,7 @@ public class FormHandlerServlet extends HttpServlet {
 
     StringBuilder htmlForm =
         new StringBuilder(
-            "<form action='"
+            "<form (ngSubmit)=\"onSubmit()\" action='"
                 + policy.getUrl()
                 + "' method='POST' enctype='multipart/form-data'>\n");
     for (Map.Entry<String, String> entry : policy.getFields().entrySet()) {
@@ -143,7 +148,7 @@ public class FormHandlerServlet extends HttpServlet {
     }
     htmlForm.append("  <input type='file' name='file'/><br />\n");
     String myRedirectUrl="https://launchpod-step18-2020.appspot.com/rss-feed/?action=generateRssLink&id=" + blobName;
-    htmlForm.append(" <input name='success-action-redirect' value=" + myRedirectUrl + "/>\n");
+    htmlForm.append("  <input name='success_action_redirect' value='" + myRedirectUrl + "' type='hidden' />\n");
     htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
     htmlForm.append("</form>\n");
 
@@ -159,7 +164,7 @@ public class FormHandlerServlet extends HttpServlet {
     String id = req.getParameter(ID);
     Key urlID = KeyFactory.stringToKey(id);
 
-    if (action==null || action.isEmpty() || action.equals("generateXml")) {
+    if (action.equals("generateXml")) {
       // Search key in datastore
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
       // create entity that contains id from datastore
@@ -189,7 +194,7 @@ public class FormHandlerServlet extends HttpServlet {
         res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
         return;
       }
-   } else if (action.equals("generateRSSLink")) {
+   } else if (action==null || action.isEmpty() || action.equals("generateRSSLink")) {
       String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + urlID;
       res.setContentType("text/html");
       res.getWriter().println(rssLink);

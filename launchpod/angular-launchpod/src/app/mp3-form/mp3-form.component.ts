@@ -1,5 +1,6 @@
 import { FormHandlerService } from '../form-handler.service';
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-mp3-form',
@@ -8,7 +9,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class Mp3FormComponent implements OnInit {
 
-  constructor(private formHandlerService: FormHandlerService) { }
+  constructor(private formHandlerService: FormHandlerService, private router: Router) { }
 
   ngOnInit(): void {
     this.formHandlerService.feedValue.subscribe((feedValue) => {
@@ -17,5 +18,9 @@ export class Mp3FormComponent implements OnInit {
       document.getElementById('mp3-upload').innerHTML = feedValue;
     });
   }
+
+  onSubmit() {
+    this.router.navigateByUrl('/result');
+  }     
 
 }
