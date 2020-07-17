@@ -18,6 +18,11 @@ import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Map;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -27,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 public class TranslationServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
-  private static final String ID = "id";
+  private static final String RSS_FEED_LINK = "rssFeedLink";
   private static final String LANGUAGE = "language";
   private static final String XML_STRING = "xmlString";
   private static final XmlMapper XML_MAPPER = new XmlMapper();
@@ -36,57 +41,72 @@ public class TranslationServlet extends HttpServlet {
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res)
       throws JsonParseException, JsonMappingException, IOException {
-    String id = req.getParameter(ID);
+    String link = req.getParameter(RSS_FEED_LINK);
     String targetLanguage = req.getParameter(LANGUAGE);
-
-    Key desiredFeedKey = KeyFactory.stringToKey(id);
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    if (link == null) {
+      throw new IOException("Please give valid link.");
+    }
+    if (targetLanguage == null) {
+      throw new IOException("Please give valid language.");
+    }
     try {
-      Entity desiredFeedEntity = datastore.get(desiredFeedKey);
-      String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
-      RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
+      // Get the ID from the link that is being pasted
+      URL feedUrl = new URL(link);
+      String queryString = feedUrl.getQuery();
+      String[] querySplit = queryString.split("=");
+      String id = querySplit[1];
 
-      // Translate fields to new language
-      Translate translate = TranslateOptions.getDefaultInstance().getService();
+      Key desiredFeedKey = KeyFactory.stringToKey(id);
+      DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+      try {
+        Entity desiredFeedEntity = datastore.get(desiredFeedKey);
+        String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+        RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
 
-      // Channel description
-      Translation translation = translate.translate(rssFeed.getChannel().getDescription());
-      rssFeed.getChannel().setDescription(translation.getTranslatedText());
+        // Translate fields to new language
+        Translate translate = TranslateOptions.getDefaultInstance().getService();
 
-      // Language
-      rssFeed.getChannel().setLanguage(targetLanguage);
+        // Channel description
+        Translation translation = translate.translate(rssFeed.getChannel().getDescription());
+        rssFeed.getChannel().setDescription(translation.getTranslatedText());
 
-      // Episodes
-      for (Item item : rssFeed.getChannel().getItem()) {
-        // Episode title
-        translation = translate.translate(item.getTitle());
-        item.setTitle(translation.getTranslatedText());
+        // Language
+        rssFeed.getChannel().setLanguage(targetLanguage);
 
-        // Episode description
-        translation = translate.translate(item.getDescription());
-        item.setDescription(translation.getTranslatedText());
+        // Episodes
+        for (Item item : rssFeed.getChannel().getItem()) {
+          // Episode title
+          translation = translate.translate(item.getTitle());
+          item.setTitle(translation.getTranslatedText());
+
+          // Episode description
+          translation = translate.translate(item.getDescription());
+          item.setDescription(translation.getTranslatedText());
+        }
+
+        // Generate Translated XML string then place it into datastore
+        String translatedXmlString = RSS.toXmlString(rssFeed);
+        Entity translatedUserFeedEntity = new Entity(XML_STRING, translatedXmlString);
+        String translatedFeedId = KeyFactory.keyToString(datastore.put(translatedUserFeedEntity));
+
+        // display new translated string to the user
+        res.setContentType("text/html");
+        res.getWriter().println(BASE_URL + translatedFeedId);
+
+      } catch (EntityNotFoundException e) {
+        res.setContentType("text/html");
+        res.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested ID was not found.");
+        return;
       }
-
-      // Generate Translated XML string then place it into datastore
-      String translatedXmlString = RSS.toXmlString(rssFeed);
-      Entity translatedUserFeedEntity = new Entity(XML_STRING, translatedXmlString);
-      String translatedFeedId = KeyFactory.keyToString(datastore.put(translatedUserFeedEntity));
-
-      //display new translated string to the user
-      res.setContentType("text/html");
-      res.getWriter().println(BASE_URL + translatedFeedId);
-
-    } catch (EntityNotFoundException e) {
-      res.setContentType("text/html");
-      res.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested Entity was not found.");
+    } catch (Exception e) {
+      res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to obtain ID from given link");
       return;
     }
     /*
-    String projectId = "launchpod-step18-2020";
-    // Supported Languages: https://cloud.google.com/translate/docs/languages
-    String text = "transcribed feed here";
-    translateText(projectId, targetLanguage, text);
-    */
+     * String projectId = "launchpod-step18-2020"; // Supported Languages:
+     * https://cloud.google.com/translate/docs/languages String text =
+     * "transcribed feed here"; translateText(projectId, targetLanguage, text);
+     */
   }
 
   /**
