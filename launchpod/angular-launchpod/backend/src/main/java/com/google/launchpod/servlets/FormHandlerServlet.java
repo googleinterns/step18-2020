@@ -42,6 +42,7 @@ public class FormHandlerServlet extends HttpServlet {
   private static final String USER_EMAIL = "email";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
+  // public variable to allow creation of UserFeed objects
   public static final String XML_STRING = "xmlString";
 
   /**
