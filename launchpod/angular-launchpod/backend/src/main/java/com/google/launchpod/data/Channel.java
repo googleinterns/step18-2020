@@ -25,9 +25,14 @@ public class Channel {
 
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
+  private List<ItunesOwner> itunesOwner;
+
+  @JacksonXmlElementWrapper(useWrapping = false)
+  @JacksonXmlProperty
   private List<Item> item;
 
-  public Channel(String podcastTitle, String mp3Link) {
+  public Channel(String name, String email, String podcastTitle, String mp3Link) {
+    this.itunesOwner = new ArrayList<>(Arrays.asList(new ItunesOwner(name, email)));
     this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, mp3Link)));
   }
 }

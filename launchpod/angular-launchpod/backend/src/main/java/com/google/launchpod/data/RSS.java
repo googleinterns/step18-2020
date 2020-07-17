@@ -18,8 +18,8 @@ public class RSS {
 
   private static final XmlMapper xmlMapper = new XmlMapper();
 
-  public RSS(String podcastTitle, String mp3Link) {
-    this.channel = new Channel(podcastTitle, mp3Link);
+  public RSS(String name, String email, String podcastTitle, String mp3Link) {
+    this.channel = new Channel(name, email, podcastTitle, mp3Link);
   }
 
   /**
