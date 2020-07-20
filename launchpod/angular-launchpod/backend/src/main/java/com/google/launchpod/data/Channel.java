@@ -8,7 +8,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 @JacksonXmlRootElement(localName = "channel")
+@JsonPropertyOrder({"title", "link", "language", "description", "itunesOwner", "item"})
 public class Channel {
 
   @JacksonXmlProperty
@@ -24,7 +27,7 @@ public class Channel {
   private String description = "Launchpod generated RSS";
 
   @JacksonXmlElementWrapper(useWrapping = false)
-  @JacksonXmlProperty
+  @JacksonXmlProperty(localName = "owner", namespace = "itunes")
   private List<ItunesOwner> itunesOwner;
 
   @JacksonXmlElementWrapper(useWrapping = false)
