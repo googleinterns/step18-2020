@@ -84,15 +84,6 @@ public class FormHandlerServlet extends HttpServlet {
     userFeedEntity.setProperty(LANGUAGE, language);
     userFeedEntity.setProperty(EMAIL, email);
 
-    // Generate xml string
-    String xmlString = "";
-    try {
-      xmlString = xmlString(userFeedEntity);
-      userFeedEntity.setProperty(XML_STRING ,xmlString);
-    } catch(IOException e){
-      throw new IOException("Unable to create XML string.");
-    }
-
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
 
@@ -105,7 +96,14 @@ public class FormHandlerServlet extends HttpServlet {
     mp3.setProperty(MP3_LINK, mp3Link);
     mp3.setProperty(EMAIL, email);
 
-    // to-do: generate xml after adding mp3link
+    // Generate xml string
+    String xmlString = "";
+    try {
+      xmlString = xmlString(userFeedEntity);
+      userFeedEntity.setProperty(XML_STRING ,xmlString);
+    } catch(IOException e){
+      throw new IOException("Unable to create XML string.");
+    }
 
     // update entity by adding embedded MP3 entity as a property
     userFeedEntity.setProperty(MP3, mp3);
