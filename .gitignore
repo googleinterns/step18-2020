@@ -6,5 +6,8 @@ node_modules/
 # Ignore generated Maven build files
 target/
 
+# Ignore folder with API keys
+keys/
+
 # Ignore editor config
 .idea
