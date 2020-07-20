@@ -89,16 +89,12 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() gets the user's email and successfully sends
-   * a corresponding loginStatus object as the response.
+   * Asserts that doPost() gets the user's correct status when logged in.
    */
   @Test
-  public void doGet_GetsCorrectUserLoggedIn() throws IOException {
+  public void doGet_GetsCorrectStatusLoggedIn() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
     UserService userService = UserServiceFactory.getUserService();
-    
-    assertTrue(userService.isUserLoggedIn());
-    assertEquals(TEST_EMAIL, userService.getCurrentUser().getEmail());
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -110,8 +106,53 @@ public class LoginServletTest extends Mockito {
     String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
     String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
     LoginStatus loginStatus = new LoginStatus(true, loginMessage);
-    verify(response, atLeast(1)).setContentType("application/json");
-    assertEquals(parser.parse(GSON.toJson(loginStatus)), parser.parse(stringWriter.toString()));
+    verify(response).setContentType("application/json");
+    assertEquals(parser.parse(GSON.toJson(loginStatus.isLoggedIn)), parser.parse(stringWriter.toString()).getAsJsonObject().get("isLoggedIn"));
+  }
+
+  /**
+   * Asserts that doPost() gets the user's email and successfully sends
+   * a corresponding loginStatus object as the response.
+   */
+  @Test
+  public void doGet_GetsCorrectMessageLoggedIn() throws IOException {
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    UserService userService = UserServiceFactory.getUserService();
+
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter writer = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(writer);
+
+    servlet.doGet(request, response);
+
+    String urlToRedirectToAfterUserLogsOut = "/index.html";
+    String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
+    String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
+    LoginStatus loginStatus = new LoginStatus(true, loginMessage);
+    verify(response).setContentType("application/json");
+    assertEquals(parser.parse(GSON.toJson(loginStatus.message)), parser.parse(stringWriter.toString()).getAsJsonObject().get("message"));
+  }
+
+  /**
+   * Asserts that doPost() gets the user's correct status when logged out.
+   */
+  @Test
+  public void doGet_GetsCorrectStatusLoggedOut() throws IOException {
+    helper.setEnvIsLoggedIn(false);
+    UserService userService = UserServiceFactory.getUserService();
+
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter writer = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(writer);
+
+    servlet.doGet(request, response);
+
+    String urlToRedirectToAfterUserLogsOut = "/index.html";
+    String loginUrl = userService.createLoginURL(urlToRedirectToAfterUserLogsOut);
+    String loginMessage = loginUrl;
+    LoginStatus loginStatus = new LoginStatus(false, loginMessage);
+    verify(response).setContentType("application/json");
+    assertEquals(parser.parse(GSON.toJson(loginStatus.isLoggedIn)), parser.parse(stringWriter.toString()).getAsJsonObject().get("isLoggedIn"));
   }
 
   /**
@@ -119,11 +160,9 @@ public class LoginServletTest extends Mockito {
    * response when the user is not logged in.
    */
   @Test
-  public void doGet_GetsCorrectUserLoggedOut() throws IOException {
+  public void doGet_GetsCorrectMessageLoggedOut() throws IOException {
     helper.setEnvIsLoggedIn(false);
     UserService userService = UserServiceFactory.getUserService();
-
-    assertTrue(!userService.isUserLoggedIn());
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -136,6 +175,6 @@ public class LoginServletTest extends Mockito {
     String loginMessage = loginUrl;
     LoginStatus loginStatus = new LoginStatus(false, loginMessage);
     verify(response, atLeast(1)).setContentType("application/json");
-    assertEquals(parser.parse(GSON.toJson(loginStatus)), parser.parse(stringWriter.toString()));
+    assertEquals(parser.parse(GSON.toJson(loginStatus.isLoggedIn)), parser.parse(stringWriter.toString()).getAsJsonObject().get("isLoggedIn"));
   }
 }

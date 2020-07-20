@@ -33,18 +33,17 @@ public class LoginServlet extends HttpServlet {
     response.setContentType("application/json");
 
     UserService userService = UserServiceFactory.getUserService();
+    String urlToRedirectTo = "/index.html";
     if (userService.isUserLoggedIn()) {
       String userEmail = userService.getCurrentUser().getEmail();
-      String urlToRedirectToAfterUserLogsOut = "/index.html";
-      String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
+      String logoutUrl = userService.createLogoutURL(urlToRedirectTo);
 
       String loginMessage = "<p>Logged in as " + userEmail + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
       LoginStatus loginStatus = new LoginStatus(true, loginMessage);
 
       response.getWriter().println(GSON.toJson(loginStatus));
     } else {
-      String urlToRedirectToAfterUserLogsIn = "/index.html";
-      String loginUrl = userService.createLoginURL(urlToRedirectToAfterUserLogsIn);
+      String loginUrl = userService.createLoginURL(urlToRedirectTo);
 
       String loginMessage = loginUrl;
       LoginStatus loginStatus = new LoginStatus(false, loginMessage);
