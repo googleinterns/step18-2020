@@ -30,7 +30,9 @@ export class AppComponent implements OnInit {
   getLoginStatus() {
     this.formHandlerService.getLoginData()
       .subscribe((user) => {
-        if (!user.isLoggedIn) {
+        if (user.isLoggedIn) {
+          document.getElementById("login-container").innerHTML = user.message;
+        } else {
           this.loginLink = user.message;
           this.formHandlerService.sendLoginLink(user.message);
           const dialogConfig = new MatDialogConfig();
@@ -39,8 +41,6 @@ export class AppComponent implements OnInit {
           dialogConfig.autoFocus = true;
 
           this.dialog.open(LoginPopupComponent, dialogConfig);
-        } else {
-          document.getElementById("login-container").innerHTML = user.message;
         }
       });
   }
