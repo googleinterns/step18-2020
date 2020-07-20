@@ -6,9 +6,11 @@ import com.google.launchpod.servlets.FormHandlerServlet;
 public final class UserFeed {
 
   private String xmlString;
+  private String email;
 
-  private UserFeed(String xmlString) {
+  private UserFeed(String xmlString, String email) {
     this.xmlString = xmlString;
+    this.email = email;
   }
 
   /**
@@ -19,11 +21,17 @@ public final class UserFeed {
    */
   public static UserFeed fromEntity(Entity entity) {
     String xmlString = (String) entity.getProperty(FormHandlerServlet.XML_STRING);
-    return new UserFeed(xmlString);
+    String email = (String) entity.getProperty(FormHandlerServlet.EMAIL);
+    return new UserFeed(xmlString, email);
   }
 
   // getter for xml string
   public String getXmlString() {
     return this.xmlString;
+  }
+
+  // getter for email
+  public String getEmail() {
+    return this.email;
   }
 }

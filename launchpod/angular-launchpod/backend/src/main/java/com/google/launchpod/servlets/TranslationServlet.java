@@ -1,5 +1,14 @@
 package com.google.launchpod.servlets;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -9,7 +18,9 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.cloud.translate.*;
+import com.google.cloud.translate.Translate;
+import com.google.cloud.translate.TranslateOptions;
+import com.google.cloud.translate.Translation;
 import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
@@ -17,21 +28,11 @@ import com.google.cloud.translate.v3.TranslationServiceClient;
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Map;
-
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 @WebServlet("/translate-feed")
 public class TranslationServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
+  private static final String USER_FEED = "UserFeed";
   private static final String RSS_FEED_LINK = "rssFeedLink";
   private static final String LANGUAGE = "language";
   private static final String XML_STRING = "xmlString";
@@ -50,11 +51,7 @@ public class TranslationServlet extends HttpServlet {
       throw new IOException("Please give valid language.");
     }
     try {
-      // Get the ID from the link that is being pasted
-      URL feedUrl = new URL(link);
-      String queryString = feedUrl.getQuery();
-      String[] querySplit = queryString.split("=");
-      String id = querySplit[1];
+      String id = getIdFromUrl(link);
 
       Key desiredFeedKey = KeyFactory.stringToKey(id);
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -86,7 +83,8 @@ public class TranslationServlet extends HttpServlet {
 
         // Generate Translated XML string then place it into datastore
         String translatedXmlString = RSS.toXmlString(rssFeed);
-        Entity translatedUserFeedEntity = new Entity(XML_STRING, translatedXmlString);
+        Entity translatedUserFeedEntity = new Entity(USER_FEED);
+        translatedUserFeedEntity.setProperty(XML_STRING, translatedXmlString);
         String translatedFeedId = KeyFactory.keyToString(datastore.put(translatedUserFeedEntity));
 
         // display new translated string to the user
@@ -107,6 +105,7 @@ public class TranslationServlet extends HttpServlet {
      * https://cloud.google.com/translate/docs/languages String text =
      * "transcribed feed here"; translateText(projectId, targetLanguage, text);
      */
+
   }
 
   /**
@@ -136,5 +135,14 @@ public class TranslationServlet extends HttpServlet {
       translatedDiv += "</p>";
       return translatedDiv;
     }
+  }
+
+  public static String getIdFromUrl(String rssLink) throws MalformedURLException {
+    // Get the ID from the link that is being pasted
+    URL feedUrl = new URL(rssLink);
+    String queryString = feedUrl.getQuery();
+    String[] querySplit = queryString.split("=");
+    String id = querySplit[1];
+    return id;
   }
 }
