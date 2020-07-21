@@ -107,7 +107,7 @@ public class LoginServletTest extends Mockito {
     String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
     LoginStatus loginStatus = new LoginStatus(true, loginMessage);
     verify(response).setContentType("application/json");
-    assertEquals(parser.parse(GSON.toJson(loginStatus.isLoggedIn)), parser.parse(stringWriter.toString()).getAsJsonObject().get("isLoggedIn"));
+    assertEquals(loginStatus.isLoggedIn, GSON.fromJson(stringWriter.toString(), LoginStatus.class).isLoggedIn);
   }
 
   /**
@@ -130,7 +130,7 @@ public class LoginServletTest extends Mockito {
     String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
     LoginStatus loginStatus = new LoginStatus(true, loginMessage);
     verify(response).setContentType("application/json");
-    assertEquals(parser.parse(GSON.toJson(loginStatus.message)), parser.parse(stringWriter.toString()).getAsJsonObject().get("message"));
+    assertEquals(loginStatus.message, GSON.fromJson(stringWriter.toString(), LoginStatus.class).message);
   }
 
   /**
@@ -152,7 +152,7 @@ public class LoginServletTest extends Mockito {
     String loginMessage = loginUrl;
     LoginStatus loginStatus = new LoginStatus(false, loginMessage);
     verify(response).setContentType("application/json");
-    assertEquals(parser.parse(GSON.toJson(loginStatus.isLoggedIn)), parser.parse(stringWriter.toString()).getAsJsonObject().get("isLoggedIn"));
+    assertEquals(loginStatus.isLoggedIn, GSON.fromJson(stringWriter.toString(), LoginStatus.class).isLoggedIn);
   }
 
   /**
@@ -175,6 +175,6 @@ public class LoginServletTest extends Mockito {
     String loginMessage = loginUrl;
     LoginStatus loginStatus = new LoginStatus(false, loginMessage);
     verify(response, atLeast(1)).setContentType("application/json");
-    assertEquals(parser.parse(GSON.toJson(loginStatus.isLoggedIn)), parser.parse(stringWriter.toString()).getAsJsonObject().get("isLoggedIn"));
+    assertEquals(loginStatus.message, GSON.fromJson(stringWriter.toString(), LoginStatus.class).message);
   }
 }
