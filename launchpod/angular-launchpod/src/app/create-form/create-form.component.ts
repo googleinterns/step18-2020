@@ -20,6 +20,7 @@ export class CreateFormComponent implements OnInit {
   // Sends input data to backend when user clicks create button.
   public postFormData() {
     let formData = new HttpParams();
+    formData = formData.set('name', (document.getElementById("name") as HTMLInputElement).value);
     formData = formData.set('title', (document.getElementById("title") as HTMLInputElement).value);
     formData = formData.set('mp3Link', (document.getElementById("mp3Link") as HTMLInputElement).value);
 

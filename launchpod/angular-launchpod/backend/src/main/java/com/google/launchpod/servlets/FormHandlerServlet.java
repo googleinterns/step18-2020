@@ -56,7 +56,7 @@ public class FormHandlerServlet extends HttpServlet {
     
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String mp3Link = req.getParameter(MP3_LINK);
-    String name = userService.getCurrentUser().getNickname();
+    String name = req.getParameter(USER_NAME);
     String email = userService.getCurrentUser().getEmail();
 
     if (podcastTitle == null || podcastTitle.isEmpty()) {
