@@ -118,6 +118,10 @@ public class FormHandlerServlet extends HttpServlet {
     res.getWriter().println(formHtml);
   }
 
+  /**
+   * Generate policy for directly uploading a file to Cloud Storage via HTML form.
+   * @return HTML form (as a String) for uploading MP3
+   */
   public  String generateSignedPostPolicyV4(String projectId, String bucketName, String blobName) {
     // The name to give the object uploaded to GCS
     // String blobName = "your-object-name", the Datastore entity ID of that MP3 object

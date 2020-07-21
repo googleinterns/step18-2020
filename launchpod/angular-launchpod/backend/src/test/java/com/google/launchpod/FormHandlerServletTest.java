@@ -139,15 +139,16 @@ public class FormHandlerServletTest extends Mockito {
 
   /**
    * Asserts that doPost() takes in form inputs from client, successfully stores
-   * that information in a Datastore entity, and returns a URL link to the
-   * generated RSS feed.
+   * that information in a Datastore entity, and returns an HTML form.
    */
   @Test
-  public void doPost_ReturnsCorrectUrl() throws IOException {
+  public void doPost_ReturnsHtmlForm() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
+    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(EMAIL)).thenReturn(TEST_EMAIL);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -161,18 +162,24 @@ public class FormHandlerServletTest extends Mockito {
     PreparedQuery preparedQuery = ds.prepare(query);
     Entity desiredEntity = preparedQuery.asSingleEntity();
 
+    // verify xml string generation
     String expectedXmlString = RSS.toXmlString(TEST_RSS_FEED);
     assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
 
     String testXmlString = RSS.toXmlString(TEST_RSS_FEED);
     assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
 
-    String id = KeyFactory.keyToString(desiredEntity.getKey());
-    String rssLink = BASE_URL + id;
+    // String id = KeyFactory.keyToString(desiredEntity.getKey());
+    // String rssLink = BASE_URL + id;
 
+    // verify(response, times(1)).setContentType("text/html");
+    // assertEquals(0, rssLink.compareTo(stringWriter.toString()));
+
+    //TO-DO: verify that generatePostPolicyV4() was called once
     verify(response, times(1)).setContentType("text/html");
-    assertEquals(0, rssLink.compareTo(stringWriter.toString()));
   }
+
+  // TO-DO: check for the property MP3, mp3 where mp3 is an object with ENTITY_ID, MP3_LINK, and EMAIL fields
 
   /**
    * Expects doPost() to throw an IllegalArgumentException when the title field is
