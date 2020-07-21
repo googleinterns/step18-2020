@@ -3,6 +3,8 @@ package com.google.launchpod.data;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 @JacksonXmlRootElement(localName = "owner", namespace = "itunes")
 public class ItunesOwner {
 

@@ -30,6 +30,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.launchpod.servlets.FormHandlerServlet;
 import com.google.launchpod.data.UserFeed;
 import com.google.launchpod.data.RSS;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -38,6 +40,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
 import org.junit.Assert;
@@ -72,7 +75,7 @@ public class FormHandlerServletTest extends Mockito {
   @Rule // JUnit 4 uses Rules for testing specific messages
   public ExpectedException thrown = ExpectedException.none();
 
-  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
+  
 
   // keys
   private static final String USER_FEED = "UserFeed";
@@ -80,6 +83,7 @@ public class FormHandlerServletTest extends Mockito {
   private static final String XML_STRING = "xmlString";
   private static final String MP3_LINK = "mp3Link"; // URL to existing MP3 file
   private static final String TIMESTAMP = "timestamp";
+  private static final String NAME = "name";
   private static final String EMAIL = "email";
   private static final String ID = "id";
 
@@ -89,13 +93,18 @@ public class FormHandlerServletTest extends Mockito {
   private static final String TEST_ID = "123456";
   private static final String TEST_ID_TWO = "789012";
   private static final String TEST_PUBDATE = "2020/06/26 01:32:06";
+  private static final String TEST_NAME = "John Doe";
   private static final String TEST_EMAIL = "123@abc.com";
   private static final String TEST_INCORRECT_EMAIL = "123@cde.com";
   private static final String TEST_EMAIL_TWO = "456@abc.com";
   private static final String EMPTY_STRING = "";
   private static final String TEST_XML_STRING = "test";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  private static final RSS TEST_RSS_FEED = new RSS(TEST_PODCAST_TITLE, TEST_MP3_LINK);
+  private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK);
+
+  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
+  private final LocalServiceTestHelper userHelper = new LocalServiceTestHelper(new LocalUserServiceTestConfig())
+  .setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
 
   @Before
   public void setUp() {
@@ -111,8 +120,10 @@ public class FormHandlerServletTest extends Mockito {
   /**
    * Creates a test user feed entity.
    */
-  private Entity makeEntity(String title, String mp3Link, String xmlString) {
+  private Entity makeEntity(String name, String email, String title, String mp3Link, String xmlString) {
     Entity userFeedEntity = new Entity(USER_FEED);
+    userFeedEntity.setProperty(NAME, name);
+    userFeedEntity.setProperty(EMAIL, email);
     userFeedEntity.setProperty(PODCAST_TITLE, title);
     userFeedEntity.setProperty(MP3_LINK, mp3Link);
     userFeedEntity.setProperty(XML_STRING, xmlString);
@@ -126,6 +137,7 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_StoresCorrectFormInput() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
@@ -155,6 +167,7 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_ReturnsCorrectUrl() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
@@ -191,6 +204,8 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputEmptyTitle_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn("");
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
 
@@ -208,6 +223,8 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputNullTitle_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn(null);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
 
@@ -225,6 +242,8 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputEmptyMp3Link_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn("");
 
@@ -242,6 +261,8 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputNullMp3Link_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(null);
 
@@ -259,9 +280,11 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doGet_SingleEntity_ReturnsCorrectXmlString() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_PODCAST_TITLE, TEST_MP3_LINK);
+    UserService userService = UserServiceFactory.getUserService();
+
+    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK);
     String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);
+    Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);
     ds.put(entity);
 
     String id = KeyFactory.keyToString(entity.getKey());
@@ -286,11 +309,13 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doGet_MultipleEntities_ReturnsCorrectXmlString() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_PODCAST_TITLE, TEST_MP3_LINK);
+    UserService userService = UserServiceFactory.getUserService();
+
+    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK);
     String testXmlString = RSS.toXmlString(rss);
 
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);
-    Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);
+    Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);
+    Entity entityTwo = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);
     ds.put(entity);
     ds.put(entityTwo);
 
@@ -317,7 +342,9 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doGet_EntityNotFound() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_XML_STRING);
+    UserService userService = UserServiceFactory.getUserService();
+
+    Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_XML_STRING);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
     ds.delete(entity.getKey());

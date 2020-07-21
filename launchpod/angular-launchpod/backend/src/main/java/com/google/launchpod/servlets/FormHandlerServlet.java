@@ -68,9 +68,9 @@ public class FormHandlerServlet extends HttpServlet {
     // Creates entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
     
-    userFeedEntity.setProperty(USER_EMAIL, email);
     userFeedEntity.setProperty(USER_NAME, name);
-
+    userFeedEntity.setProperty(USER_EMAIL, email);
+    
     // Generate xml string
     RSS rssFeed = new RSS(name, email, podcastTitle, mp3Link);
     try {
