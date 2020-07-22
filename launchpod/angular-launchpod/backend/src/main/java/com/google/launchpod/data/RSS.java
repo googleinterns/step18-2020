@@ -12,6 +12,9 @@ public class RSS {
   @JacksonXmlProperty(isAttribute = true)
   private double version = 2.0;
 
+  @JacksonXmlProperty(isAttribute = true, namespace = "itunes")
+  private String itunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
+
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
   private Channel channel;
