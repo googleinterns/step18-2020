@@ -2,6 +2,7 @@ package com.google.launchpod.servlets;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileInputStream;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,8 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 // import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.auth.appengine.AppEngineCredentials;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
@@ -85,9 +88,9 @@ public class FormHandlerServlet extends HttpServlet {
     userFeedEntity.setProperty(EMAIL, email);
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    datastore.put(userFeedEntity);
+    Key entityKey = datastore.put(userFeedEntity);
 
-    Key entityKey = userFeedEntity.getKey();
+    // Key entityKey = savedEntity.getKey();
     String entityId = KeyFactory.keyToString(entityKey);
     String mp3Link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
     // MP3 mp3 = new MP3(entityId, email);
@@ -96,19 +99,28 @@ public class FormHandlerServlet extends HttpServlet {
     mp3.setProperty(MP3_LINK, mp3Link);
     mp3.setProperty(EMAIL, email);
 
+    Entity savedEntity;
+
+    try {
+      savedEntity = datastore.get(entityKey);
+    } catch(EntityNotFoundException e) {
+      throw new IOException("Entity not found in Datastore.");
+    }
+   
+
     // Generate xml string
     String xmlString = "";
     try {
       xmlString = xmlString(userFeedEntity);
-      userFeedEntity.setProperty(XML_STRING ,xmlString);
+      savedEntity.setProperty(XML_STRING ,xmlString);
     } catch(IOException e){
       throw new IOException("Unable to create XML string.");
     }
 
     // update entity by adding embedded MP3 entity as a property
-    userFeedEntity.setProperty(MP3, mp3);
+    savedEntity.setProperty(MP3, mp3);
 
-    datastore.put(userFeedEntity);
+    datastore.put(savedEntity);
 
     //write the file upload form
     String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, entityId);
@@ -116,11 +128,72 @@ public class FormHandlerServlet extends HttpServlet {
     res.getWriter().println(formHtml);
   }
 
+  public static String generateSignedPostPolicyV4(
+      String projectId, String bucketName, String blobName) {
+    // The ID of your GCP project
+    // String projectId = "your-project-id";
+
+    // The ID of the GCS bucket to upload to
+    // String bucketName = "your-bucket-name"
+
+    // The name to give the object uploaded to GCS
+    // String blobName = "your-object-name"
+
+    String errorMessage = "This failed.";
+    Storage storage;
+    PostPolicyV4.PostFieldsV4 fields;
+    PostPolicyV4 policy = null;
+    try {
+    // GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
+    GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("WEB-INF/launchpod-step18-2020-47434aafba88.json"));
+// credentials.refreshIfExpired();
+    storage = StorageOptions.newBuilder().setProjectId(projectId).setCredentials(credentials).build().getService();
+
+    // storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
+
+
+    fields =
+        PostPolicyV4.PostFieldsV4.newBuilder().AddCustomMetadataField("test", "data").build();
+
+     policy =
+        storage.generateSignedPostPolicyV4(
+            BlobInfo.newBuilder(bucketName, blobName).build(), 10, TimeUnit.MINUTES, fields);
+    } catch(Exception e) {
+      errorMessage = e.getMessage();
+    }
+
+    StringBuilder htmlForm;
+    if(policy!=null) {
+    htmlForm =
+        new StringBuilder(
+            "<form action='"
+                + policy.getUrl()
+                + "' method='POST' enctype='multipart/form-data'>\n");
+    for (Map.Entry<String, String> entry : policy.getFields().entrySet()) {
+      htmlForm.append(
+          "  <input name='"
+              + entry.getKey()
+              + "' value='"
+              + entry.getValue()
+              + "' type='hidden' />\n");
+    }
+    htmlForm.append("  <input type='file' name='file'/><br />\n");
+    htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
+    htmlForm.append("</form>\n");
+    // htmlForm.append(errorMessage);
+    } else {
+      htmlForm = new StringBuilder();
+      htmlForm.append("policy is null");
+      htmlForm.append(errorMessage);
+    }
+    return htmlForm.toString();
+  }
+
   /**
    * Generate policy for directly uploading a file to Cloud Storage via HTML form.
    * @return HTML form (as a String) for uploading MP3
    */
-  public  String generateSignedPostPolicyV4(String projectId, String bucketName, String blobName) {
+  public String generateSignedPostPolicyV4_OLD(String projectId, String bucketName, String blobName) {
     // The name to give the object uploaded to GCS
     // String blobName = "your-object-name", the Datastore entity ID of that MP3 object
 
@@ -133,9 +206,10 @@ public class FormHandlerServlet extends HttpServlet {
         storage.generateSignedPostPolicyV4(
             BlobInfo.newBuilder(bucketName, blobName).build(), 10, TimeUnit.MINUTES, fields);
 
+    // (ngSubmit)=\"onSubmit()\"
     StringBuilder htmlForm =
         new StringBuilder(
-            "<form (ngSubmit)=\"onSubmit()\" action='"
+            "<form action='"
                 + policy.getUrl()
                 + "' method='POST' enctype='multipart/form-data'>\n");
     for (Map.Entry<String, String> entry : policy.getFields().entrySet()) {

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import {map} from 'rxjs/operators';
 
 const FEED_URL = '/rss-feed';
@@ -10,7 +10,7 @@ const FEED_URL = '/rss-feed';
 })
 export class FormHandlerService {
 
-  private feedValueSubject = new Subject<string>();
+  private feedValueSubject = new BehaviorSubject<string>("feedValue");
   feedValue = this.feedValueSubject.asObservable();
 
   constructor(private http: HttpClient) {}
@@ -27,6 +27,7 @@ export class FormHandlerService {
    * Post form inputs to back-end and retrieve url for rss feed.
    */
   postFormData(formData): Observable<string> {
+    console.log("Form data: " + formData);
     return this.http.post(FEED_URL, formData, { responseType: 'text' });
   }
 
