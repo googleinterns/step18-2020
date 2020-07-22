@@ -108,8 +108,6 @@ public class FormHandlerServlet extends HttpServlet {
     // update entity by adding embedded MP3 entity as a property
     userFeedEntity.setProperty(MP3, mp3);
 
-    // userFeedEntity = Entity.newBuilder(datastore.get(entityKey)).set(MP3, mp3);
-    // userFeedEntity = Entity.newBuilder(datastore.get(entityKey)).set(MP3_LINK, mp3Link);
     datastore.put(userFeedEntity);
 
     //write the file upload form
