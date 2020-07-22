@@ -8,7 +8,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 @JacksonXmlRootElement(localName = "channel")
+@JsonPropertyOrder({"title", "link", "language", "description", "itunesOwner", "item"})
 public class Channel {
 
   @JacksonXmlProperty
@@ -24,10 +27,15 @@ public class Channel {
   private String description = "Launchpod generated RSS";
 
   @JacksonXmlElementWrapper(useWrapping = false)
+  @JacksonXmlProperty(localName = "owner", namespace = "itunes")
+  private List<ItunesOwner> itunesOwner;
+
+  @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
   private List<Item> item;
 
-  public Channel(String podcastTitle, String mp3Link) {
+  public Channel(String name, String email, String podcastTitle, String mp3Link) {
+    this.itunesOwner = new ArrayList<>(Arrays.asList(new ItunesOwner(name, email)));
     this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, mp3Link)));
   }
 }

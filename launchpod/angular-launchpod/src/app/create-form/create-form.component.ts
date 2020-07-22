@@ -20,6 +20,7 @@ export class CreateFormComponent implements OnInit {
     let formData = new HttpParams();
     formData = formData.set('title', (document.getElementById("title") as HTMLInputElement).value);
     formData = formData.set('mp3Link', (document.getElementById("mp3Link") as HTMLInputElement).value);
+    formData = formData.set('name', (document.getElementById("name") as HTMLInputElement).value);
 
     this.formHandlerService.postFormData(formData)
       .subscribe((response) => {
