@@ -70,7 +70,6 @@ public class LoginServletTest extends Mockito {
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalUserServiceTestConfig());
 
   private static final Gson GSON = new Gson();
-  JsonParser parser = new JsonParser();
 
   private static final String EMAIL = "email";
 

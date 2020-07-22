@@ -10,10 +10,10 @@ const LOGIN_URL = '/login-status';
 })
 export class FormHandlerService {
 
-  private feedValueSubject = new BehaviorSubject<string>("feedValue");
+  private feedValueSubject = new BehaviorSubject<string>("Loading URL...");
   feedValue = this.feedValueSubject.asObservable();
 
-  private loginLinkSubject = new BehaviorSubject<string>("loginLink");
+  private loginLinkSubject = new BehaviorSubject<string>("Loading...");
   loginLink = this.loginLinkSubject.asObservable();
 
   constructor(private http: HttpClient) {}
