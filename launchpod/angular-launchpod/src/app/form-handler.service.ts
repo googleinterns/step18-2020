@@ -10,7 +10,7 @@ const FEED_URL = '/rss-feed';
 })
 export class FormHandlerService {
 
-  private feedValueSubject = new BehaviorSubject<string>("feedValue");
+  private feedValueSubject = new BehaviorSubject<string>("Loading...");
   feedValue = this.feedValueSubject.asObservable();
 
   constructor(private http: HttpClient) {}
