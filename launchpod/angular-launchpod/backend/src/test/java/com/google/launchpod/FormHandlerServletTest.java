@@ -95,10 +95,11 @@ public class FormHandlerServletTest extends Mockito {
   private static final String TEST_EMAIL = "123@abc.com";
   private static final String TEST_INCORRECT_EMAIL = "123@cde.com";
   private static final String TEST_EMAIL_TWO = "456@abc.com";
+  private static final String TEST_CATEGORY = "Technology";
   private static final String EMPTY_STRING = "";
   private static final String TEST_XML_STRING = "test";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK);
+  private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_CATEGORY);
 
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig())
   .setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -325,7 +326,7 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK);
+    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_CATEGORY);
     String testXmlString = RSS.toXmlString(rss);
     Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);
     ds.put(entity);
@@ -354,7 +355,7 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK);
+    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_CATEGORY);
     String testXmlString = RSS.toXmlString(rss);
 
     Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, testXmlString);

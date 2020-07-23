@@ -86,7 +86,7 @@ public class FormHandlerServlet extends HttpServlet {
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
 
     // Generate xml string
-    RSS rssFeed = new RSS(name, email, podcastTitle, mp3Link);
+    RSS rssFeed = new RSS(name, email, podcastTitle, mp3Link, "Technology");
     try {
       String xmlString = RSS.toXmlString(rssFeed);
       userFeedEntity.setProperty(XML_STRING, xmlString);

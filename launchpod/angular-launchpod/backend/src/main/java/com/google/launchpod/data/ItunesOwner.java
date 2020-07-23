@@ -3,15 +3,13 @@ package com.google.launchpod.data;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
-@JacksonXmlRootElement(localName = "owner", namespace = "itunes")
+@JacksonXmlRootElement
 public class ItunesOwner {
 
-  @JacksonXmlProperty(localName = "name", namespace = "itunes")
+  @JacksonXmlProperty(localName = "name", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
   private String name;
 
-  @JacksonXmlProperty(localName = "email", namespace = "itunes")
+  @JacksonXmlProperty(localName = "email", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
   private String email;
 
   public ItunesOwner(String name, String email) {
