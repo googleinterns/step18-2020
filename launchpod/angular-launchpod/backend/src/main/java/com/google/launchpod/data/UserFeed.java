@@ -6,9 +6,26 @@ import com.google.launchpod.servlets.FormHandlerServlet;
 public final class UserFeed {
 
   private String xmlString;
+  private String title;
+  private String name;
+  private String rssLink;
+  private String description;
+  private String email;
+  private String postTime;
+  private long timestamp;
 
   private UserFeed(String xmlString) {
     this.xmlString = xmlString;
+  }
+
+  public UserFeed(String title, String name, String rssLink, String description, String email, String postTime, long timestamp) {
+    this.title = title;
+    this.name = name;
+    this.rssLink = rssLink;
+    this.description = description;
+    this.email = email;
+    this.postTime = postTime;
+    this.timestamp = timestamp;
   }
 
   /**

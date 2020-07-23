@@ -30,6 +30,9 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.launchpod.data.RSS;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 @WebServlet("/rss-feed")
 public class FormHandlerServlet extends HttpServlet {
@@ -40,6 +43,8 @@ public class FormHandlerServlet extends HttpServlet {
   private static final String MP3_LINK = "mp3Link";
   private static final String USER_NAME = "name";
   private static final String USER_EMAIL = "email";
+  private static final String TIMESTAMP = "timestamp";
+  private static final String POST_TIME = "postTime";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
   // public variable to allow creation of UserFeed objects
@@ -59,10 +64,17 @@ public class FormHandlerServlet extends HttpServlet {
     String name = req.getParameter(USER_NAME);
     String email = userService.getCurrentUser().getEmail();
 
+    long timestamp = System.currentTimeMillis();
+    Date date = new Date(timestamp);
+    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss");
+    String postTime = dateFormat.format(date);
+
     if (podcastTitle == null || podcastTitle.isEmpty()) {
       throw new IllegalArgumentException("No Title inputted, please try again.");
     } else if (mp3Link == null || mp3Link.isEmpty()) {
       throw new IllegalArgumentException("No Mp3 inputted, please try again.");
+    } else if (name == null || name.isEmpty()) {
+      throw new IllegalArgumentException("No Name inputted, please try again.");
     }
 
     // Creates entity with all desired attributes
@@ -70,6 +82,8 @@ public class FormHandlerServlet extends HttpServlet {
 
     userFeedEntity.setProperty(USER_NAME, name);
     userFeedEntity.setProperty(USER_EMAIL, email);
+    userFeedEntity.setProperty(POST_TIME, postTime);
+    userFeedEntity.setProperty(TIMESTAMP, timestamp);
 
     // Generate xml string
     RSS rssFeed = new RSS(name, email, podcastTitle, mp3Link);

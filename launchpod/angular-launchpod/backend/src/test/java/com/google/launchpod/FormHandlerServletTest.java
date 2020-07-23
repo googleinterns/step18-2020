@@ -100,8 +100,7 @@ public class FormHandlerServletTest extends Mockito {
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK);
 
-  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
-  private final LocalServiceTestHelper userHelper = new LocalServiceTestHelper(new LocalUserServiceTestConfig())
+  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig())
   .setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
 
   @Before
@@ -139,6 +138,7 @@ public class FormHandlerServletTest extends Mockito {
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -169,6 +169,7 @@ public class FormHandlerServletTest extends Mockito {
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -206,6 +207,7 @@ public class FormHandlerServletTest extends Mockito {
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn("");
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Title inputted, please try again.");
@@ -221,9 +223,11 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputNullTitle_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn(null);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
-    UserService userService = UserServiceFactory.getUserService();
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Title inputted, please try again.");
@@ -243,6 +247,7 @@ public class FormHandlerServletTest extends Mockito {
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn("");
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Mp3 inputted, please try again.");
@@ -262,9 +267,50 @@ public class FormHandlerServletTest extends Mockito {
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(null);
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Mp3 inputted, please try again.");
+    servlet.doPost(request, response);
+
+    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+  }
+
+  /**
+   * Expects doPost() to throw an IllegalArgumentException when the Name field
+   * is empty.
+   */
+  @Test
+  public void doPost_FormInputEmptyName_ThrowsErrorMessage() throws IOException {
+    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
+    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
+    when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(NAME)).thenReturn("");
+
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("No Name inputted, please try again.");
+    servlet.doPost(request, response);
+
+    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+  }
+
+  /**
+   * Expects doPost() to throw an IllegalArgumentException when the Name field
+   * is null.
+   */
+  @Test
+  public void doPost_FormInputNullName_ThrowsErrorMessage() throws IOException {
+    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
+    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
+    when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(NAME)).thenReturn(null);
+
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("No Name inputted, please try again.");
     servlet.doPost(request, response);
 
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
