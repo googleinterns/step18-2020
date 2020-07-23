@@ -128,6 +128,10 @@ public class FormHandlerServlet extends HttpServlet {
     res.getWriter().println(formHtml);
   }
 
+  /**
+   * Generate policy for directly uploading a file to Cloud Storage via HTML form.
+   * @return HTML form (as a String) for uploading MP3
+   */
   public static String generateSignedPostPolicyV4(
       String projectId, String bucketName, String blobName) {
     // The ID of your GCP project
@@ -143,17 +147,19 @@ public class FormHandlerServlet extends HttpServlet {
     Storage storage;
     PostPolicyV4.PostFieldsV4 fields;
     PostPolicyV4 policy = null;
+    String myRedirectUrl = "";
     try {
     // GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
     GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("WEB-INF/launchpod-step18-2020-47434aafba88.json"));
 // credentials.refreshIfExpired();
-    storage = StorageOptions.newBuilder().setProjectId(projectId).setCredentials(credentials).build().getService();
+    // storage = StorageOptions.newBuilder().setProjectId(projectId).setCredentials(credentials).build().getService();
+    // storage = StorageOptions.newBuilder().setProjectId(projectId).build().getService();
 
-    // storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
+    storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
 
-
+    myRedirectUrl="https://launchpod-step18-2020.appspot.com/rss-feed?action=generateRSSLink&id=" + blobName;
     fields =
-        PostPolicyV4.PostFieldsV4.newBuilder().AddCustomMetadataField("test", "data").build();
+        PostPolicyV4.PostFieldsV4.newBuilder().setSuccessActionRedirect(myRedirectUrl).build();
 
      policy =
         storage.generateSignedPostPolicyV4(
@@ -178,54 +184,16 @@ public class FormHandlerServlet extends HttpServlet {
               + "' type='hidden' />\n");
     }
     htmlForm.append("  <input type='file' name='file'/><br />\n");
+    // htmlForm.append("  <input name='success_action_redirect' value='" + myRedirectUrl + "' type='hidden' />\n");
     htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
     htmlForm.append("</form>\n");
-    // htmlForm.append(errorMessage);
+
+    // htmlForm.append("<a href='"+myRedirectUrl+"'> Click here to see rss feed </a>");
     } else {
       htmlForm = new StringBuilder();
       htmlForm.append("policy is null");
       htmlForm.append(errorMessage);
     }
-    return htmlForm.toString();
-  }
-
-  /**
-   * Generate policy for directly uploading a file to Cloud Storage via HTML form.
-   * @return HTML form (as a String) for uploading MP3
-   */
-  public String generateSignedPostPolicyV4_OLD(String projectId, String bucketName, String blobName) {
-    // The name to give the object uploaded to GCS
-    // String blobName = "your-object-name", the Datastore entity ID of that MP3 object
-
-    Storage storage = StorageOptions.newBuilder().setProjectId(projectId).build().getService();
-
-    PostPolicyV4.PostFieldsV4 fields =
-        PostPolicyV4.PostFieldsV4.newBuilder().AddCustomMetadataField("test", "data").build();
-
-    PostPolicyV4 policy =
-        storage.generateSignedPostPolicyV4(
-            BlobInfo.newBuilder(bucketName, blobName).build(), 10, TimeUnit.MINUTES, fields);
-
-    // (ngSubmit)=\"onSubmit()\"
-    StringBuilder htmlForm =
-        new StringBuilder(
-            "<form action='"
-                + policy.getUrl()
-                + "' method='POST' enctype='multipart/form-data'>\n");
-    for (Map.Entry<String, String> entry : policy.getFields().entrySet()) {
-      htmlForm.append(
-          "  <input name='"
-              + entry.getKey()
-              + "' value='"
-              + entry.getValue()
-              + "' type='hidden' />\n");
-    }
-    htmlForm.append("  <input type='file' name='file'/><br />\n");
-    String myRedirectUrl="https://launchpod-step18-2020.appspot.com/rss-feed/?action=generateRssLink&id=" + blobName;
-    htmlForm.append("  <input name='success_action_redirect' value='" + myRedirectUrl + "' type='hidden' />\n");
-    htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
-    htmlForm.append("</form>\n");
-
     return htmlForm.toString();
   }
 
@@ -236,25 +204,45 @@ public class FormHandlerServlet extends HttpServlet {
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
     String action = req.getParameter("action");
     String id = req.getParameter(ID);
-    Key urlID = KeyFactory.stringToKey(id);
+    
+    if (action==null || id==null) {
+      res.setContentType("text/html");
+      res.getWriter().println("Please specify action and id.");
+      res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      return;
+    }
 
-    if (action.equals("generateXml")) {
+    if (action.equals("generateRSSLink")) {
+      String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + id;
+      res.setContentType("text/html");
+      res.getWriter().println(rssLink);
+   } else if (action.equals("generateXml")) {
       // Search key in datastore
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
       // create entity that contains id from datastore
       try {
-        Entity desiredFeedEntity = datastore.get(urlID);
+        Key entityKey = KeyFactory.stringToKey(id);
+        Entity desiredFeedEntity = datastore.get(entityKey);
+
+        if (desiredFeedEntity == null) {
+          res.setContentType("text/html");
+          res.getWriter().println("Your entity could not be found.");
+          res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+          return;
+        }
 
         String podcastTitle = desiredFeedEntity.getProperty(PODCAST_TITLE).toString();
         String description = desiredFeedEntity.getProperty(DESCRIPTION).toString();
         String language = desiredFeedEntity.getProperty(LANGUAGE).toString();
         String email = desiredFeedEntity.getProperty(EMAIL).toString();
-        String mp3Link = desiredFeedEntity.getProperty(MP3_LINK).toString();
+
+        EmbeddedEntity mp3Entity = (EmbeddedEntity) desiredFeedEntity.getProperty(MP3);
+        String mp3Link = mp3Entity.getProperty(MP3_LINK).toString();
 
         RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
 
         //Create user feed object to create XML String
-        UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
+        // UserFeed desiredUserFeed = UserFeed.fromEntity(desiredFeedEntity);
 
         XmlMapper xmlMapper = new XmlMapper();
         String xmlString = xmlMapper.writeValueAsString(rssFeed);
@@ -268,10 +256,6 @@ public class FormHandlerServlet extends HttpServlet {
         res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
         return;
       }
-   } else if (action==null || action.isEmpty() || action.equals("generateRSSLink")) {
-      String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + urlID;
-      res.setContentType("text/html");
-      res.getWriter().println(rssLink);
    }
   }
 
