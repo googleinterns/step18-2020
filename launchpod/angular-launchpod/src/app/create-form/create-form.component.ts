@@ -39,30 +39,6 @@ export class CreateFormComponent implements OnInit {
 
   selected = this.categories[0].value;
 
-  // categories: Category[] = [
-  //   {value: "Arts"},
-  //   {value: "Business"},
-  //   {value: "Comedy"},
-  //   {value: "Education"},
-  //   {value: "Fiction"},
-  //   {value: "Government"},
-  //   {value: "History"},
-  //   {value: "Health & Fitness"},
-  //   {value: "Kids & Family"},
-  //   {value: "Leisure"},
-  //   {value: "Music"},
-  //   {value: "News"},
-  //   {value: "Religion & Spirituality"},
-  //   {value: "Science"},
-  //   {value: "Society & Culture"},
-  //   {value: "Sports"},
-  //   {value: "Technology"},
-  //   {value: "True Crime"},
-  //   {value: "TV & Film"},
-  // ];
-
-  // selected = this.categories[0].value;
-
   constructor(private formHandlerService: FormHandlerService) {}
 
   ngOnInit(): void {}
