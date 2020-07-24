@@ -1,1 +1,22 @@
-<p>my-feeds-page works!</p>
+<body>
+  <h2>My RSS Feeds</h2>
+
+  <div id="my-feeds-container">
+    <!-- <mat-card *ngFor="let feed of myFeeds">{{feed.rssLink}} {{feed.postTime}}</mat-card> -->
+    <mat-card *ngFor="let feed of myFeeds" class="parent">
+      <mat-card-header class="child inline-block">
+        <mat-card-title>LaunchPod Podcast</mat-card-title>
+        <mat-card-subtitle>{{feed.postTime}}</mat-card-subtitle>
+      </mat-card-header>
+      <span class="toolbar-spacer"></span>
+      <mat-card-content class="child inline-block">
+        <br />
+        {{feed.rssLink}}
+      </mat-card-content>
+      <span class="toolbar-spacer"></span>
+      <mat-card-actions class="child inline-block">
+        <button mat-button>ADD EPISODES</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</body>

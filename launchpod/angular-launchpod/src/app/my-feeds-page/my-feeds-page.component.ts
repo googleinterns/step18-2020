@@ -1,4 +1,11 @@
+import { FormHandlerService } from '../form-handler.service';
 import { Component, OnInit } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+interface Feed {
+  rssLink: string;
+  postTime: string;
+}
 
 @Component({
   selector: 'app-my-feeds-page',
@@ -7,8 +14,14 @@ import { Component, OnInit } from '@angular/core';
 })
 export class MyFeedsPageComponent implements OnInit {
 
-  constructor() {}
+  myFeeds: Feed[];
 
-  ngOnInit(): void {}
+  constructor(private formHandlerService: FormHandlerService, public snackBar: MatSnackBar) {}
+
+  ngOnInit(): void {
+    this.formHandlerService.myFeeds.subscribe((feeds) => {
+      this.myFeeds = feeds;
+    });
+  }
 
 }

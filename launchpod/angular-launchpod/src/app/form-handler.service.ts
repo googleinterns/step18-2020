@@ -16,6 +16,9 @@ export class FormHandlerService {
   private loginLinkSubject = new BehaviorSubject<string>("Loading...");
   loginLink = this.loginLinkSubject.asObservable();
 
+  private myFeedsSubject = new BehaviorSubject<Array<any>>([]);
+  myFeeds = this.myFeedsSubject.asObservable();
+
   constructor(private http: HttpClient) {}
 
   /**
@@ -30,6 +33,14 @@ export class FormHandlerService {
    */
   sendLoginLink(link) {
     this.loginLinkSubject.next(link);
+  }
+
+  /**
+   * Update the list of "my feeds" with the feeds from post request.
+   */
+  sendMyFeeds(feeds) {
+    console.log("My feeds service: " + feeds);
+    this.myFeedsSubject.next(feeds);
   }
 
   /**
