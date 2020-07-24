@@ -84,6 +84,7 @@ public class FormHandlerServletTest extends Mockito {
   private static final String NAME = "name";
   private static final String EMAIL = "email";
   private static final String ID = "id";
+  private static final String CATEGORY = "category";
 
   private static final String TEST_PODCAST_TITLE = "TEST_PODCAST_TITLE";
   private static final String TEST_MP3_LINK = "TEST_MP3_LINK";
@@ -140,6 +141,7 @@ public class FormHandlerServletTest extends Mockito {
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
     when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -171,6 +173,7 @@ public class FormHandlerServletTest extends Mockito {
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
     when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -209,6 +212,7 @@ public class FormHandlerServletTest extends Mockito {
     when(request.getParameter(PODCAST_TITLE)).thenReturn("");
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
     when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Title inputted, please try again.");
@@ -229,6 +233,7 @@ public class FormHandlerServletTest extends Mockito {
     when(request.getParameter(PODCAST_TITLE)).thenReturn(null);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
     when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Title inputted, please try again.");
@@ -249,6 +254,7 @@ public class FormHandlerServletTest extends Mockito {
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn("");
     when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Mp3 inputted, please try again.");
@@ -269,6 +275,7 @@ public class FormHandlerServletTest extends Mockito {
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(null);
     when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Mp3 inputted, please try again.");
@@ -289,6 +296,7 @@ public class FormHandlerServletTest extends Mockito {
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
     when(request.getParameter(NAME)).thenReturn("");
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Name inputted, please try again.");
@@ -309,6 +317,7 @@ public class FormHandlerServletTest extends Mockito {
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
     when(request.getParameter(NAME)).thenReturn(null);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Name inputted, please try again.");

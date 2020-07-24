@@ -45,6 +45,7 @@ public class FormHandlerServlet extends HttpServlet {
   private static final String USER_EMAIL = "email";
   private static final String TIMESTAMP = "timestamp";
   private static final String POST_TIME = "postTime";
+  private static final String CATEGORY = "category";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
   // public variable to allow creation of UserFeed objects
@@ -62,6 +63,7 @@ public class FormHandlerServlet extends HttpServlet {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String mp3Link = req.getParameter(MP3_LINK);
     String name = req.getParameter(USER_NAME);
+    String category = req.getParameter(CATEGORY);
     String email = userService.getCurrentUser().getEmail();
 
     long timestamp = System.currentTimeMillis();
@@ -86,7 +88,7 @@ public class FormHandlerServlet extends HttpServlet {
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
 
     // Generate xml string
-    RSS rssFeed = new RSS(name, email, podcastTitle, mp3Link, "Technology");
+    RSS rssFeed = new RSS(name, email, podcastTitle, mp3Link, category);
     try {
       String xmlString = RSS.toXmlString(rssFeed);
       userFeedEntity.setProperty(XML_STRING, xmlString);
