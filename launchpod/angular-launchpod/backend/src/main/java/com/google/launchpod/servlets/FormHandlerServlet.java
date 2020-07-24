@@ -24,6 +24,8 @@ import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.auth.appengine.AppEngineCredentials;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.appengine.repackaged.com.google.gson.Gson;
@@ -57,6 +59,7 @@ public class FormHandlerServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
   private static final String ID = "id";
+  private static final String ACTION = "action";
 
   /**
    * Requests user inputs in form fields, then creates Entity and places in Datastore.
@@ -67,7 +70,12 @@ public class FormHandlerServlet extends HttpServlet {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String description = req.getParameter(DESCRIPTION);
     String language = req.getParameter(LANGUAGE);
-    String email = req.getParameter(EMAIL);
+    String email = null;
+
+    UserService userService = UserServiceFactory.getUserService();
+    if (userService.isUserLoggedIn()) {
+      email = userService.getCurrentUser().getEmail();
+    }
 
     if (podcastTitle == null || podcastTitle.isEmpty()) {
       throw new IllegalArgumentException("No Title inputted, please try again.");
@@ -191,12 +199,12 @@ public class FormHandlerServlet extends HttpServlet {
   */
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-    String action = req.getParameter("action");
+    String action = req.getParameter(ACTION);
     String id = req.getParameter(ID);
-    
+
     if (action==null || id==null) {
       res.setContentType("text/html");
-      res.getWriter().println("Please specify action and id.");
+      res.getWriter().println("Please specify action and/or id.");
       res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
