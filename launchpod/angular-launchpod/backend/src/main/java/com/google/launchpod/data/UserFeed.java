@@ -7,10 +7,12 @@ public final class UserFeed {
 
   private String xmlString;
   private String email;
+  private String language;
 
-  private UserFeed(String xmlString, String email) {
+  private UserFeed(String xmlString, String email, String language) {
     this.xmlString = xmlString;
     this.email = email;
+    this.language = language;
   }
 
   /**
@@ -22,7 +24,8 @@ public final class UserFeed {
   public static UserFeed fromEntity(Entity entity) {
     String xmlString = (String) entity.getProperty(FormHandlerServlet.XML_STRING);
     String email = (String) entity.getProperty(FormHandlerServlet.EMAIL);
-    return new UserFeed(xmlString, email);
+    String language = (String) entity.getProperty(FormHandlerServlet.LANGUAGE);
+    return new UserFeed(xmlString, email, language);
   }
 
   // getter for xml string
@@ -33,5 +36,9 @@ public final class UserFeed {
   // getter for email
   public String getEmail() {
     return this.email;
+  }
+
+  public String getLanguage(){
+    return this.language;
   }
 }

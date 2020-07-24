@@ -45,20 +45,21 @@ public class FormHandlerServlet extends HttpServlet {
     String mp3Link = req.getParameter(MP3_LINK);
 
     if (podcastTitle == null || podcastTitle.isEmpty()) {
-      throw new IllegalArgumentException("No Title inputted, please try again.");
+      throw new IllegalArgumentException("No title inputted, please try again.");
     } else if (description == null || description.isEmpty()) {
       throw new IllegalArgumentException("No description inputted, please try again.");
     } else if (language == null || language.isEmpty()) {
       throw new IllegalArgumentException("No language inputted, please try again.");
     } else if (email == null || email.isEmpty()) {
-      throw new IllegalArgumentException("You are not logged in. Please try again.");
+      throw new IllegalArgumentException("You are not logged in, please try again.");
     } else if (mp3Link == null || mp3Link.isEmpty()){
-      throw new IllegalArgumentException("No MP3 link inputted, pllease try again");
+      throw new IllegalArgumentException("No MP3 link inputted, please try again");
     }
 
     // Create entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(EMAIL, email);
+    userFeedEntity.setProperty(LANGUAGE, language);
 
     // Generate xml string
     RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
