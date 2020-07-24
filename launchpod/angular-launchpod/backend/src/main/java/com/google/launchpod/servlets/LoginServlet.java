@@ -73,7 +73,6 @@ public class LoginServlet extends HttpServlet {
           String rssLink = BASE_URL + urlID;
 
           userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, timestamp));
-        
         }
       }
       
