@@ -39,13 +39,14 @@ public class FormHandlerServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
   private static final String USER_FEED = "UserFeed";
-  private static final String PODCAST_TITLE = "title";
+  private static final String TITLE = "title";
   private static final String MP3_LINK = "mp3Link";
   private static final String USER_NAME = "name";
   private static final String USER_EMAIL = "email";
   private static final String TIMESTAMP = "timestamp";
   private static final String POST_TIME = "postTime";
   private static final String CATEGORY = "category";
+  private static final String DESCRIPTION = "description";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
   // public variable to allow creation of UserFeed objects
@@ -60,7 +61,7 @@ public class FormHandlerServlet extends HttpServlet {
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IllegalArgumentException, IOException {
     UserService userService = UserServiceFactory.getUserService();
 
-    String podcastTitle = req.getParameter(PODCAST_TITLE);
+    String title = req.getParameter(TITLE);
     String mp3Link = req.getParameter(MP3_LINK);
     String name = req.getParameter(USER_NAME);
     String category = req.getParameter(CATEGORY);
@@ -71,7 +72,7 @@ public class FormHandlerServlet extends HttpServlet {
     SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss");
     String postTime = dateFormat.format(date);
 
-    if (podcastTitle == null || podcastTitle.isEmpty()) {
+    if (title == null || title.isEmpty()) {
       throw new IllegalArgumentException("No Title inputted, please try again.");
     } else if (mp3Link == null || mp3Link.isEmpty()) {
       throw new IllegalArgumentException("No Mp3 inputted, please try again.");
@@ -82,13 +83,15 @@ public class FormHandlerServlet extends HttpServlet {
     // Creates entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
 
+    userFeedEntity.setProperty(TITLE, title);
     userFeedEntity.setProperty(USER_NAME, name);
     userFeedEntity.setProperty(USER_EMAIL, email);
     userFeedEntity.setProperty(POST_TIME, postTime);
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
+    userFeedEntity.setProperty(DESCRIPTION, "Podcast created using LaunchPod.");
 
     // Generate xml string
-    RSS rssFeed = new RSS(name, email, podcastTitle, mp3Link, category);
+    RSS rssFeed = new RSS(name, email, title, mp3Link, category);
     try {
       String xmlString = RSS.toXmlString(rssFeed);
       userFeedEntity.setProperty(XML_STRING, xmlString);
