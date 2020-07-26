@@ -68,10 +68,10 @@ public class FormHandlerServlet extends HttpServlet {
     String language = req.getParameter(LANGUAGE);
     String email = null;
 
-    UserService userService = UserServiceFactory.getUserService();
-    if (userService.isUserLoggedIn()) {
-      email = userService.getCurrentUser().getEmail();
-    }
+    // UserService userService = UserServiceFactory.getUserService();
+    // if (userService.isUserLoggedIn()) {
+    //   email = userService.getCurrentUser().getEmail();
+    // }
 
     if (podcastTitle == null || podcastTitle.isEmpty()) {
       throw new IllegalArgumentException("No Title inputted, please try again.");
