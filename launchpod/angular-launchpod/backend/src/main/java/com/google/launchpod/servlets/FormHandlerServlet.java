@@ -13,7 +13,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -28,7 +27,6 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.auth.appengine.AppEngineCredentials;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
 import com.google.launchpod.data.MP3;
@@ -55,9 +53,7 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE = "pubDate";
   public static final String ENTITY_ID = "entityId";
-  public static final Gson GSON = new Gson();
 
-  private static final long serialVersionUID = 1L;
   private static final String ID = "id";
   private static final String ACTION = "action";
 
@@ -173,7 +169,7 @@ public class FormHandlerServlet extends HttpServlet {
     if (policy!=null) {
       htmlForm =
           new StringBuilder(
-              "<form action='"
+              "<form name='mp3-upload' action='"
                   + policy.getUrl()
                   + "' method='POST' enctype='multipart/form-data'>\n");
       for (Map.Entry<String, String> entry : policy.getFields().entrySet()) {
@@ -216,10 +212,18 @@ public class FormHandlerServlet extends HttpServlet {
       res.getWriter().println(rssLink);
    } else if (action.equals("generateXml")) {
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-
+      Key entityKey = null;
       try {
         // Use key to retrieve entity from Datastore
-        Key entityKey = KeyFactory.stringToKey(id);
+        entityKey = KeyFactory.stringToKey(id);
+        // if entityId cannot be converted into a key
+      } catch (IllegalArgumentException e) {
+        e.printStackTrace();
+        res.setContentType("text/html");
+        res.getWriter().println("Sorry, this is not a valid id.");
+        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        return;
+      }
         Entity desiredFeedEntity = datastore.get(entityKey);
 
         if (desiredFeedEntity == null) {
@@ -243,14 +247,6 @@ public class FormHandlerServlet extends HttpServlet {
         String xmlString = xmlMapper.writeValueAsString(rssFeed);
         res.setContentType("text/xml");
         res.getWriter().println(xmlString);
-
-      // If there is no entity that matches the key
-      } catch (EntityNotFoundException e) {
-        e.printStackTrace();
-        res.setContentType("text/html");
-        res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
-        return;
-      }
    }
   }
 

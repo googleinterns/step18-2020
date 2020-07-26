@@ -4,6 +4,7 @@ import static com.google.appengine.api.datastore.FetchOptions.Builder.withLimit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.beans.Transient;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -25,6 +26,7 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import com.google.cloud.storage.testing.RemoteStorageHelper;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -131,7 +133,7 @@ public class FormHandlerServletTest extends Mockito {
    */
   private EmbeddedEntity makeEmbeddedEntity(String entityId, String mp3Link, String email) {
     EmbeddedEntity mp3Entity = new EmbeddedEntity();
-    mp3.setProperty(ENTITY_ID, entityId);
+    mp3.setProperty(ID, entityId);
     mp3.setProperty(MP3_LINK, mp3Link);
     mp3.setProperty(EMAIL, email);
     return mp3Entity;
@@ -187,13 +189,12 @@ public class FormHandlerServletTest extends Mockito {
     assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
   }
 
-  // TO-DO: check for the property MP3, mp3 where mp3 is an object with ENTITY_ID, MP3_LINK, and EMAIL fields
-    /**
+  /**
    * Asserts that doPost() takes in form inputs from client and successfully
    * stores that information + MP3 information as an embedded entity in Datastore.
    */
   @Test
-  public void doPost_StoresCorrectFormInput_StoresCorrectEmbeddedEntity() throws IOException {
+  public void doPost_StoresCorrectFormInput_StoresCorrectMp3Info() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
@@ -213,9 +214,13 @@ public class FormHandlerServletTest extends Mockito {
 
     String id = KeyFactory.keyToString(desiredEntity.getKey());
 
-    // verify xml string generation
-    String testXmlString = RSS.toXmlString(TEST_RSS_FEED);
-    assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
+    // verify embedded entity and its properties
+    String mp3Link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + id;
+    EmbeddedEntity testEmbeddedEntity = makeEmbeddedEntity(id, mp3Link, TEST_EMAIL);
+    assertEquals(testEmbeddedEntity, desiredEntity.getProperty(MP3));
+    assertEquals(testEmbeddedEntity.getProperty(ID).toString(), desiredEntity.getProperty(MP3).getProperty(ID).toString());
+    assertEquals(testEmbeddedEntity.getProperty(MP3_LINK).toString(), desiredEntity.getProperty(MP3).getProperty(MP3_LINK).toString());
+    assertEquals(testEmbeddedEntity.getProperty(EMAIL).toString(), desiredEntity.getProperty(MP3).getProperty(EMAIL).toString());
   }
 
   /**
@@ -240,13 +245,14 @@ public class FormHandlerServletTest extends Mockito {
     PreparedQuery preparedQuery = ds.prepare(query);
     Entity desiredEntity = preparedQuery.asSingleEntity();
 
-    assertEquals(1, ds.prepare(query).countEntities(withLimit(10)));
-
     String id = KeyFactory.keyToString(desiredEntity.getKey());
 
-    // verify that generatePostPolicyV4() was called once
-    verify(servlet, times(1)).generatePostPolicyV4(PROJECT_ID, BUCKET_NAME, id);
+    assertEquals(1, ds.prepare(query).countEntities(withLimit(10)));
+
+    // verify that the HTML returned contains the form name
     verify(response, times(1)).setContentType("text/html");
+    writer.flush();
+    assertTrue(stringWriter.toString().contains("mp3-form"));
   }
 
   /**
@@ -481,7 +487,7 @@ public class FormHandlerServletTest extends Mockito {
    * does not exist in Datastore.
    */
   @Test
-  public void doGet_EntityNotFound() throws IOException {
+  public void doGet_EntityNotFound_SendsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_ID, TEST_MP3_LINK, TEST_XML_STRING);
     ds.put(entity);
@@ -500,23 +506,33 @@ public class FormHandlerServletTest extends Mockito {
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
     assertEquals("Your entity could not be found.", stringWriter.toString());
+    verify(response, times(1)).setStatus(HttpServletResponse.SC_NOT_FOUND);
   }
 
   /**
-   * Expects doGet() to throw an error message when there are no entities in
-   * Datastore period. TO-DO: add this test to testing file for LoginServlet (MVP)
+   * Expects that doGet() returns an error message by catching an IllegalArgumentException
+   * when an entity with request id cannot be converted to a key.
    */
   @Test
-  public void doGet_NoEntitiesInDatastore_ThrowsErrorMessage() throws IOException {
+  public void doGet_InvalidId_SendsErrorMessage() throws IOException {
+    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_ID, TEST_MP3_LINK, TEST_XML_STRING);
+    ds.put(entity);
+    String id = "1234";
+
+    when(request.getParameter(ACTION)).thenReturn(GENERATE_XML_ACTION);
+    when(request.getParameter(ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
     when(response.getWriter()).thenReturn(writer);
 
-    // TO-DO: change this to EntityNotFoundException?
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Sorry, no matching Id was found in Datastore.");
     servlet.doGet(request, response);
+
+    verify(response, times(1)).setContentType("text/html");
+    writer.flush();
+    assertEquals("Sorry, this is not a valid id.", stringWriter.toString());
+    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 
   /**
@@ -536,6 +552,7 @@ public class FormHandlerServletTest extends Mockito {
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
     assertEquals("Please specify action and/or id.", stringWriter.toString());
+    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 
   /**
@@ -555,6 +572,7 @@ public class FormHandlerServletTest extends Mockito {
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
     assertEquals("Please specify action and/or id.", stringWriter.toString());
+    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 
 
