@@ -31,17 +31,40 @@
   <dependencies>
     <dependency>
       <groupId>com.google.cloud</groupId>
-      <artifactId>google-cloud-translate</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-storage</artifactId>
       <version>1.111.1</version>       <!-- 1.38.0 --> 
     </dependency>
     <dependency>
       <groupId>com.google.appengine</groupId>
       <artifactId>appengine-api-1.0-sdk</artifactId>
-      <version>1.9.59</version>
+      <version>1.9.81</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.appengine/appengine-testing -->
+    <dependency>
+        <groupId>com.google.appengine</groupId>
+        <artifactId>appengine-testing</artifactId>
+        <!-- <version>1.5.0</version> -->
+        <version>1.9.81</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-tools-sdk</artifactId>
+      <!-- <version>1.9.80</version> -->
+      <version>1.9.81</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-api-labs</artifactId>
+      <version>1.9.81</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-api-stubs</artifactId>
+      <version>1.9.81</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -66,11 +89,6 @@
       <artifactId>jackson-dataformat-xml</artifactId>
       <version>2.9.8</version>
     </dependency>
-    <!-- <dependency>
-        <groupId>com.google.api.client</groupId>
-        <artifactId>google-api-client-json</artifactId>
-        <version>1.2.3-alpha</version>
-    </dependency> -->
     <dependency>
       <groupId>com.google.http-client</groupId>
       <artifactId>google-http-client-jackson2</artifactId>
@@ -98,16 +116,10 @@
         <artifactId>google-auth-library-appengine</artifactId>
         <version>0.21.1</version>
     </dependency>
-    <!-- <dependency>
-      <groupId>com.google.http-client</groupId>
-      <artifactId>google-http-client-jackson</artifactId>
-      <version>1.15.0</version>
-    </dependency> -->
-    <!-- <dependency>
-      <groupId>com.google.oauth-client</groupId>
-      <artifactId>google-oauth-client-java8</artifactId>
-      <version>1.15.0-rc</version>
-    </dependency> -->
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-translate</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

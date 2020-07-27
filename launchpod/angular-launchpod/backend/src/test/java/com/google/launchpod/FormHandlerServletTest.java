@@ -20,10 +20,12 @@ import com.google.launchpod.data.RSS;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.cloud.storage.testing.RemoteStorageHelper;
@@ -72,7 +74,7 @@ public class FormHandlerServletTest extends Mockito {
   private static final String EMAIL = "email";
   private static final String MP3 = "mp3";
   private static final String MP3_LINK = "mp3Link";
-  private static final String ID = "id";
+  public static final String ID = "id";
   private static final String ACTION = "action";
 
   private static final String TEST_PODCAST_TITLE = "TEST_PODCAST_TITLE";
@@ -81,15 +83,13 @@ public class FormHandlerServletTest extends Mockito {
   private static final long TEST_TIMESTAMP = System.currentTimeMillis();
   private static final String TEST_ID = "123456";
   private static final String TEST_ID_TWO = "789012";
-  private static final String TEST_MP3_LINK = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
   private static final String TEST_PUBDATE = "2020/06/26 01:32:06";
-  private static final String TEST_EMAIL = "123@abc.com";
+  private static final String TEST_EMAIL = "123@google.com";
   private static final String TEST_INCORRECT_EMAIL = "123@cde.com";
   private static final String TEST_EMAIL_TWO = "456@abc.com";
   private static final String EMPTY_STRING = "";
   private static final String TEST_XML_STRING = "test";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  private static final RSS TEST_RSS_FEED = new RSS(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_MP3_LINK);
   private static final String GENERATE_XML_ACTION = "generateXml";
 
   private static final String PROJECT_ID = "launchpod-step18-2020"; // The ID of your GCP project
@@ -111,19 +111,15 @@ public class FormHandlerServletTest extends Mockito {
   /**
    * Creates a test user feed entity with an embedded entity for the MP3 object.
    */
-  private Entity makeEntity(String title, String description, String language, String email, String entityId, String mp3Link, String xmlString) {
+  private Entity makeEntity(String title, String description, String language, String email, String xmlString) {
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, title);
     userFeedEntity.setProperty(DESCRIPTION, description);
     userFeedEntity.setProperty(LANGUAGE, language);
     userFeedEntity.setProperty(EMAIL, email);
 
-    EmbeddedEntity mp3 = makeEmbeddedEntity(entityId, mp3Link, xmlString);
-    mp3.setProperty(ID, entityId);
-    mp3.setProperty(MP3_LINK, mp3Link);
-    mp3.setProperty(EMAIL, email);
-
-    userFeedEntity.setProperty(MP3, mp3);
+    // EmbeddedEntity mp3 = makeEmbeddedEntity(entityId, xmlString);
+    // userFeedEntity.setProperty(MP3, mp3);
     userFeedEntity.setProperty(XML_STRING, xmlString);
     return userFeedEntity;
   }
@@ -131,12 +127,20 @@ public class FormHandlerServletTest extends Mockito {
   /**
    * Creates a test user feed entity.
    */
-  private EmbeddedEntity makeEmbeddedEntity(String entityId, String mp3Link, String email) {
-    EmbeddedEntity mp3Entity = new EmbeddedEntity();
+  private EmbeddedEntity makeEmbeddedEntity(String entityId, String email) {
+    EmbeddedEntity mp3 = new EmbeddedEntity();
     mp3.setProperty(ID, entityId);
-    mp3.setProperty(MP3_LINK, mp3Link);
+    mp3.setProperty(MP3_LINK, makeMp3Link(entityId));
     mp3.setProperty(EMAIL, email);
-    return mp3Entity;
+    return mp3;
+  }
+
+  /**
+   * Creates a test MP3 link.
+   */
+  private String makeMp3Link(String entityId) {
+    String link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
+    return link;
   }
 
   /**
@@ -184,8 +188,11 @@ public class FormHandlerServletTest extends Mockito {
     PreparedQuery preparedQuery = ds.prepare(query);
     Entity desiredEntity = preparedQuery.asSingleEntity();
 
+    String id = KeyFactory.keyToString(desiredEntity.getKey());
+    RSS testRSSFeed = new RSS(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, makeMp3Link(id));
+
     // verify xml string generation
-    String testXmlString = RSS.toXmlString(TEST_RSS_FEED);
+    String testXmlString = RSS.toXmlString(testRSSFeed);
     assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
   }
 
@@ -214,20 +221,19 @@ public class FormHandlerServletTest extends Mockito {
 
     String id = KeyFactory.keyToString(desiredEntity.getKey());
 
-    // verify embedded entity and its properties
-    String mp3Link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + id;
-    EmbeddedEntity testEmbeddedEntity = makeEmbeddedEntity(id, mp3Link, TEST_EMAIL);
+    // verify embedded entity
+    EmbeddedEntity testEmbeddedEntity = makeEmbeddedEntity(id, TEST_EMAIL);
     assertEquals(testEmbeddedEntity, desiredEntity.getProperty(MP3));
-    assertEquals(testEmbeddedEntity.getProperty(ID).toString(), desiredEntity.getProperty(MP3).getProperty(ID).toString());
-    assertEquals(testEmbeddedEntity.getProperty(MP3_LINK).toString(), desiredEntity.getProperty(MP3).getProperty(MP3_LINK).toString());
-    assertEquals(testEmbeddedEntity.getProperty(EMAIL).toString(), desiredEntity.getProperty(MP3).getProperty(EMAIL).toString());
+    // assertEquals(testEmbeddedEntity.getProperty(ID).toString(), desiredEntity.getProperty(MP3).getProperty(ID).toString());
+    // assertEquals(testEmbeddedEntity.getProperty(MP3_LINK).toString(), desiredEntity.getProperty(MP3).getProperty(MP3_LINK).toString());
+    // assertEquals(testEmbeddedEntity.getProperty(EMAIL).toString(), desiredEntity.getProperty(MP3).getProperty(EMAIL).toString());
   }
 
   /**
    * Asserts that doPost() takes in form inputs from client and returns an HTML form.
    */
   @Test
-  public void doPost_ReturnsHtmlForm() throws IOException {
+  public void doPost_ReturnsHtmlForm() throws IOException, Exception {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
@@ -252,7 +258,8 @@ public class FormHandlerServletTest extends Mockito {
     // verify that the HTML returned contains the form name
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    assertTrue(stringWriter.toString().contains("mp3-form"));
+    System.out.println("THIS IS THE RESULT: " + stringWriter.toString());
+    assertTrue(stringWriter.toString().contains("mp3-upload"));
   }
 
   /**
@@ -294,6 +301,7 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputEmptyDescription_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(DESCRIPTION)).thenReturn("");
 
     thrown.expect(IllegalArgumentException.class);
@@ -310,6 +318,7 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputNullDescription_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(DESCRIPTION)).thenReturn(null);
 
     thrown.expect(IllegalArgumentException.class);
@@ -326,13 +335,13 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputEmptyLanguage_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
+    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
     when(request.getParameter(LANGUAGE)).thenReturn("");
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No language inputted, please try again.");
     servlet.doPost(request, response);
-
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
@@ -342,13 +351,13 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputNullLanguage_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
+    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
     when(request.getParameter(LANGUAGE)).thenReturn(null);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No language inputted, please try again.");
     servlet.doPost(request, response);
-
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
@@ -358,13 +367,14 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputEmptyEmail_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
+    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
+    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);    
     when(request.getParameter(EMAIL)).thenReturn("");
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("You are not logged in. Please try again.");
     servlet.doPost(request, response);
-
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
@@ -374,13 +384,14 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputNullEmail_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
+    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
+    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);  
     when(request.getParameter(EMAIL)).thenReturn(null);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("You are not logged in. Please try again.");
     servlet.doPost(request, response);
-
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
   }
 
   // Note: Post-MVP, we will change the language input into a dropdown to prevent invalid inputs.
@@ -393,7 +404,7 @@ public class FormHandlerServletTest extends Mockito {
   public void doGet_ReturnsRSSLink() throws IOException {
 
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_ID, TEST_MP3_LINK, TEST_XML_STRING);
+    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
     ds.put(entity);
 
     String action = "generateRSSLink";
@@ -412,7 +423,8 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    assertEquals(0, testRSSLink.compareTo(stringWriter.toString()));
+    // assertEquals(0, testRSSLink.compareTo(stringWriter.toString()));
+    assertEquals(testRSSLink.trim(), stringWriter.toString().trim());
   }
 
   /**
@@ -420,22 +432,27 @@ public class FormHandlerServletTest extends Mockito {
    * with one entity in Datastore.
    */
   @Test
-  public void doGet_SingleEntity_ReturnsCorrectXmlString() throws IOException {
+  public void doGet_SingleEntity_ReturnsCorrectXmlString() throws IOException, EntityNotFoundException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_ID, TEST_MP3_LINK, TEST_XML_STRING);
-    String testXmlString = RSS.toXmlString(rss);
+    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
     ds.put(entity);
 
-    String id = KeyFactory.keyToString(entity.getKey());
+    Entity desiredEntity = ds.get(entity.getKey());
+    String id = KeyFactory.keyToString(desiredEntity.getKey());
+    EmbeddedEntity mp3 = makeEmbeddedEntity(id, TEST_EMAIL);
+    desiredEntity.setProperty(MP3, mp3);
+    ds.put(desiredEntity);
 
     when(request.getParameter(ACTION)).thenReturn(GENERATE_XML_ACTION);
     when(request.getParameter(ID)).thenReturn(id);
 
-    Entity desiredFeedEntity = datastore.get(id);
-    assertEquals(TEST_PODCAST_TITLE, desiredFeedEntity.getProperty(PODCAST_TITLE).toString());
-    assertEquals(TEST_DESCRIPTION, desiredFeedEntity.getProperty(DESCRIPTION).toString());
-    assertEquals(TEST_LANGUAGE, desiredFeedEntity.getProperty(LANGUAGE).toString());
-    assertEquals(TEST_EMAIL, desiredFeedEntity.getProperty(EMAIL).toString());
+    RSS testRSSFeed = new RSS(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, makeMp3Link(id));
+    String testXmlString = RSS.toXmlString(testRSSFeed);
+    
+    assertEquals(TEST_PODCAST_TITLE, desiredEntity.getProperty(PODCAST_TITLE).toString());
+    assertEquals(TEST_DESCRIPTION, desiredEntity.getProperty(DESCRIPTION).toString());
+    assertEquals(TEST_LANGUAGE, desiredEntity.getProperty(LANGUAGE).toString());
+    assertEquals(TEST_EMAIL, desiredEntity.getProperty(EMAIL).toString());
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -445,7 +462,7 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/xml");
     writer.flush();
-    assertEquals(testXmlString, stringWriter.toString());
+    assertEquals(testXmlString.trim(), stringWriter.toString().trim());
   }
 
   /**
@@ -453,19 +470,25 @@ public class FormHandlerServletTest extends Mockito {
    * multiple entities in Datastore.
    */
   @Test
-  public void doGet_MultipleEntities_ReturnsCorrectXmlString() throws IOException {
+  public void doGet_MultipleEntities_ReturnsCorrectXmlString() throws IOException, EntityNotFoundException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_ID, TEST_MP3_LINK, TEST_XML_STRING);
-    Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL_TWO, TEST_ID_TWO, TEST_MP3_LINK, TEST_XML_STRING);
-    String testXmlString = RSS.toXmlString(rss);
+    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+    Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL_TWO, TEST_XML_STRING);
     ds.put(entity);
+    ds.put(entityTwo);
 
     String id = KeyFactory.keyToString(entity.getKey());
+    EmbeddedEntity mp3 = makeEmbeddedEntity(id, TEST_EMAIL);
+    Entity desiredFeedEntity = ds.get(entity.getKey());
+    desiredFeedEntity.setProperty(MP3, mp3);
+    ds.put(desiredFeedEntity);
+    
+    RSS testRSSFeed = new RSS(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, makeMp3Link(id));
+    String testXmlString = RSS.toXmlString(testRSSFeed);
 
     when(request.getParameter(ACTION)).thenReturn(GENERATE_XML_ACTION);
     when(request.getParameter(ID)).thenReturn(id);
 
-    Entity desiredFeedEntity = datastore.get(id);
     assertEquals(TEST_PODCAST_TITLE, desiredFeedEntity.getProperty(PODCAST_TITLE).toString());
     assertEquals(TEST_DESCRIPTION, desiredFeedEntity.getProperty(DESCRIPTION).toString());
     assertEquals(TEST_LANGUAGE, desiredFeedEntity.getProperty(LANGUAGE).toString());
@@ -479,17 +502,17 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/xml");
     writer.flush();
-    assertEquals(testXmlString, stringWriter.toString());
+    assertEquals(testXmlString.trim(), stringWriter.toString().trim());
   }
 
   /**
-   * Expects that doGet() returns an error message when an entity with request id
+   * Asserts that doGet() returns an error message when an entity with request id
    * does not exist in Datastore.
    */
   @Test
   public void doGet_EntityNotFound_SendsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_ID, TEST_MP3_LINK, TEST_XML_STRING);
+    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
     ds.delete(entity.getKey());
@@ -505,20 +528,20 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    assertEquals("Your entity could not be found.", stringWriter.toString());
+    assertEquals("Your entity could not be found.".trim(), stringWriter.toString().trim());
     verify(response, times(1)).setStatus(HttpServletResponse.SC_NOT_FOUND);
   }
 
   /**
-   * Expects that doGet() returns an error message by catching an IllegalArgumentException
+   * Asserts that doGet() returns an error message by catching an IllegalArgumentException
    * when an entity with request id cannot be converted to a key.
    */
   @Test
   public void doGet_InvalidId_SendsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_ID, TEST_MP3_LINK, TEST_XML_STRING);
+    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
     ds.put(entity);
-    String id = "1234";
+    String id = "1234"; // incorrect id
 
     when(request.getParameter(ACTION)).thenReturn(GENERATE_XML_ACTION);
     when(request.getParameter(ID)).thenReturn(id);
@@ -531,12 +554,38 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    assertEquals("Sorry, this is not a valid id.", stringWriter.toString());
+    assertEquals("Sorry, this is not a valid id.".trim(), stringWriter.toString().trim());
     verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 
+    /**
+   * Asserts that doGet() returns an error message by catching an EntityNotFoundException
+   * when an entity with request id cannot be converted to a key.
+   */
+  // @Test
+  // public void doGet_EntityNotFound_SendsErrorMessage() throws IOException {
+  //   DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+  //   Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+  //   ds.put(entity);
+  //   String id = "1234";
+
+  //   when(request.getParameter(ACTION)).thenReturn(GENERATE_XML_ACTION);
+  //   when(request.getParameter(ID)).thenReturn(id);
+
+  //   StringWriter stringWriter = new StringWriter();
+  //   PrintWriter writer = new PrintWriter(stringWriter);
+  //   when(response.getWriter()).thenReturn(writer);
+
+  //   servlet.doGet(request, response);
+
+  //   verify(response, times(1)).setContentType("text/html");
+  //   writer.flush();
+  //   assertEquals("Your entity could not be found.".trim(), stringWriter.toString().trim());
+  //   verify(response, times(1)).setStatus(HttpServletResponse.SC_NOT_FOUND);
+  // }
+
   /**
-   * Expects doGet() return message asking for action if it is null.
+   * Asserts that doGet() returns a message asking for action if action is null.
    */
   @Test
   public void doGet_NullAction_SendsErrorMessage() throws IOException {
@@ -551,12 +600,12 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    assertEquals("Please specify action and/or id.", stringWriter.toString());
+    assertEquals("Please specify action and/or id.".trim(), stringWriter.toString().trim());
     verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 
   /**
-   * Expects doGet() to return message asking for id if it is null.
+   * Asserts that doGet() returns a message asking for id if the id is null.
    */
   @Test
   public void doGet_NullId_SendsErrorMessage() throws IOException {
@@ -571,7 +620,10 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    assertEquals("Please specify action and/or id.", stringWriter.toString());
+    // System.out.println("THIS IS THE EXPECTED: " + "Please specify action and/or id.");
+    // System.out.print("THIS IS THE ACTUAL  : " + stringWriter.toString());
+    assertEquals("Please specify action and/or id.".trim(), stringWriter.toString().trim());
+    String expectedMessage = "Please specify action and/or id.";
     verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 

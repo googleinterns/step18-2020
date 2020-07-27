@@ -2,6 +2,7 @@ package com.google.launchpod.servlets;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -52,7 +53,6 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String MP3_LINK = "mp3Link";
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE = "pubDate";
-  public static final String ENTITY_ID = "entityId";
 
   private static final String ID = "id";
   private static final String ACTION = "action";
@@ -66,8 +66,9 @@ public class FormHandlerServlet extends HttpServlet {
     String podcastTitle = req.getParameter(PODCAST_TITLE);
     String description = req.getParameter(DESCRIPTION);
     String language = req.getParameter(LANGUAGE);
-    String email = null;
+    String email = req.getParameter(EMAIL);
 
+    // TO-DO: add this in after merging (because LoginServlet will be set up)
     // UserService userService = UserServiceFactory.getUserService();
     // if (userService.isUserLoggedIn()) {
     //   email = userService.getCurrentUser().getEmail();
@@ -98,7 +99,7 @@ public class FormHandlerServlet extends HttpServlet {
 
     // Create embedded entity to store MP3 data
     EmbeddedEntity mp3 = new EmbeddedEntity();
-    mp3.setProperty(ENTITY_ID, entityId);
+    mp3.setProperty(ID, entityId);
     mp3.setProperty(MP3_LINK, mp3Link);
     mp3.setProperty(EMAIL, email);
 
@@ -111,9 +112,10 @@ public class FormHandlerServlet extends HttpServlet {
     }
 
     // Generate xml string
+    RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
     String xmlString = "";
     try {
-      xmlString = xmlString(userFeedEntity);
+      xmlString = RSS.toXmlString(rssFeed);
       savedEntity.setProperty(XML_STRING ,xmlString);
     } catch(IOException e){
       throw new IOException("Unable to create XML string.");
@@ -133,16 +135,8 @@ public class FormHandlerServlet extends HttpServlet {
    * Generate policy for directly uploading a file to Cloud Storage via HTML form.
    * @return HTML form (as a String) for uploading MP3
    */
-  public static String generateSignedPostPolicyV4(
-      String projectId, String bucketName, String blobName) {
-    // ID of GCP project
-    // String projectId = "launchpod-step18-2020";
-
-    // ID of GCS bucket to upload to
-    // String bucketName = "launchpod-mp3-files"
-
-    // The name to give the object uploaded to GCS
-    // String blobName = "your-object-name", entity ID from Datastore
+  public String generateSignedPostPolicyV4 (String projectId, String bucketName, String blobName) throws IOException {
+    // String blobName = "your-object-name", entity ID from Datastore, is the name of object uploaded to GCS
 
     String errorMessage = "Policy is null.";
     Storage storage;
@@ -150,7 +144,13 @@ public class FormHandlerServlet extends HttpServlet {
     PostPolicyV4 policy = null;
     String myRedirectUrl = "";
     try {
-      GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("WEB-INF/launchpod-step18-2020-47434aafba88.json"));
+      // InputStream inputStream = 
+      // getClass().getClassLoader().getResourceAsStream("src/main/resources/launchpod-step18-2020-47434aafba88.json");
+      // GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("WEB-INF/"));
+      String keyFileName = "launchpod-step18-2020-47434aafba88.json";
+      ClassLoader classLoader = getClass().getClassLoader();
+      File file = new File(classLoader.getResource(keyFileName).getFile());
+      GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(file));
 
       storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
 
@@ -163,6 +163,7 @@ public class FormHandlerServlet extends HttpServlet {
             BlobInfo.newBuilder(bucketName, blobName).build(), 10, TimeUnit.MINUTES, fields);
     } catch(Exception e) {
       errorMessage = e.getMessage();
+      throw e;
     }
 
     StringBuilder htmlForm;
@@ -213,25 +214,29 @@ public class FormHandlerServlet extends HttpServlet {
    } else if (action.equals("generateXml")) {
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
       Key entityKey = null;
+      Entity desiredFeedEntity = null; 
       try {
         // Use key to retrieve entity from Datastore
         entityKey = KeyFactory.stringToKey(id);
-        // if entityId cannot be converted into a key
+        desiredFeedEntity = datastore.get(entityKey);
+
       } catch (IllegalArgumentException e) {
+        // if entityId cannot be converted into a key
         e.printStackTrace();
         res.setContentType("text/html");
         res.getWriter().println("Sorry, this is not a valid id.");
         res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         return;
+        
+      } catch (EntityNotFoundException e) {
+        // no matching entity in Datastore
+        e.printStackTrace();
+        res.setContentType("text/html");
+        res.getWriter().println("Your entity could not be found.");
+        res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        return;
       }
-        Entity desiredFeedEntity = datastore.get(entityKey);
 
-        if (desiredFeedEntity == null) {
-          res.setContentType("text/html");
-          res.getWriter().println("Your entity could not be found.");
-          res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-          return;
-        }
 
         String podcastTitle = desiredFeedEntity.getProperty(PODCAST_TITLE).toString();
         String description = desiredFeedEntity.getProperty(DESCRIPTION).toString();
