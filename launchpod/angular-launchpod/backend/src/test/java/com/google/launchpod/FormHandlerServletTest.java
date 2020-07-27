@@ -64,7 +64,7 @@ public class FormHandlerServletTest extends Mockito {
 
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
 
-  // keys
+  // Keys
   private static final String USER_FEED = "UserFeed";
   private static final String PODCAST_TITLE = "title";
   private static final String XML_STRING = "xmlString";
@@ -74,7 +74,7 @@ public class FormHandlerServletTest extends Mockito {
   private static final String EMAIL = "email";
   private static final String MP3 = "mp3";
   private static final String MP3_LINK = "mp3Link";
-  public static final String ID = "id";
+  private static final String ID = "id";
   private static final String ACTION = "action";
 
   private static final String TEST_PODCAST_TITLE = "TEST_PODCAST_TITLE";
@@ -106,8 +106,6 @@ public class FormHandlerServletTest extends Mockito {
     helper.tearDown();
   }
 
-  // TO-DO: googleapis.dev/java/google-cloud-storage/latest/index.html for test helper
-
   /**
    * Creates a test user feed entity with an embedded entity for the MP3 object.
    */
@@ -118,8 +116,6 @@ public class FormHandlerServletTest extends Mockito {
     userFeedEntity.setProperty(LANGUAGE, language);
     userFeedEntity.setProperty(EMAIL, email);
 
-    // EmbeddedEntity mp3 = makeEmbeddedEntity(entityId, xmlString);
-    // userFeedEntity.setProperty(MP3, mp3);
     userFeedEntity.setProperty(XML_STRING, xmlString);
     return userFeedEntity;
   }
@@ -191,7 +187,7 @@ public class FormHandlerServletTest extends Mockito {
     String id = KeyFactory.keyToString(desiredEntity.getKey());
     RSS testRSSFeed = new RSS(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, makeMp3Link(id));
 
-    // verify xml string generation
+    // Verify xml string generation
     String testXmlString = RSS.toXmlString(testRSSFeed);
     assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
   }
@@ -221,12 +217,9 @@ public class FormHandlerServletTest extends Mockito {
 
     String id = KeyFactory.keyToString(desiredEntity.getKey());
 
-    // verify embedded entity
+    // Verify embedded entity
     EmbeddedEntity testEmbeddedEntity = makeEmbeddedEntity(id, TEST_EMAIL);
     assertEquals(testEmbeddedEntity, desiredEntity.getProperty(MP3));
-    // assertEquals(testEmbeddedEntity.getProperty(ID).toString(), desiredEntity.getProperty(MP3).getProperty(ID).toString());
-    // assertEquals(testEmbeddedEntity.getProperty(MP3_LINK).toString(), desiredEntity.getProperty(MP3).getProperty(MP3_LINK).toString());
-    // assertEquals(testEmbeddedEntity.getProperty(EMAIL).toString(), desiredEntity.getProperty(MP3).getProperty(EMAIL).toString());
   }
 
   /**
@@ -255,7 +248,7 @@ public class FormHandlerServletTest extends Mockito {
 
     assertEquals(1, ds.prepare(query).countEntities(withLimit(10)));
 
-    // verify that the HTML returned contains the form name
+    // Verify that the HTML returned contains the form name
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
     System.out.println("THIS IS THE RESULT: " + stringWriter.toString());
@@ -423,7 +416,6 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    // assertEquals(0, testRSSLink.compareTo(stringWriter.toString()));
     assertEquals(testRSSLink.trim(), stringWriter.toString().trim());
   }
 
@@ -558,32 +550,6 @@ public class FormHandlerServletTest extends Mockito {
     verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 
-    /**
-   * Asserts that doGet() returns an error message by catching an EntityNotFoundException
-   * when an entity with request id cannot be converted to a key.
-   */
-  // @Test
-  // public void doGet_EntityNotFound_SendsErrorMessage() throws IOException {
-  //   DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-  //   Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
-  //   ds.put(entity);
-  //   String id = "1234";
-
-  //   when(request.getParameter(ACTION)).thenReturn(GENERATE_XML_ACTION);
-  //   when(request.getParameter(ID)).thenReturn(id);
-
-  //   StringWriter stringWriter = new StringWriter();
-  //   PrintWriter writer = new PrintWriter(stringWriter);
-  //   when(response.getWriter()).thenReturn(writer);
-
-  //   servlet.doGet(request, response);
-
-  //   verify(response, times(1)).setContentType("text/html");
-  //   writer.flush();
-  //   assertEquals("Your entity could not be found.".trim(), stringWriter.toString().trim());
-  //   verify(response, times(1)).setStatus(HttpServletResponse.SC_NOT_FOUND);
-  // }
-
   /**
    * Asserts that doGet() returns a message asking for action if action is null.
    */
@@ -620,13 +586,8 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    // System.out.println("THIS IS THE EXPECTED: " + "Please specify action and/or id.");
-    // System.out.print("THIS IS THE ACTUAL  : " + stringWriter.toString());
     assertEquals("Please specify action and/or id.".trim(), stringWriter.toString().trim());
     String expectedMessage = "Please specify action and/or id.";
     verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
-
-
 }
-

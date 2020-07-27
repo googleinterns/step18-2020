@@ -68,7 +68,7 @@ public class FormHandlerServlet extends HttpServlet {
     String language = req.getParameter(LANGUAGE);
     String email = req.getParameter(EMAIL);
 
-    // TO-DO: add this in after merging (because LoginServlet will be set up)
+    // TO-DO after merging: add this in and remove email parameter (because LoginServlet will be set up)
     // UserService userService = UserServiceFactory.getUserService();
     // if (userService.isUserLoggedIn()) {
     //   email = userService.getCurrentUser().getEmail();
@@ -136,7 +136,7 @@ public class FormHandlerServlet extends HttpServlet {
    * @return HTML form (as a String) for uploading MP3
    */
   public String generateSignedPostPolicyV4 (String projectId, String bucketName, String blobName) throws IOException {
-    // String blobName = "your-object-name", entity ID from Datastore, is the name of object uploaded to GCS
+    // String blobName = entity ID from Datastore, as the name of object uploaded to GCS
 
     String errorMessage = "Policy is null.";
     Storage storage;
@@ -144,9 +144,7 @@ public class FormHandlerServlet extends HttpServlet {
     PostPolicyV4 policy = null;
     String myRedirectUrl = "";
     try {
-      // InputStream inputStream = 
-      // getClass().getClassLoader().getResourceAsStream("src/main/resources/launchpod-step18-2020-47434aafba88.json");
-      // GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream("WEB-INF/"));
+      // Prepare credentials and API key
       String keyFileName = "launchpod-step18-2020-47434aafba88.json";
       ClassLoader classLoader = getClass().getClassLoader();
       File file = new File(classLoader.getResource(keyFileName).getFile());
@@ -221,7 +219,7 @@ public class FormHandlerServlet extends HttpServlet {
         desiredFeedEntity = datastore.get(entityKey);
 
       } catch (IllegalArgumentException e) {
-        // if entityId cannot be converted into a key
+        // If entityId cannot be converted into a key
         e.printStackTrace();
         res.setContentType("text/html");
         res.getWriter().println("Sorry, this is not a valid id.");
@@ -229,7 +227,7 @@ public class FormHandlerServlet extends HttpServlet {
         return;
         
       } catch (EntityNotFoundException e) {
-        // no matching entity in Datastore
+        // No matching entity in Datastore
         e.printStackTrace();
         res.setContentType("text/html");
         res.getWriter().println("Your entity could not be found.");
@@ -237,27 +235,25 @@ public class FormHandlerServlet extends HttpServlet {
         return;
       }
 
+      String podcastTitle = desiredFeedEntity.getProperty(PODCAST_TITLE).toString();
+      String description = desiredFeedEntity.getProperty(DESCRIPTION).toString();
+      String language = desiredFeedEntity.getProperty(LANGUAGE).toString();
+      String email = desiredFeedEntity.getProperty(EMAIL).toString();
 
-        String podcastTitle = desiredFeedEntity.getProperty(PODCAST_TITLE).toString();
-        String description = desiredFeedEntity.getProperty(DESCRIPTION).toString();
-        String language = desiredFeedEntity.getProperty(LANGUAGE).toString();
-        String email = desiredFeedEntity.getProperty(EMAIL).toString();
+      EmbeddedEntity mp3Entity = (EmbeddedEntity) desiredFeedEntity.getProperty(MP3);
+      String mp3Link = mp3Entity.getProperty(MP3_LINK).toString();
 
-        EmbeddedEntity mp3Entity = (EmbeddedEntity) desiredFeedEntity.getProperty(MP3);
-        String mp3Link = mp3Entity.getProperty(MP3_LINK).toString();
+      RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
 
-        RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
-
-        XmlMapper xmlMapper = new XmlMapper();
-        String xmlString = xmlMapper.writeValueAsString(rssFeed);
-        res.setContentType("text/xml");
-        res.getWriter().println(xmlString);
+      XmlMapper xmlMapper = new XmlMapper();
+      String xmlString = xmlMapper.writeValueAsString(rssFeed);
+      res.setContentType("text/xml");
+      res.getWriter().println(xmlString);
    }
   }
 
   /**
    * Create RSS XML string from given fields
-   *
    * @return xml String
    * @throws IOException
    * @throws Exception
