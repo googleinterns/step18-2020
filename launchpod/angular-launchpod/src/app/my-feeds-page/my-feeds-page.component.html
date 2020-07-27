@@ -20,11 +20,16 @@
     <mat-expansion-panel *ngFor= "let feed of myFeeds" hideToggle>
       <mat-expansion-panel-header>
         <mat-panel-title>
+          <br />
           {{feed.title}}
         </mat-panel-title>
         <mat-panel-description>
-          {{feed.rssLink}}
-          <mat-icon>account_circle</mat-icon>
+          <a [attr.href]="feed.rssLink">{{feed.rssLink}}</a>
+          <mat-action-row>
+            <button mat-button color="primary">ADD EPISODE</button>
+            <button mat-button color="warn" (click)="deleteFeed(feed.key)">DELETE</button>
+          </mat-action-row>
+          <!-- <mat-icon>account_circle</mat-icon> -->
         </mat-panel-description>
       </mat-expansion-panel-header>
       
@@ -39,10 +44,7 @@
         <mat-label>Age</mat-label>
         <input matInput type="number" min="1">
       </mat-form-field> -->
-      <mat-action-row>
-        <button mat-button color="primary">ADD EPISODE</button>
-        <button mat-button color="primary">DELETE</button>
-      </mat-action-row>
+      
     </mat-expansion-panel>
   </div>
 </body>

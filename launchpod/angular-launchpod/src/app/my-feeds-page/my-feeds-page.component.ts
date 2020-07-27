@@ -2,11 +2,17 @@ import { FormHandlerService } from '../form-handler.service';
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+interface Key {
+  kind: string;
+  id: string;
+}
+
 interface Feed {
   title: string;
   rssLink: string;
   postTime: string;
   description: string;
+  key: Key;
 }
 
 @Component({
@@ -24,6 +30,15 @@ export class MyFeedsPageComponent implements OnInit {
     this.formHandlerService.myFeeds.subscribe((feeds) => {
       this.myFeeds = feeds;
     });
+  }
+
+  // Sends input data to backend when user clicks create button.
+  public deleteFeed(key) {
+
+    this.formHandlerService.deleteFeedEntity(key)
+      .subscribe((response) => {
+        this.formHandlerService.sendFeedValue(response);
+      });
   }
 
 }
