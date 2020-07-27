@@ -179,11 +179,12 @@ public class LoginServletTest extends Mockito {
         String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
         String postTime = (String) entity.getProperty(LoginStatus.POST_TIME_KEY);
         long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+        Key key = entity.getKey();
         
         String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
         String rssLink = BASE_URL + urlID;
 
-        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, timestamp));
+        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, timestamp, key));
       
       }
     }
