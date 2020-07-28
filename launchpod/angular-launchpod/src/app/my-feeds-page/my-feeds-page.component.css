@@ -21,16 +21,6 @@ body {
   
 }
 
-.mat-expansion-panel-header-title,
-.mat-expansion-panel-header-description {
-  flex-basis: 0;
-}
-
-.mat-expansion-panel-header-description {
-  justify-content: space-between;
-  align-items: center;
-}
-
 mat-card {
   display: flex;
   justify-content: center;
@@ -38,7 +28,6 @@ mat-card {
 }
 
 #my-feeds-container {
-  border: solid;
   display: inline-block;
   height: 75vh;
   text-align: center;

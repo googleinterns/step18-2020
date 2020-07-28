@@ -21,14 +21,13 @@ public final class UserFeed {
     this.xmlString = xmlString;
   }
 
-  public UserFeed(String title, String name, String rssLink, String description, String email, String postTime, long timestamp, String key) {
+  public UserFeed(String title, String name, String rssLink, String description, String email, String postTime, String key) {
     this.title = title;
     this.name = name;
     this.rssLink = rssLink;
     this.description = description;
     this.email = email;
     this.postTime = postTime;
-    this.timestamp = timestamp;
     this.key = key;
   }
 
