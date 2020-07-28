@@ -14,7 +14,6 @@ export class Mp3FormComponent implements OnInit {
   ngOnInit(): void {
     this.formHandlerService.feedValue.subscribe((feedValue) => {
       console.log("Result: " + feedValue)
-      // this.feedValue = feedValue;
       document.getElementById('mp3-upload').innerHTML = feedValue;
     });
   }

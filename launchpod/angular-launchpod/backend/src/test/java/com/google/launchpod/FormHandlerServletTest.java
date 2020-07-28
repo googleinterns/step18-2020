@@ -106,6 +106,21 @@ public class FormHandlerServletTest extends Mockito {
     helper.tearDown();
   }
 
+  private enum Action {
+    GENERATE_RSS_LINK("generateRSSLink"), GENERATE_XML("generateXml");
+
+    private String action;
+ 
+    Action(String action) {
+        this.action = action;
+    }
+
+    @Override
+    public String toString() {
+      return action;
+    }
+  }
+
   /**
    * Creates a test user feed entity with an embedded entity for the MP3 object.
    */
@@ -251,7 +266,6 @@ public class FormHandlerServletTest extends Mockito {
     // Verify that the HTML returned contains the form name
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    System.out.println("THIS IS THE RESULT: " + stringWriter.toString());
     assertTrue(stringWriter.toString().contains("mp3-upload"));
   }
 

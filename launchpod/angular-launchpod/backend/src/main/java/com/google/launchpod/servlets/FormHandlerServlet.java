@@ -53,9 +53,25 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String MP3_LINK = "mp3Link";
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE = "pubDate";
+  public static final String GENERATE_RSS_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateRSSLink&id=";
 
   private static final String ID = "id";
   private static final String ACTION = "action";
+
+  private enum Action {
+    generateRSSLink("generateRSSLink"), generateXml("generateXml");
+
+    private String action;
+ 
+    Action(String action) {
+        this.action = action;
+    }
+
+    @Override
+    public String toString() {
+      return action;
+    }
+  }
 
   /**
    * Requests user inputs in form fields, then creates Entity and places in Datastore.
@@ -152,7 +168,7 @@ public class FormHandlerServlet extends HttpServlet {
 
       storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
 
-      myRedirectUrl="https://launchpod-step18-2020.appspot.com/rss-feed?action=generateRSSLink&id=" + blobName;
+      myRedirectUrl=GENERATE_RSS_URL + blobName;
       fields =
           PostPolicyV4.PostFieldsV4.newBuilder().setSuccessActionRedirect(myRedirectUrl).build();
 
@@ -190,26 +206,29 @@ public class FormHandlerServlet extends HttpServlet {
   }
 
   /**
-  * Display RSS feed xml string that user tries recalling with the given ID
+  * Display RSS feed xml string that user tries recalling with the given ID.
   */
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-    String action = req.getParameter(ACTION);
+    String actionString = req.getParameter(ACTION);
     String id = req.getParameter(ID);
 
-    if (action==null || id==null) {
+    if (actionString==null || id==null) {
       res.setContentType("text/html");
       res.getWriter().println("Please specify action and/or id.");
       res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
-    if (action.equals("generateRSSLink")) {
+    Action act = Action.generateRSSLink; // initialization
+    Action action = act.valueOf(actionString);
+    
+    if (action == Action.generateRSSLink) {
       // Generate link to the RSS feed
       String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + id;
       res.setContentType("text/html");
       res.getWriter().println(rssLink);
-   } else if (action.equals("generateXml")) {
+   } else if (action == Action.generateXml) {
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
       Key entityKey = null;
       Entity desiredFeedEntity = null; 
@@ -253,7 +272,7 @@ public class FormHandlerServlet extends HttpServlet {
   }
 
   /**
-   * Create RSS XML string from given fields
+   * Create RSS XML string from given fields.
    * @return xml String
    * @throws IOException
    * @throws Exception
