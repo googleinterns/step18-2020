@@ -91,6 +91,7 @@ public class FormHandlerServletTest extends Mockito {
   private static final String TEST_XML_STRING = "test";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String GENERATE_XML_ACTION = "generateXml";
+  private static final String GENERATE_RSS_LINK = "generateRSSLink";
 
   private static final String PROJECT_ID = "launchpod-step18-2020"; // The ID of your GCP project
   private static final String BUCKET_NAME = "launchpod-mp3-files"; // The ID of the GCS bucket to upload to
@@ -414,7 +415,7 @@ public class FormHandlerServletTest extends Mockito {
     Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
     ds.put(entity);
 
-    String action = "generateRSSLink";
+    String action = GENERATE_RSS_LINK;
     String id = KeyFactory.keyToString(entity.getKey());
 
     when(request.getParameter(ACTION)).thenReturn(action);
@@ -561,6 +562,32 @@ public class FormHandlerServletTest extends Mockito {
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
     assertEquals("Sorry, this is not a valid id.".trim(), stringWriter.toString().trim());
+    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+  }
+
+  /**
+   * Asserts that doGet() returns an error message when the action parameter is not
+   * generateRSSLink or generateXml. 
+   */
+  @Test
+  public void doGet_InvalidAction_SendsErrorMessage() throws IOException {
+    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+    ds.put(entity);
+    String id = KeyFactory.keyToString(entity.getKey());
+
+    when(request.getParameter(ACTION)).thenReturn("otherAction");
+    when(request.getParameter(ID)).thenReturn(id);
+
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter writer = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(writer);
+
+    servlet.doGet(request, response);
+
+    verify(response, times(1)).setContentType("text/html");
+    writer.flush();
+    assertEquals("Sorry, this is not a valid action.".trim(), stringWriter.toString().trim());
     verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 

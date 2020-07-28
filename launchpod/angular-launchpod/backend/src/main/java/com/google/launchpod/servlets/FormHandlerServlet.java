@@ -54,12 +54,17 @@ public class FormHandlerServlet extends HttpServlet {
   public static final String XML_STRING = "xmlString";
   public static final String PUB_DATE = "pubDate";
   public static final String GENERATE_RSS_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateRSSLink&id=";
+  public static final String HTML_FORM_END = "  <input type='file' name='file'/><br />\n"
+                                             + "<input type='submit' value='Upload File' name='submit'/><br />\n"
+                                             + "</form>\n";
 
   private static final String ID = "id";
   private static final String ACTION = "action";
 
   private enum Action {
-    generateRSSLink("generateRSSLink"), generateXml("generateXml");
+    generateRSSLink("generateRSSLink"),
+    generateXml("generateXml"),
+    otherAction("otherAction"); // for testing purposes
 
     private String action;
  
@@ -159,6 +164,7 @@ public class FormHandlerServlet extends HttpServlet {
     PostPolicyV4.PostFieldsV4 fields;
     PostPolicyV4 policy = null;
     String myRedirectUrl = "";
+
     try {
       // Prepare credentials and API key
       String keyFileName = "launchpod-step18-2020-47434aafba88.json";
@@ -168,7 +174,7 @@ public class FormHandlerServlet extends HttpServlet {
 
       storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
 
-      myRedirectUrl=GENERATE_RSS_URL + blobName;
+      myRedirectUrl = GENERATE_RSS_URL + blobName;
       fields =
           PostPolicyV4.PostFieldsV4.newBuilder().setSuccessActionRedirect(myRedirectUrl).build();
 
@@ -180,24 +186,22 @@ public class FormHandlerServlet extends HttpServlet {
       throw e;
     }
 
-    StringBuilder htmlForm;
+    // StringBuilder htmlForm;
+    StringBuilder htmlForm = new StringBuilder();
     if (policy!=null) {
-      htmlForm =
-          new StringBuilder(
-              "<form name='mp3-upload' action='"
-                  + policy.getUrl()
-                  + "' method='POST' enctype='multipart/form-data'>\n");
+      // htmlForm =
+      //     new StringBuilder(
+      //         "<form name='mp3-upload' action='"
+      //             + policy.getUrl()
+      //             + "' method='POST' enctype='multipart/form-data'>\n");
+      String htmlFormPt1 = String.format("<form name='mp3-upload' action='%s' method='POST' enctype='multipart/form-data'>\n", policy.getUrl());
+      htmlForm.append(htmlFormPt1);
+
       for (Map.Entry<String, String> entry : policy.getFields().entrySet()) {
-        htmlForm.append(
-            "  <input name='"
-                + entry.getKey()
-                + "' value='"
-                + entry.getValue()
-                + "' type='hidden' />\n");
+        String htmlFormPt2 = String.format("<input name='%s' value='%s' type='hidden' />\n", entry.getKey(), entry.getValue());
+        htmlForm.append(htmlFormPt2);
       }
-      htmlForm.append("  <input type='file' name='file'/><br />\n");
-      htmlForm.append("  <input type='submit' value='Upload File' name='submit'/><br />\n");
-      htmlForm.append("</form>\n");
+      htmlForm.append(HTML_FORM_END);
     } else {
       htmlForm = new StringBuilder();
       htmlForm.append(errorMessage);
@@ -268,6 +272,11 @@ public class FormHandlerServlet extends HttpServlet {
       String xmlString = xmlMapper.writeValueAsString(rssFeed);
       res.setContentType("text/xml");
       res.getWriter().println(xmlString);
+   } else {
+      res.setContentType("text/html");
+      res.getWriter().println("Sorry, this is not a valid action.");
+      res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      return;
    }
   }
 
