@@ -68,9 +68,6 @@ public class FormHandlerServlet extends HttpServlet {
     String email = userService.getCurrentUser().getEmail();
 
     long timestamp = System.currentTimeMillis();
-    Date date = new Date(timestamp);
-    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss");
-    String postTime = dateFormat.format(date);
 
     if (title == null || title.isEmpty()) {
       throw new IllegalArgumentException("No Title inputted, please try again.");
@@ -86,7 +83,6 @@ public class FormHandlerServlet extends HttpServlet {
     userFeedEntity.setProperty(TITLE, title);
     userFeedEntity.setProperty(USER_NAME, name);
     userFeedEntity.setProperty(USER_EMAIL, email);
-    userFeedEntity.setProperty(POST_TIME, postTime);
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
     userFeedEntity.setProperty(DESCRIPTION, "Podcast created using LaunchPod.");
 
