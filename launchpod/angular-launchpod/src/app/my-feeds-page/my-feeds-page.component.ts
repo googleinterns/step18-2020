@@ -1,6 +1,7 @@
 import { FormHandlerService } from '../form-handler.service';
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { HttpParams } from '@angular/common/http';
 
 interface Key {
   kind: string;
@@ -12,7 +13,7 @@ interface Feed {
   rssLink: string;
   postTime: string;
   description: string;
-  key: Key;
+  key: string;
 }
 
 @Component({
@@ -34,11 +35,20 @@ export class MyFeedsPageComponent implements OnInit {
 
   // Sends input data to backend when user clicks create button.
   public deleteFeed(key) {
+    let formData = new HttpParams();
+    formData = formData.set('keyId', key);
+    console.log("Key: " + key);
 
-    this.formHandlerService.deleteFeedEntity(key)
+    this.formHandlerService.deleteFeedEntity(formData)
       .subscribe((response) => {
-        this.formHandlerService.sendFeedValue(response);
+        console.log(response);
       });
+    window.location.reload();
   }
 
+  openSnackBar() {
+    this.snackBar.open('Copied URL to clipboard', '', {
+      duration: 2000,
+    });
+  }
 }

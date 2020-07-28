@@ -16,10 +16,10 @@ body {
   -ms-transform: translate(-50%, -50%);
 }
 
-/* .inline-block {
+.inline-block {
   display: inline-block;
   
-} */
+}
 
 .mat-expansion-panel-header-title,
 .mat-expansion-panel-header-description {
@@ -31,11 +31,11 @@ body {
   align-items: center;
 }
 
-/* mat-expansion-panel {
+mat-card {
   display: flex;
   justify-content: center;
   margin: 10px;
-} */
+}
 
 #my-feeds-container {
   border: solid;

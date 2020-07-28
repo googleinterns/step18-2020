@@ -60,8 +60,8 @@ export class FormHandlerService {
   /**
    * Post deletion request to LoginServlet.
    */
-  deleteFeedEntity(key): Observable<any> {
-    return this.http.post(LOGIN_URL, key);
+  deleteFeedEntity(formData): Observable<any> {
+    return this.http.post(LOGIN_URL, formData);
   }
 
 }

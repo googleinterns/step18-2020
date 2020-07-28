@@ -15,13 +15,13 @@ public final class UserFeed {
   private String email;
   private String postTime;
   private long timestamp;
-  private Key key;
+  private String key;
 
   private UserFeed(String xmlString) {
     this.xmlString = xmlString;
   }
 
-  public UserFeed(String title, String name, String rssLink, String description, String email, String postTime, long timestamp, Key key) {
+  public UserFeed(String title, String name, String rssLink, String description, String email, String postTime, long timestamp, String key) {
     this.title = title;
     this.name = name;
     this.rssLink = rssLink;
