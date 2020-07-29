@@ -3,14 +3,14 @@ package com.google.launchpod.servlets;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.cloud.storage.BlobId;
@@ -24,31 +24,38 @@ import com.google.cloud.texttospeech.v1.SynthesisInput;
 import com.google.cloud.texttospeech.v1.SynthesizeSpeechResponse;
 import com.google.cloud.texttospeech.v1.TextToSpeechClient;
 import com.google.cloud.texttospeech.v1.VoiceSelectionParams;
+import com.google.launchpod.data.RSS;
 import com.google.protobuf.ByteString;
 
 @WebServlet("/tts-feed")
 public class TTSServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-    private static final String title = "title";
-    private static final String language = "language";
-    private static final String description = "description";
-    private static final String text = "text";
+    private static final String TITLE = "title";
+    private static final String LANGUAGE = "language";
+    private static final String DESCRIPTION = "description";
+    private static final String EMAIL = "email";
+    private static final String TEXT = "text";
+    private static final String XML_STRING = "xmlString";
     private static final String USER_FEED = "UserFeed";
 
     // Variables required for cloud storage
     private static final String PROJECT_ID = "launchpod-step18-2020"; // ID of GCP Project
     private static final String BUCKET_NAME = "launchpod-mp3-files"; // ID of GCS bucket to upload to
+    private static final String CLOUD_BASE_URL = "https://storage.googleapis.com/" + BUCKET_NAME + "/";
 
     public void doPost(HttpServletRequest request, HttpServletResponse res) throws IOException {
-        String podcastTitle = request.getParameter(title);
-        String podcastLanguage = request.getParameter(language);
-        String podcastDescription = request.getParameter(description);
-        String podcastText = request.getParameter(text);
+        String podcastTitle = request.getParameter(TITLE);
+        String podcastLanguage = request.getParameter(LANGUAGE);
+        String podcastDescription = request.getParameter(DESCRIPTION);
+        String podcastText = request.getParameter(TEXT);
 
         Entity userFeedEntity = new Entity(USER_FEED);
+        userFeedEntity.setProperty(LANGUAGE, podcastLanguage);
+        userFeedEntity.setProperty(EMAIL, "123@example.com");
+
         String feedId = KeyFactory.keyToString(userFeedEntity.getKey());
-        ByteString synthesizedMp3;
+        ByteString synthesizedMp3 = null;
         try {
             synthesizedMp3 = synthesizeText(podcastText, feedId);
         } catch (Exception e) {
@@ -57,8 +64,17 @@ public class TTSServlet extends HttpServlet {
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
         BlobId blobId = BlobId.of(BUCKET_NAME, feedId);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
-        // TODO: Implement mp3 upload to cloudstore
-        // storage.create(blobInfo, synthesizedMp3 );
+        // create an uploadble array of bytes for blobstore
+        byte[] mp3Bytes = synthesizedMp3.toStringUtf8().getBytes();
+        storage.create(blobInfo, mp3Bytes);
+
+        RSS rssFeed = new RSS(podcastTitle, podcastDescription, podcastLanguage, "123@example.com",
+                CLOUD_BASE_URL + feedId);
+        String xmlString = RSS.toXmlString(rssFeed);
+        userFeedEntity.setProperty(XML_STRING, xmlString);
+
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        datastore.put(userFeedEntity);
     }
 
     /**
