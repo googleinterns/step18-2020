@@ -566,11 +566,37 @@ public class FormHandlerServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doGet() returns an error message when the action parameter is not
-   * generateRSSLink or generateXml. 
+   * Asserts that doGet() returns an error message when it catches an
+   * IllegalArgumentException pertaining to an unexpected action.
    */
   @Test
-  public void doGet_InvalidAction_SendsErrorMessage() throws IOException {
+  public void doGet_NonexistentAction_SendsErrorMessage() throws IOException {
+    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+    ds.put(entity);
+    String id = KeyFactory.keyToString(entity.getKey());
+
+    when(request.getParameter(ACTION)).thenReturn("generateFake");
+    when(request.getParameter(ID)).thenReturn(id);
+
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter writer = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(writer);
+
+    servlet.doGet(request, response);
+
+    verify(response, times(1)).setContentType("text/html");
+    writer.flush();
+    assertEquals("Illegal argument for action.".trim(), stringWriter.toString().trim());
+    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
+  }
+
+  /**
+   * Asserts that doGet() returns an error message when the action parameter is not
+   * generateRSSLink or generateXml. (Goes to else branch in servlet) 
+   */
+  @Test
+  public void doGet_OtherAction_SendsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
     ds.put(entity);

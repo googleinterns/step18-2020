@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -35,6 +34,7 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.PostPolicyV4;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.google.common.base.Strings;
 
 @WebServlet("/rss-feed")
 @MultipartConfig
@@ -79,6 +79,14 @@ public class FormHandlerServlet extends HttpServlet {
   }
 
   /**
+  * Creates an MP3 link from GCS bucket name and the object name (entity id).
+  */
+  private String makeMp3Link(String entityId) {
+    String link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
+    return link;
+  }
+
+  /**
    * Requests user inputs in form fields, then creates Entity and places in Datastore.
    * @throws ServletException
    */
@@ -95,13 +103,23 @@ public class FormHandlerServlet extends HttpServlet {
     //   email = userService.getCurrentUser().getEmail();
     // }
 
-    if (podcastTitle == null || podcastTitle.isEmpty()) {
+    // if (podcastTitle == null || podcastTitle.isEmpty()) {
+    //   throw new IllegalArgumentException("No Title inputted, please try again.");
+    // } else if (description == null || description.isEmpty()) {
+    //   throw new IllegalArgumentException("No description inputted, please try again.");
+    // } else if (language == null || language.isEmpty()) {
+    //   throw new IllegalArgumentException("No language inputted, please try again.");
+    // } else if (email == null || email.isEmpty()) {
+    //   throw new IllegalArgumentException("You are not logged in. Please try again.");
+    // }
+
+    if (Strings.isNullOrEmpty(podcastTitle)) {
       throw new IllegalArgumentException("No Title inputted, please try again.");
-    } else if (description == null || description.isEmpty()) {
+    } else if (Strings.isNullOrEmpty(description)) {
       throw new IllegalArgumentException("No description inputted, please try again.");
-    } else if (language == null || language.isEmpty()) {
+    } else if (Strings.isNullOrEmpty(language)) {
       throw new IllegalArgumentException("No language inputted, please try again.");
-    } else if (email == null || email.isEmpty()) {
+    } else if (Strings.isNullOrEmpty(email)) {
       throw new IllegalArgumentException("You are not logged in. Please try again.");
     }
 
@@ -116,7 +134,7 @@ public class FormHandlerServlet extends HttpServlet {
     Key entityKey = datastore.put(userFeedEntity);
 
     String entityId = KeyFactory.keyToString(entityKey);
-    String mp3Link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
+    String mp3Link = makeMp3Link(entityId);
 
     // Create embedded entity to store MP3 data
     EmbeddedEntity mp3 = new EmbeddedEntity();
@@ -189,21 +207,15 @@ public class FormHandlerServlet extends HttpServlet {
     // StringBuilder htmlForm;
     StringBuilder htmlForm = new StringBuilder();
     if (policy!=null) {
-      // htmlForm =
-      //     new StringBuilder(
-      //         "<form name='mp3-upload' action='"
-      //             + policy.getUrl()
-      //             + "' method='POST' enctype='multipart/form-data'>\n");
-      String htmlFormPt1 = String.format("<form name='mp3-upload' action='%s' method='POST' enctype='multipart/form-data'>\n", policy.getUrl());
-      htmlForm.append(htmlFormPt1);
+      String formPostHtml = String.format("<form name='mp3-upload' action='%s' method='POST' enctype='multipart/form-data'>\n", policy.getUrl());
+      htmlForm.append(formPostHtml);
 
       for (Map.Entry<String, String> entry : policy.getFields().entrySet()) {
-        String htmlFormPt2 = String.format("<input name='%s' value='%s' type='hidden' />\n", entry.getKey(), entry.getValue());
-        htmlForm.append(htmlFormPt2);
+        String hiddenPolicyInput = String.format("<input name='%s' value='%s' type='hidden' />\n", entry.getKey(), entry.getValue());
+        htmlForm.append(hiddenPolicyInput);
       }
       htmlForm.append(HTML_FORM_END);
     } else {
-      htmlForm = new StringBuilder();
       htmlForm.append(errorMessage);
     }
     return htmlForm.toString();
@@ -217,16 +229,24 @@ public class FormHandlerServlet extends HttpServlet {
     String actionString = req.getParameter(ACTION);
     String id = req.getParameter(ID);
 
-    if (actionString==null || id==null) {
+    if (actionString == null || id == null) {
       res.setContentType("text/html");
       res.getWriter().println("Please specify action and/or id.");
       res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
-    Action act = Action.generateRSSLink; // initialization
-    Action action = act.valueOf(actionString);
-    
+    // Action act = Action.generateRSSLink; // initialization
+    Action action;
+    try {
+      action = Action.valueOf(actionString);
+    } catch (IllegalArgumentException e) {
+      res.setContentType("text/html");
+      res.getWriter().println("Illegal argument for action.");
+      res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      return;
+    }
+
     if (action == Action.generateRSSLink) {
       // Generate link to the RSS feed
       String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + id;
@@ -268,8 +288,7 @@ public class FormHandlerServlet extends HttpServlet {
 
       RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
 
-      XmlMapper xmlMapper = new XmlMapper();
-      String xmlString = xmlMapper.writeValueAsString(rssFeed);
+      String xmlString = RSS.toXmlString(rssFeed);
       res.setContentType("text/xml");
       res.getWriter().println(xmlString);
    } else {
@@ -278,17 +297,5 @@ public class FormHandlerServlet extends HttpServlet {
       res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       return;
    }
-  }
-
-  /**
-   * Create RSS XML string from given fields.
-   * @return xml String
-   * @throws IOException
-   * @throws Exception
-   */
-  private static String xmlString(Entity userFeedEntity) throws IOException {
-    XmlMapper xmlMapper = new XmlMapper();
-    String xmlString = xmlMapper.writeValueAsString(UserFeed.fromEntity(userFeedEntity));
-    return xmlString;
   }
 }
