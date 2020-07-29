@@ -18,7 +18,6 @@ import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ResultPageComponent } from './result-page/result-page.component';
 import { TranslateFormComponent } from './translate-form/translate-form.component';
 import { TranscribeFormComponent } from './transcribe-form/transcribe-form.component';
 import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
@@ -29,7 +28,6 @@ import { LoginPopupComponent } from './login-popup/login-popup.component'
   declarations: [
     AppComponent,
     CreateFormComponent,
-    ResultPageComponent,
     TranslateFormComponent,
     TranscribeFormComponent,
     MyFeedsPageComponent,
