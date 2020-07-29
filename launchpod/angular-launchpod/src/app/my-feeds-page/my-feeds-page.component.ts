@@ -3,11 +3,6 @@ import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpParams } from '@angular/common/http';
 
-interface Key {
-  kind: string;
-  id: string;
-}
-
 interface Feed {
   title: string;
   rssLink: string;
@@ -23,17 +18,24 @@ interface Feed {
 })
 export class MyFeedsPageComponent implements OnInit {
 
+  hasNewFeed: boolean;
   myFeeds: Feed[];
 
   constructor(private formHandlerService: FormHandlerService, public snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
+    this.formHandlerService.hasNewFeed.subscribe((result) => {
+      console.log("newFeed my: " + result);
+      this.hasNewFeed = result;
+    });
+
     this.formHandlerService.myFeeds.subscribe((feeds) => {
+      console.log("Feeds: " + feeds);
       this.myFeeds = feeds;
     });
   }
 
-  // Sends input data to backend when user clicks create button.
+  // Send the key for the feed the user wants to delete to the backend.
   public deleteFeed(key) {
     let formData = new HttpParams();
     formData = formData.set('keyId', key);
@@ -41,7 +43,7 @@ export class MyFeedsPageComponent implements OnInit {
 
     this.formHandlerService.deleteFeedEntity(formData)
       .subscribe((response) => {
-        console.log(response);
+        console.log("Delete Feed Entity: " + response);
       });
     window.location.reload();
   }

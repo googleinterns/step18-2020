@@ -16,6 +16,11 @@ body {
   -ms-transform: translate(-50%, -50%);
 }
 
+.highlight {
+  border-style: solid;
+  border-color: blue;
+}
+
 .inline-block {
   display: inline-block;
   

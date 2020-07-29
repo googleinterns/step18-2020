@@ -2,7 +2,7 @@
   <h2>My RSS Feeds</h2>
 
   <div id="my-feeds-container">
-    <mat-card *ngFor="let feed of myFeeds" class="parent">
+    <mat-card *ngFor="let feed of myFeeds; let i = index" class="parent" [ngClass]="{'highlight': hasNewFeed && i == 0}">
       <mat-card-header class="child inline-block">
         <mat-card-title>{{feed.title}}</mat-card-title>
         <mat-card-subtitle>{{feed.postTime}}</mat-card-subtitle>
@@ -20,23 +20,5 @@
         <button mat-button color="warn" (click)="deleteFeed(feed.key)">DELETE</button>
       </mat-card-actions>
     </mat-card>
-    <!-- <mat-expansion-panel *ngFor= "let feed of myFeeds" hideToggle>
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          {{feed.title}}
-        </mat-panel-title>
-        <mat-panel-description>
-          <a [attr.href]="feed.rssLink">{{feed.rssLink}}</a>
-          <button title="Copy to clipboard" [cdkCopyToClipboard]="feed.rssLink" (click)="openSnackBar()" mat-icon-button matSuffix>
-            <mat-icon>content_copy</mat-icon>
-          </button>
-        </mat-panel-description>
-      </mat-expansion-panel-header>
-      {{feed.description}}
-      <mat-action-row>
-        <button mat-button color="primary">ADD EPISODE</button>
-        <button mat-button color="warn" (click)="deleteFeed(feed.key)">DELETE</button>
-      </mat-action-row>
-    </mat-expansion-panel> -->
   </div>
 </body>

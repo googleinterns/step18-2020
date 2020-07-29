@@ -29,8 +29,15 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.gson.Gson;
 import com.google.launchpod.data.RSS;
+import com.google.launchpod.data.LoginStatus;
+import com.google.launchpod.data.UserFeed;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -51,6 +58,7 @@ public class FormHandlerServlet extends HttpServlet {
   private static final String ID = "id";
   // public variable to allow creation of UserFeed objects
   public static final String XML_STRING = "xmlString";
+  private static final Gson GSON = new Gson();
 
   /**
    * Requests user inputs in form fields, then creates Entity and places in Datastore.
@@ -99,10 +107,39 @@ public class FormHandlerServlet extends HttpServlet {
     datastore.put(userFeedEntity);
 
     // return accessible link to user
-    String urlID = KeyFactory.keyToString(userFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID.
-    String rssLink = BASE_URL + urlID;
-    res.setContentType("text/html");
-    res.getWriter().print(rssLink);
+    // String urlID = KeyFactory.keyToString(userFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID.
+    // String rssLink = BASE_URL + urlID;
+    // res.setContentType("text/html");
+    // res.getWriter().print(rssLink);
+
+    Query query =
+        new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+
+    PreparedQuery results = datastore.prepare(query);
+
+    ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
+    for (Entity entity : results.asIterable()) {
+      String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
+      if (email.equals(userFeedEmail)) {
+        String feedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+        String feedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
+        String feedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+        String feedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+        long feedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+        Date date = new Date(feedTimestamp);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+        String feedPostTime = dateFormat.format(date);
+        Key feedKey = entity.getKey();
+        
+        String feedUrlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+        String feedRssLink = BASE_URL + feedUrlID;
+
+        userFeeds.add(new UserFeed(feedTitle, feedName, feedRssLink, feedDescription, feedEmail, feedPostTime, feedUrlID));
+      }
+    }
+
+    res.setContentType("application/json");
+    res.getWriter().println(GSON.toJson(userFeeds));
   }
 
   /**

@@ -98,27 +98,8 @@ public class LoginServlet extends HttpServlet {
     String id = req.getParameter("keyId");
     Key key = KeyFactory.stringToKey(id);
 
-    // Query query =
-    //     new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
-
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    // PreparedQuery results = datastore.prepare(query);
-    // UserService userService = UserServiceFactory.getUserService();
 
-    // ArrayList<Key> commentEntityKeys = new ArrayList<>();
-    
-    // for (Entity entity : results.asIterable()) {
-    //   String commentEmail = String.valueOf(entity.getProperty("name"));
-    //   if (userEmail.equals(commentEmail)) {
-    //     Key commentEntityKey = entity.getKey();
-    //     commentEntityKeys.add(commentEntityKey);
-    //   }
-    // }
-
-    // datastore.delete(commentEntityKeys);
     datastore.delete(key);
-
-    // Redirect back to the my feeds page.
-    //res.sendRedirect("/my-feeds");
   }
 }

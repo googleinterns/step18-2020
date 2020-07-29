@@ -38,6 +38,7 @@ import com.google.gson.Gson;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import com.google.gson.JsonParser;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.UserFeed;
@@ -179,7 +180,7 @@ public class LoginServletTest extends Mockito {
         String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
         long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
         Date date = new Date(timestamp);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
         String postTime = dateFormat.format(date);
         Key key = entity.getKey();
         

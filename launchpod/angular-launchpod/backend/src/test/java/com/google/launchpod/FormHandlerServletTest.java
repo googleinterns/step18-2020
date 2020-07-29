@@ -30,6 +30,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.launchpod.servlets.FormHandlerServlet;
 import com.google.launchpod.data.UserFeed;
 import com.google.launchpod.data.RSS;
+import com.google.launchpod.data.LoginStatus;
+import com.google.launchpod.data.UserFeed;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -39,9 +41,16 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+import java.util.ArrayList;
+import java.util.Date;
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -101,6 +110,8 @@ public class FormHandlerServletTest extends Mockito {
   private static final String TEST_XML_STRING = "test";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_CATEGORY);
+  private static final Gson GSON = new Gson();
+  JsonParser parser = new JsonParser();
 
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig())
   .setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -166,7 +177,7 @@ public class FormHandlerServletTest extends Mockito {
    * generated RSS feed.
    */
   @Test
-  public void doPost_ReturnsCorrectUrl() throws IOException {
+  public void doPost_ReturnsCorrectFeeds() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
@@ -183,21 +194,51 @@ public class FormHandlerServletTest extends Mockito {
 
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
 
-    Query query = new Query(USER_FEED);
-    PreparedQuery preparedQuery = ds.prepare(query);
-    Entity desiredEntity = preparedQuery.asSingleEntity();
+    // Query query = new Query(USER_FEED);
+    // PreparedQuery preparedQuery = ds.prepare(query);
+    // Entity desiredEntity = preparedQuery.asSingleEntity();
 
-    String expectedXmlString = RSS.toXmlString(TEST_RSS_FEED);
-    assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
+    // String expectedXmlString = RSS.toXmlString(TEST_RSS_FEED);
+    // assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
 
-    String testXmlString = RSS.toXmlString(TEST_RSS_FEED);
-    assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
+    // String testXmlString = RSS.toXmlString(TEST_RSS_FEED);
+    // assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
 
-    String id = KeyFactory.keyToString(desiredEntity.getKey());
-    String rssLink = BASE_URL + id;
+    // String id = KeyFactory.keyToString(desiredEntity.getKey());
+    // String rssLink = BASE_URL + id;
 
-    verify(response, times(1)).setContentType("text/html");
-    assertEquals(0, rssLink.compareTo(stringWriter.toString()));
+    // verify(response, times(1)).setContentType("text/html");
+    // assertEquals(0, rssLink.compareTo(stringWriter.toString()));
+    Query query =
+        new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    PreparedQuery results = datastore.prepare(query);
+
+    ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
+    for (Entity entity : results.asIterable()) {
+      String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
+      if (userService.getCurrentUser().getEmail().equals(userFeedEmail)) {
+        String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+        String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
+        String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+        String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+        long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+        Date date = new Date(timestamp);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+        String postTime = dateFormat.format(date);
+        Key key = entity.getKey();
+        
+        String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+        String rssLink = BASE_URL + urlID;
+
+        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
+      
+      }
+    }
+
+    verify(response).setContentType("application/json");
+    assertEquals(parser.parse(GSON.toJson(userFeeds)), parser.parse(stringWriter.toString()));
   }
 
   /**

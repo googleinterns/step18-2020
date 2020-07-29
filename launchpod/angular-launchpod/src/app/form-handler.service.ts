@@ -19,6 +19,9 @@ export class FormHandlerService {
   private myFeedsSubject = new BehaviorSubject<Array<any>>([]);
   myFeeds = this.myFeedsSubject.asObservable();
 
+  private hasNewFeedSubject = new BehaviorSubject<boolean>(false);
+  hasNewFeed = this.hasNewFeedSubject.asObservable();
+
   constructor(private http: HttpClient) {}
 
   /**
@@ -44,10 +47,18 @@ export class FormHandlerService {
   }
 
   /**
+   * Update the newFeed boolean when a new feed is added.
+   */
+  sendNewFeed() {
+    console.log("Send New Feed Service called");
+    this.hasNewFeedSubject.next(true);
+  }
+
+  /**
    * Post form inputs to back-end and retrieve url for rss feed.
    */
-  postFormData(formData): Observable<string> {
-    return this.http.post(FEED_URL, formData, { responseType: 'text' });
+  postFormData(formData): Observable<any> {
+    return this.http.post(FEED_URL, formData);
   }
 
   /**
