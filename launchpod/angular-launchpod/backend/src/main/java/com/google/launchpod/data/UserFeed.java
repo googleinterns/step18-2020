@@ -28,12 +28,10 @@ public final class UserFeed {
     return new UserFeed(xmlString, email, language);
   }
 
-  // getter for xml string
   public String getXmlString() {
     return this.xmlString;
   }
 
-  // getter for email
   public String getEmail() {
     return this.email;
   }
