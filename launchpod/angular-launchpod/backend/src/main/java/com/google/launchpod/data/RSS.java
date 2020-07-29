@@ -17,17 +17,19 @@ public class RSS {
   private Channel channel;
 
   private static final XmlMapper xmlMapper = new XmlMapper();
-  
-  public RSS(){
-    super();
+
+  /**
+   * constructor generated for serialization/deserialization. Ensures that a
+   * constructor is being read for object conversion
+   */
+  public RSS() {
   }
-  
-  public RSS(String podcastTitle, String description,
-   String language, String email, String mp3Link) {
+
+  public RSS(String podcastTitle, String description, String language, String email, String mp3Link) {
     this.channel = new Channel(podcastTitle, description, language, email, mp3Link);
   }
 
-  public Channel getChannel(){
+  public Channel getChannel() {
     return this.channel;
   }
 

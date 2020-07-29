@@ -28,38 +28,40 @@ public class Channel {
   @JsonProperty("description")
   private String description = "Launchpod generated RSS";
 
-  @JacksonXmlElementWrapper(useWrapping=false)
+  @JacksonXmlElementWrapper(useWrapping = false)
   @JsonProperty("item")
   private List<Item> item;
-  
-  public Channel(){
-    super();
+
+  /**
+   * constructor generated for serialization/deserialization. Ensures that a
+   * constructor is being read for object conversion
+   */
+  public Channel() {
   }
-  
+
   public Channel(String podcastTitle, String description, String language, String email, String mp3Link) {
     this.description = description;
     this.language = language;
     this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, description, email, mp3Link)));
   }
 
-  //Setters
-  public void setLanguage(String newLanguage){
+  public void setLanguage(String newLanguage) {
     this.language = newLanguage;
   }
 
-  public void setDescription(String newDescription){
+  public void setDescription(String newDescription) {
     this.description = newDescription;
   }
 
-  //Getters
-  public String getLanguage(){
+  public String getLanguage() {
     return this.language;
   }
-  public String getDescription(){
+
+  public String getDescription() {
     return this.description;
   }
 
-  public List<Item> getItem(){
+  public List<Item> getItem() {
     return this.item;
   }
 }

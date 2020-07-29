@@ -38,7 +38,7 @@ public final class UserFeed {
     return this.email;
   }
 
-  public String getLanguage(){
+  public String getLanguage() {
     return this.language;
   }
 }

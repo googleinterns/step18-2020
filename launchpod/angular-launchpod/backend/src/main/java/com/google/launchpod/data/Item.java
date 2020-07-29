@@ -33,8 +33,11 @@ public class Item {
   private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
   private static final LocalDateTime publishTime = LocalDateTime.now();
 
-  public Item(){
-    super();
+  /**
+   * constructor generated for serialization/deserialization. Ensures that a
+   * constructor is being read for object conversion
+   */
+  public Item() {
   }
 
   public Item(String podcastTitle, String description, String email, String mp3Link) {
@@ -45,21 +48,19 @@ public class Item {
     this.pubDate = dateFormatter.format(publishTime);
   }
 
-  //Setters
-  public void setTitle(String newTitle){
+  public void setTitle(String newTitle) {
     this.title = newTitle;
   }
 
-  public void setDescription(String newDescription){
+  public void setDescription(String newDescription) {
     this.description = newDescription;
   }
 
-  //Getters
-  public String getTitle(){
+  public String getTitle() {
     return this.title;
   }
 
-  public String getDescription(){
+  public String getDescription() {
     return this.description;
   }
 }
