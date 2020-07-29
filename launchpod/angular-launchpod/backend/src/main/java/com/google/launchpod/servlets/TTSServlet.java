@@ -13,6 +13,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.repackaged.com.google.protos.gdata.proto2api.Core.Response;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
@@ -38,6 +39,7 @@ public class TTSServlet extends HttpServlet {
     private static final String TEXT = "text";
     private static final String XML_STRING = "xmlString";
     private static final String USER_FEED = "UserFeed";
+    private static final String BASE_URL = "https://launchpod-step187-2020.appspot.com/rss-feed?id=";
 
     // Variables required for cloud storage
     private static final String PROJECT_ID = "launchpod-step18-2020"; // ID of GCP Project
@@ -75,6 +77,8 @@ public class TTSServlet extends HttpServlet {
 
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         datastore.put(userFeedEntity);
+        res.getWriter().println(BASE_URL + feedId);
+
     }
 
     /**
