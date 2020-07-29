@@ -94,6 +94,7 @@ public class FormHandlerServletTest extends Mockito {
   private static final String EMAIL = "email";
   private static final String ID = "id";
   private static final String CATEGORY = "category";
+  private static final String DESCRIPTION = "description";
 
   private static final String TEST_PODCAST_TITLE = "TEST_PODCAST_TITLE";
   private static final String TEST_MP3_LINK = "TEST_MP3_LINK";
@@ -210,20 +211,20 @@ public class FormHandlerServletTest extends Mockito {
     // verify(response, times(1)).setContentType("text/html");
     // assertEquals(0, rssLink.compareTo(stringWriter.toString()));
     Query query =
-        new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+        new Query(USER_FEED).addSort(TIMESTAMP, SortDirection.DESCENDING);
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
 
     ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
     for (Entity entity : results.asIterable()) {
-      String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
+      String userFeedEmail = String.valueOf(entity.getProperty(EMAIL));
       if (userService.getCurrentUser().getEmail().equals(userFeedEmail)) {
-        String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
-        String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
-        String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
-        String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
-        long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+        String title = (String) entity.getProperty(PODCAST_TITLE);
+        String name = (String) entity.getProperty(NAME);
+        String description = (String) entity.getProperty(DESCRIPTION);
+        String email = (String) entity.getProperty(EMAIL);
+        long timestamp = (long) entity.getProperty(TIMESTAMP);
         Date date = new Date(timestamp);
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
         String postTime = dateFormat.format(date);
