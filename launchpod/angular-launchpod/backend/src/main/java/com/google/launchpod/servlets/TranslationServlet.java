@@ -71,7 +71,7 @@ public class TranslationServlet extends HttpServlet {
       rssFeed.getChannel().setLanguage(targetLanguage);
 
       // Episodes
-      for (Item item : rssFeed.getChannel().getItem()) {
+      for (Item item : rssFeed.getChannel().getItems()) {
         // Episode title
         translation = translate.translate(item.getTitle(), TranslateOption.targetLanguage(targetLanguage));
         item.setTitle(translation.getTranslatedText());
@@ -96,6 +96,7 @@ public class TranslationServlet extends HttpServlet {
       res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to translate. Try again");
     }
   }
+
 
   public static String getIdFromUrl(String rssLink) throws MalformedURLException {
     // Get the ID from the link that is being pasted

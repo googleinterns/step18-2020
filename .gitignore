@@ -11,3 +11,6 @@ target/
 
 #Ignore factorypath
 .factorypath
+
+#Ignore keys folder
+/keys

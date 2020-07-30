@@ -40,10 +40,8 @@ public class Item {
   public Item() {
   }
 
-  public Item(String podcastTitle, String description, String email, String mp3Link) {
+  public Item(String podcastTitle, String mp3Link) {
     this.title = podcastTitle;
-    this.description = description;
-    this.email = email;
     this.link = mp3Link;
     this.pubDate = dateFormatter.format(publishTime);
   }

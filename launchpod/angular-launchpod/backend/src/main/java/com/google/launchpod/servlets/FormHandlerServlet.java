@@ -1,12 +1,14 @@
 package com.google.launchpod.servlets;
 
 import java.io.IOException;
-
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -14,55 +16,64 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.launchpod.data.RSS;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
 @WebServlet("/rss-feed")
 public class FormHandlerServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
-
-  public static final String USER_FEED = "UserFeed";
-  public static final String PODCAST_TITLE = "title";
-  public static final String DESCRIPTION = "description";
-  public static final String LANGUAGE = "language";
-  public static final String EMAIL = "email";
-  public static final String MP3_LINK = "mp3Link";
-  public static final String XML_STRING = "xmlString";
-
+  private static final String USER_FEED = "UserFeed";
+  private static final String TITLE = "title";
+  private static final String MP3_LINK = "mp3Link";
+  private static final String USER_NAME = "name";
+  private static final String USER_EMAIL = "email";
+  private static final String TIMESTAMP = "timestamp";
+  private static final String POST_TIME = "postTime";
+  private static final String CATEGORY = "category";
+  private static final String DESCRIPTION = "description";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
+  // public variable to allow creation of UserFeed objects
+  public static final String XML_STRING = "xmlString";
 
   /**
-   * request user inputs in form fields then create Entity and place in datastore
-   * 
+   * Requests user inputs in form fields, then creates Entity and places in Datastore.
+   *
    * @throws IOException,IllegalArgumentException
    */
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IllegalArgumentException, IOException {
-    String podcastTitle = req.getParameter(PODCAST_TITLE);
-    String description = req.getParameter(DESCRIPTION);
-    String language = req.getParameter(LANGUAGE);
-    String email = req.getParameter(EMAIL);
-    String mp3Link = req.getParameter(MP3_LINK);
+    UserService userService = UserServiceFactory.getUserService();
 
-    if (podcastTitle == null || podcastTitle.isEmpty()) {
-      throw new IllegalArgumentException("No title inputted, please try again.");
-    } else if (description == null || description.isEmpty()) {
-      throw new IllegalArgumentException("No description inputted, please try again.");
-    } else if (language == null || language.isEmpty()) {
-      throw new IllegalArgumentException("No language inputted, please try again.");
-    } else if (email == null || email.isEmpty()) {
-      throw new IllegalArgumentException("You are not logged in, please try again.");
-    } else if (mp3Link == null || mp3Link.isEmpty()){
-      throw new IllegalArgumentException("No MP3 link inputted, please try again");
+    String title = req.getParameter(TITLE);
+    String mp3Link = req.getParameter(MP3_LINK);
+    String name = req.getParameter(USER_NAME);
+    String category = req.getParameter(CATEGORY);
+    String email = userService.getCurrentUser().getEmail();
+
+    long timestamp = System.currentTimeMillis();
+
+    if (title == null || title.isEmpty()) {
+      throw new IllegalArgumentException("No Title inputted, please try again.");
+    } else if (mp3Link == null || mp3Link.isEmpty()) {
+      throw new IllegalArgumentException("No Mp3 inputted, please try again.");
+    } else if (name == null || name.isEmpty()) {
+      throw new IllegalArgumentException("No Name inputted, please try again.");
     }
 
-    // Create entity with all desired attributes
+    // Creates entity with all desired attributes
     Entity userFeedEntity = new Entity(USER_FEED);
-    userFeedEntity.setProperty(EMAIL, email);
-    userFeedEntity.setProperty(LANGUAGE, language);
+
+    userFeedEntity.setProperty(TITLE, title);
+    userFeedEntity.setProperty(USER_NAME, name);
+    userFeedEntity.setProperty(USER_EMAIL, email);
+    userFeedEntity.setProperty(TIMESTAMP, timestamp);
+    userFeedEntity.setProperty(DESCRIPTION, "Podcast created using LaunchPod.");
 
     // Generate xml string
-    RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
+    RSS rssFeed = new RSS(name, email, title, mp3Link, category);
     try {
       String xmlString = RSS.toXmlString(rssFeed);
       userFeedEntity.setProperty(XML_STRING, xmlString);
@@ -74,19 +85,23 @@ public class FormHandlerServlet extends HttpServlet {
     datastore.put(userFeedEntity);
 
     // return accessible link to user
-    String urlID = KeyFactory.keyToString(userFeedEntity.getKey());
+    String urlID = KeyFactory.keyToString(userFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID.
     String rssLink = BASE_URL + urlID;
     res.setContentType("text/html");
-    res.getWriter().println(rssLink);
+    res.getWriter().print(rssLink);
   }
 
   /**
-   * Display RSS feed xml string that user tries recalling with the given ID
+   * Display RSS feed xml string that user tries recalling with the given ID.
+   * @throws IOException
    */
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
     // Get ID passed in request
     String id = req.getParameter(ID);
+    if (id == null) {
+      throw new IllegalArgumentException("Sorry, no matching Id was found in Datastore.");
+    }
     Key urlID = KeyFactory.stringToKey(id);
     // Search key in datastore
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -103,7 +118,7 @@ public class FormHandlerServlet extends HttpServlet {
     } catch (EntityNotFoundException e) {
       e.printStackTrace();
       res.setContentType("text/html");
-      res.getWriter().println("<p>Sorry. This is not a valid link.</p>");
+      res.getWriter().print("<p>Sorry. This is not a valid link.</p>");
       return;
     }
   }

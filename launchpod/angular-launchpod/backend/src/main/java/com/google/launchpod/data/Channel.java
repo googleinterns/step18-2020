@@ -9,7 +9,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 @JacksonXmlRootElement(localName = "channel")
+@JsonPropertyOrder({ "title", "link", "language", "description", "author", "owner", "category", "item" })
 public class Channel {
 
   @JacksonXmlProperty
@@ -28,9 +31,24 @@ public class Channel {
   @JsonProperty("description")
   private String description = "Launchpod generated RSS";
 
+  @JacksonXmlProperty(localName = "owner", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
+  @JsonProperty("itunesOwner")
+  private List<ItunesOwner> itunesOwner;
+
   @JacksonXmlElementWrapper(useWrapping = false)
+  @JacksonXmlProperty(localName = "author", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
+  @JsonProperty("author")
+  private String author;
+
+  @JacksonXmlElementWrapper(useWrapping = false)
+  @JacksonXmlProperty(localName = "category", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
+  @JsonProperty("itunesCategory")
+  private List<ItunesCategory> itunesCategory;
+
+  @JacksonXmlElementWrapper(useWrapping = false)
+  @JacksonXmlProperty
   @JsonProperty("item")
-  private List<Item> item;
+  private List<Item> items;
 
   /**
    * constructor generated for serialization/deserialization. Ensures that a
@@ -39,10 +57,11 @@ public class Channel {
   public Channel() {
   }
 
-  public Channel(String podcastTitle, String description, String language, String email, String mp3Link) {
-    this.description = description;
-    this.language = language;
-    this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, description, email, mp3Link)));
+  public Channel(String name, String email, String podcastTitle, String mp3Link, String category) {
+    this.itunesOwner = new ArrayList<>(Arrays.asList(new ItunesOwner(name, email)));
+    this.itunesCategory = new ArrayList<>(Arrays.asList(new ItunesCategory(category)));
+    this.items = new ArrayList<>(Arrays.asList(new Item(podcastTitle, mp3Link)));
+    this.author = name;
   }
 
   public void setLanguage(String newLanguage) {
@@ -61,7 +80,7 @@ public class Channel {
     return this.description;
   }
 
-  public List<Item> getItem() {
-    return this.item;
+  public List<Item> getItems() {
+    return this.items;
   }
 }

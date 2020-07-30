@@ -3,6 +3,7 @@ package com.google.launchpod.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -10,8 +11,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class RSS {
 
   @JacksonXmlProperty(isAttribute = true)
+  @JsonProperty("version")
   private double version = 2.0;
 
+  @JacksonXmlProperty(isAttribute = true, namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
+  @JsonProperty("itunes")
+  private String itunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
+
+  @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
   @JsonProperty("channel")
   private Channel channel;
@@ -25,8 +32,8 @@ public class RSS {
   public RSS() {
   }
 
-  public RSS(String podcastTitle, String description, String language, String email, String mp3Link) {
-    this.channel = new Channel(podcastTitle, description, language, email, mp3Link);
+  public RSS(String name, String email, String podcastTitle, String mp3Link, String category) {
+    this.channel = new Channel(name, email, podcastTitle, mp3Link, category);
   }
 
   public Channel getChannel() {
