@@ -24,6 +24,8 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.gson.Gson;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -54,7 +56,7 @@ public class LoginServlet extends HttpServlet {
       String loginMessage = "<p>Logged in as " + userEmail + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
 
       Query query =
-        new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, userEmail)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
       PreparedQuery results = datastore.prepare(query);
@@ -62,32 +64,32 @@ public class LoginServlet extends HttpServlet {
       ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
       for (Entity entity : results.asIterable()) {
         String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
-        if (userEmail.equals(userFeedEmail)) {
-          String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
-          String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
-          String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
-          String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
-          long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
-          Date date = new Date(timestamp);
-          SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
-          String postTime = dateFormat.format(date);
-          Key key = entity.getKey();
-          
-          String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
-          String rssLink = BASE_URL + urlID;
+        String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+        String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
+        String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+        String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+        long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+        Date date = new Date(timestamp);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+        String postTime = dateFormat.format(date);
+        Key key = entity.getKey();
+        
+        String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+        String rssLink = BASE_URL + urlID;
 
           userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
         }
-      }
       
-      LoginStatus loginStatus = new LoginStatus(true, loginMessage, userFeeds);
+      LoginStatus loginStatus = new LoginStatus();
+      loginStatus.forSuccessfulLogin(loginMessage, userFeeds);
 
       response.getWriter().println(GSON.toJson(loginStatus));
     } else {
       String loginUrl = userService.createLoginURL(urlToRedirectTo);
       String loginMessage = loginUrl;
 
-      LoginStatus loginStatus = new LoginStatus(false, loginMessage, new ArrayList<UserFeed>());
+      LoginStatus loginStatus = new LoginStatus();
+      loginStatus.forFailedLogin(loginMessage);
 
       response.getWriter().println(GSON.toJson(loginStatus));
     }
