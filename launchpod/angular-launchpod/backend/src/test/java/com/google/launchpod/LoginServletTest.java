@@ -84,6 +84,7 @@ public class LoginServletTest extends Mockito {
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
 
   private static final Gson GSON = new Gson();
+  JsonParser parser = new JsonParser();
 
   private static final String EMAIL = "email";
 
@@ -103,7 +104,7 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() gets the user's correct status when logged in.
+   * Asserts that doGet() gets the user's correct status when logged in.
    */
   @Test
   public void doGet_GetsCorrectStatusLoggedIn() throws IOException {
@@ -122,7 +123,7 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() gets the user's email and successfully sends
+   * Asserts that doGet() gets the user's email and successfully sends
    * a corresponding loginStatus object as the response.
    */
   @Test
@@ -145,7 +146,7 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() gets the user's feeds and successfully sends
+   * Asserts that doGet() gets the user's feeds and successfully sends
    * a corresponding loginStatus object as the response.
    */
   @Test
@@ -197,7 +198,7 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() gets the user's correct status when logged out.
+   * Asserts that doGet() gets the user's correct status when logged out.
    */
   @Test
   public void doGet_GetsCorrectStatusLoggedOut() throws IOException {
@@ -215,7 +216,7 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() successfully sends a login url as the
+   * Asserts that doGet() successfully sends a login url as the
    * response when the user is not logged in.
    */
   @Test

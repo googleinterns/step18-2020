@@ -195,21 +195,6 @@ public class FormHandlerServletTest extends Mockito {
 
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
 
-    // Query query = new Query(USER_FEED);
-    // PreparedQuery preparedQuery = ds.prepare(query);
-    // Entity desiredEntity = preparedQuery.asSingleEntity();
-
-    // String expectedXmlString = RSS.toXmlString(TEST_RSS_FEED);
-    // assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
-
-    // String testXmlString = RSS.toXmlString(TEST_RSS_FEED);
-    // assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
-
-    // String id = KeyFactory.keyToString(desiredEntity.getKey());
-    // String rssLink = BASE_URL + id;
-
-    // verify(response, times(1)).setContentType("text/html");
-    // assertEquals(0, rssLink.compareTo(stringWriter.toString()));
     Query query =
         new Query(USER_FEED).addSort(TIMESTAMP, SortDirection.DESCENDING);
 

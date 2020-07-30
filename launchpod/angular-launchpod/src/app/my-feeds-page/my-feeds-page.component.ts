@@ -24,15 +24,16 @@ export class MyFeedsPageComponent implements OnInit {
   constructor(private formHandlerService: FormHandlerService, public snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
-    this.formHandlerService.hasNewFeed.subscribe((result) => {
-      console.log("newFeed my: " + result);
-      this.hasNewFeed = result;
-    });
-
     this.formHandlerService.myFeeds.subscribe((feeds) => {
       console.log("Feeds: " + feeds);
       this.myFeeds = feeds;
+      this.formHandlerService.hasNewFeed.subscribe((result) => {
+        console.log("newFeed my: " + result);
+        this.hasNewFeed = result;
+      });
     });
+    
+    
   }
 
   // Send the key for the feed the user wants to delete to the backend.
@@ -42,10 +43,13 @@ export class MyFeedsPageComponent implements OnInit {
     console.log("Key: " + key);
 
     this.formHandlerService.deleteFeedEntity(formData)
-      .subscribe((response) => {
-        console.log("Delete Feed Entity: " + response);
+      .subscribe((feeds) => {
+        console.log("Feeds after delete: " + feeds);
+        this.formHandlerService.sendMyFeeds(feeds);
+        this.hasNewFeed = false;
+        this.myFeeds = feeds;
       });
-    window.location.reload();
+    
   }
 
   openSnackBar() {
