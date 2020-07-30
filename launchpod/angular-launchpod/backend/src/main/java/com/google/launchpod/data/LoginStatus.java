@@ -31,15 +31,17 @@ public final class LoginStatus {
   public static final String POST_TIME_KEY = "postTime";
   public static final String TIMESTAMP_KEY = "timestamp";
 
-  public void forSuccessfulLogin(String message, ArrayList<UserFeed> feeds) {
-    this.isLoggedIn = true;
+  private LoginStatus(boolean isLoggedIn, String message, ArrayList<UserFeed> feeds) {
+    this.isLoggedIn = isLoggedIn;
     this.message = message;
     this.feeds = feeds;
   }
 
-  public void forFailedLogin(String message) {
-    this.isLoggedIn = false;
-    this.message = message;
-    this.feeds = new ArrayList<UserFeed>();
+  public static LoginStatus forSuccessfulLogin(String message, ArrayList<UserFeed> feeds) {
+    return new LoginStatus(true, message, feeds);
+  }
+
+  public static LoginStatus forFailedLogin(String message) {
+    return new LoginStatus(false, message, new ArrayList<UserFeed>());
   }
 }

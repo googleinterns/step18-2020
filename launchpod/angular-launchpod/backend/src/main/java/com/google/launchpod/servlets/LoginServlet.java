@@ -80,16 +80,15 @@ public class LoginServlet extends HttpServlet {
         userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, key));
       }
       
-      LoginStatus loginStatus = new LoginStatus();
-      loginStatus.forSuccessfulLogin(loginMessage, userFeeds);
+      LoginStatus loginStatus = LoginStatus.forSuccessfulLogin(loginMessage, userFeeds);
+
 
       response.getWriter().println(GSON.toJson(loginStatus));
     } else {
       String loginUrl = userService.createLoginURL(urlToRedirectTo);
       String loginMessage = loginUrl;
 
-      LoginStatus loginStatus = new LoginStatus();
-      loginStatus.forFailedLogin(loginMessage);
+      LoginStatus loginStatus = LoginStatus.forFailedLogin(loginMessage);
 
       response.getWriter().println(GSON.toJson(loginStatus));
     }
