@@ -108,12 +108,6 @@ public class FormHandlerServlet extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
 
-    // return accessible link to user
-    // String urlID = KeyFactory.keyToString(userFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID.
-    // String rssLink = BASE_URL + urlID;
-    // res.setContentType("text/html");
-    // res.getWriter().print(rssLink);
-
     Query query =
         new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, email)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 

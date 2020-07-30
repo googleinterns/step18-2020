@@ -55,7 +55,7 @@ export class CreateFormComponent implements OnInit {
     this.formHandlerService.postFormData(formData)
     .subscribe((response) => {
       this.formHandlerService.sendMyFeeds(response);
-      this.formHandlerService.sendNewFeed();
+      this.formHandlerService.updateHasNewFeed();
     });
 
     this.router.navigate(['/my-feeds']);

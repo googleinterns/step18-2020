@@ -49,6 +49,8 @@ export class MyFeedsPageComponent implements OnInit {
   }
 
   openSnackBar() {
+    // open() takes in a message, an action, and a configuration.
+    // There is no action for this snackbar as it disappears on its own.
     this.snackBar.open('Copied URL to clipboard', '', {
       duration: 2000,
     });

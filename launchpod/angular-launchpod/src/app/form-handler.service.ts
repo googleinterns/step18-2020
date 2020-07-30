@@ -10,16 +10,16 @@ const LOGIN_URL = '/login-status';
 })
 export class FormHandlerService {
 
-  private feedValueSubject = new BehaviorSubject<string>("Loading URL...");
+  private readonly feedValueSubject = new BehaviorSubject<string>("Loading URL...");
   feedValue = this.feedValueSubject.asObservable();
 
-  private loginLinkSubject = new BehaviorSubject<string>("Loading...");
+  private readonly loginLinkSubject = new BehaviorSubject<string>("Loading...");
   loginLink = this.loginLinkSubject.asObservable();
 
-  private myFeedsSubject = new BehaviorSubject<Array<any>>([]);
+  private readonly myFeedsSubject = new BehaviorSubject<Array<any>>([]);
   myFeeds = this.myFeedsSubject.asObservable();
 
-  private hasNewFeedSubject = new BehaviorSubject<boolean>(false);
+  private readonly hasNewFeedSubject = new BehaviorSubject<boolean>(false);
   hasNewFeed = this.hasNewFeedSubject.asObservable();
 
   constructor(private http: HttpClient) {}
@@ -48,7 +48,7 @@ export class FormHandlerService {
   /**
    * Update the newFeed boolean when a new feed is added.
    */
-  sendNewFeed() {
+  updateHasNewFeed() {
     this.hasNewFeedSubject.next(true);
   }
 
