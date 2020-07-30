@@ -78,8 +78,8 @@ public class LoginServlet extends HttpServlet {
         String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
         String rssLink = BASE_URL + urlID;
 
-          userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
-        }
+        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
+      }
 
       LoginStatus loginStatus = LoginStatus.forSuccessfulLogin(loginMessage, userFeeds);
 
