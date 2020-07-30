@@ -5,14 +5,19 @@ import {map} from 'rxjs/operators';
 
 const FEED_URL = '/rss-feed';
 const UPLOAD_URL = 'create-by-upload';
+const LOGIN_URL = '/login-status';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FormHandlerService {
 
-  private feedValueSubject = new BehaviorSubject<string>("Loading...");
+  private feedValueSubject = new BehaviorSubject<string>("Loading URL...");
+
   feedValue = this.feedValueSubject.asObservable();
+
+  private loginLinkSubject = new BehaviorSubject<string>("Loading...");
+  loginLink = this.loginLinkSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -20,9 +25,15 @@ export class FormHandlerService {
    * Update the feedValue with the url from post request.
    */
   sendFeedValue(data) {
-        console.log("Service Data: " + data);
-        this.feedValueSubject.next(data);
-    }
+    this.feedValueSubject.next(data);
+  }
+
+  /**
+   * Update the loginLink with the url from post request.
+   */
+  sendLoginLink(link) {
+    this.loginLinkSubject.next(link);
+  }
 
   /**
    * Post form inputs to back-end and retrieve url for rss feed.
@@ -47,4 +58,10 @@ export class FormHandlerService {
     return this.http.get(FEED_URL, { responseType: 'text' });
   }
 
+  /*
+   * Fetch Login Status from LoginServlet.
+   */
+  getLoginData(): Observable<any> {
+    return this.http.get(LOGIN_URL);
+  }
 }

@@ -6,6 +6,24 @@
     </mat-form-field>
     <br />
 
+    <h2>Select the Category</h2>
+    <mat-form-field appearance="fill">
+      <mat-label>Category</mat-label>
+      <mat-select name="category" id="category" [(ngModel)]="selected">
+        <mat-option *ngFor="let category of categories" [value]="category.value">
+          {{category.value}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <br />
+
+    <h2>Enter the Owner's Name</h2>
+    <mat-form-field appearance="outline">
+        <mat-label>Podcast Owner</mat-label>
+        <input matInput name="name" id="name" placeholder="Enter your name">
+    </mat-form-field>
+    <br />
+
     <h2>Description of Your Podcast</h2>
     <mat-form-field appearance="outline">
         <mat-label>Podcast Description</mat-label>

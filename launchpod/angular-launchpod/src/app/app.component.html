@@ -1,38 +1,35 @@
 <mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #drawer class="sidenav" fixedInViewport [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
-      [mode]="'over'" [opened]="false">
-      <mat-toolbar><img class="logo" src="assets/img/LaunchPodLogo.png" alt="icon">
-          <h2>LaunchPod</h2>
-      </mat-toolbar>
-      <mat-nav-list>
-          <a class="home-btn" mat-list-item href="/">
-              <mat-icon class="icons">home</mat-icon>Home
-          </a>
-          <a mat-list-item href="/">
-              <mat-icon class="icons">rss_feed</mat-icon>Create RSS Feed
-          </a>
-          <a mat-list-item href="/">
-              <mat-icon class="icons">graphic_eq</mat-icon>Transcribe
-          </a>
-          <a mat-list-item href="/">
-              <mat-icon class="icons">contactless</mat-icon>Translate
-          </a>
-      </mat-nav-list>
+  <mat-sidenav
+    #drawer
+    class="sidenav"
+    fixedInViewport
+    [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+    [mode]="'over'"
+    [opened]="false">
+    <mat-toolbar
+      ><img class="logo" src="assets/img/LaunchPodLogo.png" alt="icon" />
+      <h2>LaunchPod</h2>
+    </mat-toolbar>
+    <mat-nav-list>
+      <a class="home-btn" mat-list-item routerLink="/" (click)="drawer.close()"> <mat-icon class="icons">home</mat-icon>Home </a>
+      <a mat-list-item routerLink="/create" (click)="drawer.close()"> <mat-icon class="icons">rss_feed</mat-icon>Create RSS Feed </a>
+      <a mat-list-item routerLink="/transcribe" (click)="drawer.close()"> <mat-icon class="icons">graphic_eq</mat-icon>Transcribe </a>
+      <a mat-list-item routerLink="/translate" (click)="drawer.close()"> <mat-icon class="icons">contactless</mat-icon>Translate </a>
+    </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>
-      <mat-toolbar color="white">
-          <button type="button" aria-label="Toggle sidenav" mat-icon-button (click)="drawer.open()">
-              <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
-          </button>
-          <img class="logo" src="assets/img/LaunchPodLogo.png" alt="icon">
-          <span>LaunchPod</span>
-      </mat-toolbar>
-      <!-- Add Content Here -->
-      <div class="center-page">
-        <router-outlet></router-outlet>
-      </div>
-      <!-- <app-create-form class="center-page"></app-create-form> -->
-      <!-- TODO: Add routing from create form to result component -->
-      <!-- <app-result-page class="center-page"></app-result-page> -->
+    <mat-toolbar color="white">
+      <button type="button" aria-label="Toggle sidenav" mat-icon-button (click)="drawer.open()">
+        <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+      </button>
+      <img class="logo" src="assets/img/LaunchPodLogo.png" alt="icon" />
+      <span>LaunchPod</span>
+      <span class="toolbar-spacer"></span>
+      <div id="login-container"></div>
+    </mat-toolbar>
+    <!-- Add Content Here -->
+    <div class="center-page">
+      <router-outlet id="form"></router-outlet>
+    </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { LayoutModule } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MaterialModule } from './material/material.module';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
@@ -18,13 +19,21 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ResultPageComponent } from './result-page/result-page.component';
 import { Mp3FormComponent } from './mp3-form/mp3-form.component'
+import { TranslateFormComponent } from './translate-form/translate-form.component';
+import { TranscribeFormComponent } from './transcribe-form/transcribe-form.component';
+import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
+import { LoginPopupComponent } from './login-popup/login-popup.component'
 
 @NgModule({
   declarations: [
     AppComponent,
     CreateFormComponent,
     ResultPageComponent,
-    Mp3FormComponent
+    Mp3FormComponent,
+    TranslateFormComponent,
+    TranscribeFormComponent,
+    MyFeedsPageComponent,
+    LoginPopupComponent
   ],
   imports: [
     AppRoutingModule,
@@ -35,6 +44,7 @@ import { Mp3FormComponent } from './mp3-form/mp3-form.component'
     HttpClientModule,
     LayoutModule,
     MatButtonModule,
+    MatDialogModule,
     MaterialModule,
     MatIconModule,
     MatListModule,
@@ -42,7 +52,8 @@ import { Mp3FormComponent } from './mp3-form/mp3-form.component'
     MatToolbarModule,
     ReactiveFormsModule
   ],
-  providers: [CreateFormComponent],
-  bootstrap: [AppComponent]
+  providers: [],
+  bootstrap: [AppComponent],
+  entryComponents: [LoginPopupComponent]
 })
 export class AppModule { }
