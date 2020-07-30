@@ -8,3 +8,4 @@ target/
 
 # Ignore editor config
 .idea
+/keys
