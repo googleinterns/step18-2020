@@ -113,28 +113,28 @@ public class FormHandlerServlet extends HttpServlet {
     // res.getWriter().print(rssLink);
 
     Query query =
-        new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, userEmail)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
-    PreparedQuery results = datastore.prepare(query);
+      DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+      PreparedQuery results = datastore.prepare(query);
 
-    ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
-    for (Entity entity : results.asIterable()) {
-      String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
-      if (email.equals(userFeedEmail)) {
-        String feedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
-        String feedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
-        String feedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
-        String feedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
-        long feedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
-        Date date = new Date(feedTimestamp);
+      ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
+      for (Entity entity : results.asIterable()) {
+        String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
+        String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+        String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
+        String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+        String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+        long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+        Date date = new Date(timestamp);
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
-        String feedPostTime = dateFormat.format(date);
-        Key feedKey = entity.getKey();
+        String postTime = dateFormat.format(date);
+        Key key = entity.getKey();
         
-        String feedUrlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
-        String feedRssLink = BASE_URL + feedUrlID;
+        String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+        String rssLink = BASE_URL + urlID;
 
-        userFeeds.add(new UserFeed(feedTitle, feedName, feedRssLink, feedDescription, feedEmail, feedPostTime, feedUrlID));
+        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
       }
     }
 
