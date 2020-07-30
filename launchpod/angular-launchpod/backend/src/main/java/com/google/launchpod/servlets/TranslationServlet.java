@@ -22,7 +22,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.cloud.translate.Translate;
 import com.google.cloud.translate.TranslateOptions;
 import com.google.cloud.translate.Translation;
-
+import com.google.cloud.translate.Translate.TranslateOption;
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
 
@@ -51,7 +51,8 @@ public class TranslationServlet extends HttpServlet {
     try {
       XML_MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
       String id = getIdFromUrl(link);
-
+      
+      //Search for key from given Link
       Key desiredFeedKey = KeyFactory.stringToKey(id);
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
       Entity desiredFeedEntity = datastore.get(desiredFeedKey);
@@ -62,7 +63,8 @@ public class TranslationServlet extends HttpServlet {
       Translate translate = TranslateOptions.getDefaultInstance().getService();
 
       // Channel description
-      Translation translation = translate.translate(rssFeed.getChannel().getDescription());
+      Translation translation = translate.translate(rssFeed.getChannel().getDescription(),
+          TranslateOption.targetLanguage(targetLanguage));
       rssFeed.getChannel().setDescription(translation.getTranslatedText());
 
       // Language
@@ -71,11 +73,11 @@ public class TranslationServlet extends HttpServlet {
       // Episodes
       for (Item item : rssFeed.getChannel().getItem()) {
         // Episode title
-        translation = translate.translate(item.getTitle());
+        translation = translate.translate(item.getTitle(), TranslateOption.targetLanguage(targetLanguage));
         item.setTitle(translation.getTranslatedText());
 
         // Episode description
-        translation = translate.translate(item.getDescription());
+        translation = translate.translate(item.getDescription(), TranslateOption.targetLanguage(targetLanguage));
         item.setDescription(translation.getTranslatedText());
       }
 
@@ -92,7 +94,6 @@ public class TranslationServlet extends HttpServlet {
 
     } catch (EntityNotFoundException e) {
       res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to translate. Try again");
-      return;
     }
   }
 
