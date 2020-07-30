@@ -38,8 +38,8 @@ public class Channel {
   /**
   * Add an item to a channel.
   */
-  public static void addItem(Channel channel, String podcastTitle, String description, String language, String email, String mp3Link) {
-    Item item = new Item(podcastTitle, description, language, email, mp3Link);
+  public static void addItem(Channel channel, String episodeTitle, String episodeDescription, String episodeLanguage, String email, String mp3Link) {
+    Item item = new Item(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
     channel.getItems().add(item);
   }
 }
