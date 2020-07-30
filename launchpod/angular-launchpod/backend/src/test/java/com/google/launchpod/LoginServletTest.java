@@ -40,6 +40,7 @@ import com.google.gson.Gson;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import com.google.gson.JsonParser;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.UserFeed;
@@ -85,10 +86,11 @@ public class LoginServletTest extends Mockito {
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
 
   private static final Gson GSON = new Gson();
+  JsonParser parser = new JsonParser();
 
   private static final String EMAIL = "email";
 
-  private static final String TEST_EMAIL = "123@abc.com";
+  private static final String TEST_EMAIL = "123@google.com";
 
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
 
@@ -104,7 +106,7 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() gets the user's correct status when logged in.
+   * Asserts that doGet() gets the user's correct status when logged in.
    */
   @Test
   public void doGet_GetsCorrectStatusLoggedIn() throws IOException {
@@ -123,7 +125,7 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() gets the user's email and successfully sends
+   * Asserts that doGet() gets the user's email and successfully sends
    * a corresponding loginStatus object as the response.
    */
   @Test
@@ -146,7 +148,7 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() gets the user's feeds and successfully sends
+   * Asserts that doGet() gets the user's feeds and successfully sends
    * a corresponding loginStatus object as the response.
    */
   @Test
@@ -187,7 +189,7 @@ public class LoginServletTest extends Mockito {
       String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
       String rssLink = BASE_URL + urlID;
 
-      userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, key));
+      userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
     }
 
     verify(response).setContentType("application/json");
@@ -195,7 +197,7 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() gets the user's correct status when logged out.
+   * Asserts that doGet() gets the user's correct status when logged out.
    */
   @Test
   public void doGet_GetsCorrectStatusLoggedOut() throws IOException {
@@ -213,7 +215,7 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() successfully sends a login url as the
+   * Asserts that doGet() successfully sends a login url as the
    * response when the user is not logged in.
    */
   @Test

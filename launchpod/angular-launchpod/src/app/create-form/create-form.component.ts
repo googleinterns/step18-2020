@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormHandlerService } from '../form-handler.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
+import { Router } from '@angular/router'
 
 interface Category {
   value: string;
@@ -39,7 +40,7 @@ export class CreateFormComponent implements OnInit {
 
   selected = this.categories[0].value;
 
-  constructor(private formHandlerService: FormHandlerService) {}
+  constructor(private formHandlerService: FormHandlerService, private router: Router) {}
 
   ngOnInit(): void {}
 
@@ -52,8 +53,11 @@ export class CreateFormComponent implements OnInit {
     formData = formData.set('category', this.selected);
 
     this.formHandlerService.postFormData(formData)
-      .subscribe((response) => {
-        this.formHandlerService.sendFeedValue(response);
-      });
+    .subscribe((response) => {
+      this.formHandlerService.sendMyFeeds(response);
+      this.formHandlerService.updateHasNewFeed();
+    });
+
+    this.router.navigate(['/my-feeds']);
   }
 }

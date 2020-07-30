@@ -50,8 +50,9 @@ public class LoginServlet extends HttpServlet {
 
     UserService userService = UserServiceFactory.getUserService();
     String urlToRedirectTo = "/index.html";
-    if (userService.isUserLoggedIn()) {
+    if (userService.isUserLoggedIn() && userService.getCurrentUser().getEmail().contains("@google.com")) {
       String userEmail = userService.getCurrentUser().getEmail();
+      
       String logoutUrl = userService.createLogoutURL(urlToRedirectTo);
       String loginMessage = "<p>Logged in as " + userEmail + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
 
@@ -77,11 +78,10 @@ public class LoginServlet extends HttpServlet {
         String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
         String rssLink = BASE_URL + urlID;
 
-        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, key));
+        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
       }
-      
-      LoginStatus loginStatus = LoginStatus.forSuccessfulLogin(loginMessage, userFeeds);
 
+      LoginStatus loginStatus = LoginStatus.forSuccessfulLogin(loginMessage, userFeeds);
 
       response.getWriter().println(GSON.toJson(loginStatus));
     } else {
@@ -92,5 +92,46 @@ public class LoginServlet extends HttpServlet {
 
       response.getWriter().println(GSON.toJson(loginStatus));
     }
+  }
+
+  @Override
+  public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    String id = req.getParameter("keyId");
+    Key key = KeyFactory.stringToKey(id);
+
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+    String userEmail = userService.getCurrentUser().getEmail();
+
+    datastore.delete(key);
+
+    Query query =
+        new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+
+    PreparedQuery results = datastore.prepare(query);
+
+    ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
+    for (Entity entity : results.asIterable()) {
+      String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
+      if (userEmail.equals(userFeedEmail)) {
+        String feedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+        String feedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
+        String feedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+        String feedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+        long feedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+        Date date = new Date(feedTimestamp);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+        String feedPostTime = dateFormat.format(date);
+        Key feedKey = entity.getKey();
+        
+        String feedUrlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+        String feedRssLink = BASE_URL + feedUrlID;
+
+        userFeeds.add(new UserFeed(feedTitle, feedName, feedRssLink, feedDescription, feedEmail, feedPostTime, feedUrlID));
+      }
+    }
+
+    res.setContentType("application/json");
+    res.getWriter().println(GSON.toJson(userFeeds));
   }
 }

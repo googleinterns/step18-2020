@@ -10,11 +10,17 @@ const LOGIN_URL = '/login-status';
 })
 export class FormHandlerService {
 
-  private feedValueSubject = new BehaviorSubject<string>("Loading URL...");
+  private readonly feedValueSubject = new BehaviorSubject<string>("Loading URL...");
   feedValue = this.feedValueSubject.asObservable();
 
-  private loginLinkSubject = new BehaviorSubject<string>("Loading...");
+  private readonly loginLinkSubject = new BehaviorSubject<string>("Loading...");
   loginLink = this.loginLinkSubject.asObservable();
+
+  private readonly myFeedsSubject = new BehaviorSubject<Array<any>>([]);
+  myFeeds = this.myFeedsSubject.asObservable();
+
+  private readonly hasNewFeedSubject = new BehaviorSubject<boolean>(false);
+  hasNewFeed = this.hasNewFeedSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -33,10 +39,24 @@ export class FormHandlerService {
   }
 
   /**
+   * Update the list of "my feeds" with the feeds from post request.
+   */
+  sendMyFeeds(feeds) {
+    this.myFeedsSubject.next(feeds);
+  }
+
+  /**
+   * Update the newFeed boolean when a new feed is added.
+   */
+  updateHasNewFeed() {
+    this.hasNewFeedSubject.next(true);
+  }
+
+  /**
    * Post form inputs to back-end and retrieve url for rss feed.
    */
-  postFormData(formData): Observable<string> {
-    return this.http.post(FEED_URL, formData, { responseType: 'text' });
+  postFormData(formData): Observable<any> {
+    return this.http.post(FEED_URL, formData);
   }
 
   /**
@@ -45,4 +65,12 @@ export class FormHandlerService {
   getLoginData(): Observable<any> {
     return this.http.get(LOGIN_URL);
   }
+
+  /**
+   * Post deletion request to LoginServlet.
+   */
+  deleteFeedEntity(formData): Observable<any> {
+    return this.http.post(LOGIN_URL, formData);
+  }
+
 }
