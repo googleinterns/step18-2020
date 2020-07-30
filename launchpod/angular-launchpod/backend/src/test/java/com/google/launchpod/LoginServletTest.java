@@ -90,7 +90,7 @@ public class LoginServletTest extends Mockito {
 
   private static final String EMAIL = "email";
 
-  private static final String TEST_EMAIL = "123@abc.com";
+  private static final String TEST_EMAIL = "123@google.com";
 
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
 

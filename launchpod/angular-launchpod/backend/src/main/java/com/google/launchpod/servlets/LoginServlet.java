@@ -50,8 +50,9 @@ public class LoginServlet extends HttpServlet {
 
     UserService userService = UserServiceFactory.getUserService();
     String urlToRedirectTo = "/index.html";
-    if (userService.isUserLoggedIn()) {
+    if (userService.isUserLoggedIn() && userService.getCurrentUser().getEmail().contains("@google.com")) {
       String userEmail = userService.getCurrentUser().getEmail();
+      
       String logoutUrl = userService.createLogoutURL(urlToRedirectTo);
       String loginMessage = "<p>Logged in as " + userEmail + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
 
@@ -79,6 +80,7 @@ public class LoginServlet extends HttpServlet {
 
           userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
         }
+
       LoginStatus loginStatus = LoginStatus.forSuccessfulLogin(loginMessage, userFeeds);
 
       response.getWriter().println(GSON.toJson(loginStatus));
