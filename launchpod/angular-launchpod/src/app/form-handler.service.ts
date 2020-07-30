@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 
 const FEED_URL = '/rss-feed';
 const LOGIN_URL = '/login-status';
+const TRANSLATION_URL = "/translate-feed";
 
 @Injectable({
   providedIn: 'root'
@@ -37,6 +38,13 @@ export class FormHandlerService {
    */
   postFormData(formData): Observable<string> {
     return this.http.post(FEED_URL, formData, { responseType: 'text' });
+  }
+
+  /**
+   * Post form inputs to back-end and retrieve url for rss feed.
+   */
+  postTranslationData(formData): Observable<string> {
+    return this.http.post(TRANSLATION_URL, formData, { responseType: 'text' });
   }
 
   /**

@@ -21,13 +21,21 @@ export class TranslateFormComponent implements OnInit {
     {value: 'es', viewValue: 'Spanish'},
   ];
 
-  constructor() {}
+  constructor(private formHandlerService: FormHandlerService) {}
 
   ngOnInit(): void {}
 
-  // Sends input data to backend when user clicks create button.
   public postFormData() {
-    //TODO: implement this method https://github.com/googleinterns/step18-2020/issues/28
+    let formData = new HttpParams();
+    formData = formData.set('rssFeedLink', (document.getElementById("rssFeedLink") as HTMLInputElement).value);
+    formData = formData.set('language', (document.getElementById("language") as HTMLInputElement).value);
+
+    this.formHandlerService.postTranslationData(formData)
+      .subscribe((response) => {
+        this.feedValue = response;
+        console.log("Create feedValue: " + this.feedValue);
+        this.formHandlerService.sendFeedValue(response);
+      });
   }
 
 }
