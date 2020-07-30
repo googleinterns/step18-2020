@@ -25,10 +25,8 @@ export class MyFeedsPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.formHandlerService.myFeeds.subscribe((feeds) => {
-      console.log("Feeds: " + feeds);
       this.myFeeds = feeds;
       this.formHandlerService.hasNewFeed.subscribe((result) => {
-        console.log("newFeed my: " + result);
         this.hasNewFeed = result;
       });
     });
@@ -40,11 +38,9 @@ export class MyFeedsPageComponent implements OnInit {
   public deleteFeed(key) {
     let formData = new HttpParams();
     formData = formData.set('keyId', key);
-    console.log("Key: " + key);
 
     this.formHandlerService.deleteFeedEntity(formData)
       .subscribe((feeds) => {
-        console.log("Feeds after delete: " + feeds);
         this.formHandlerService.sendMyFeeds(feeds);
         this.hasNewFeed = false;
         this.myFeeds = feeds;

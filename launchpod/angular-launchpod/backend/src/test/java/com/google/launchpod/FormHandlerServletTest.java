@@ -42,6 +42,8 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -181,6 +183,7 @@ public class FormHandlerServletTest extends Mockito {
   public void doPost_ReturnsCorrectFeeds() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
+    String email = userService.getCurrentUser().getEmail();
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
@@ -196,31 +199,27 @@ public class FormHandlerServletTest extends Mockito {
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
 
     Query query =
-        new Query(USER_FEED).addSort(TIMESTAMP, SortDirection.DESCENDING);
+        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, email)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
 
     ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
     for (Entity entity : results.asIterable()) {
-      String userFeedEmail = String.valueOf(entity.getProperty(EMAIL));
-      if (userService.getCurrentUser().getEmail().equals(userFeedEmail)) {
-        String title = (String) entity.getProperty(PODCAST_TITLE);
-        String name = (String) entity.getProperty(NAME);
-        String description = (String) entity.getProperty(DESCRIPTION);
-        String email = (String) entity.getProperty(EMAIL);
-        long timestamp = (long) entity.getProperty(TIMESTAMP);
-        Date date = new Date(timestamp);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
-        String postTime = dateFormat.format(date);
-        Key key = entity.getKey();
-        
-        String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
-        String rssLink = BASE_URL + urlID;
-
-        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
+      String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+      String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
+      String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+      String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+      long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+      Date date = new Date(userFeedTimestamp);
+      SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+      String postTime = dateFormat.format(date);
+      Key key = entity.getKey();
       
-      }
+      String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+      String rssLink = BASE_URL + urlID;
+
+      userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime, urlID));
     }
 
     verify(response).setContentType("application/json");

@@ -52,22 +52,11 @@ export class CreateFormComponent implements OnInit {
     formData = formData.set('name', (document.getElementById("name") as HTMLInputElement).value);
     formData = formData.set('category', this.selected);
 
-    // this.formHandlerService.postFormData(formData)
-    //   .subscribe((response) => {
-    //     this.formHandlerService.sendFeedValue(response);
-    //   });
-
     this.formHandlerService.postFormData(formData)
     .subscribe((response) => {
       this.formHandlerService.sendMyFeeds(response);
       this.formHandlerService.sendNewFeed();
     });
-
-    // this.formHandlerService.getLoginData()
-    //   .subscribe((user) => {
-    //     this.formHandlerService.sendMyFeeds(user.feeds);
-    //     console.log(user.feeds);
-    //   });
 
     this.router.navigate(['/my-feeds']);
   }

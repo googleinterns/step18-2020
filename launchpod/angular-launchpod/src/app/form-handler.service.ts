@@ -42,7 +42,6 @@ export class FormHandlerService {
    * Update the list of "my feeds" with the feeds from post request.
    */
   sendMyFeeds(feeds) {
-    console.log("My feeds service: " + feeds);
     this.myFeedsSubject.next(feeds);
   }
 
@@ -50,7 +49,6 @@ export class FormHandlerService {
    * Update the newFeed boolean when a new feed is added.
    */
   sendNewFeed() {
-    console.log("Send New Feed Service called");
     this.hasNewFeedSubject.next(true);
   }
 

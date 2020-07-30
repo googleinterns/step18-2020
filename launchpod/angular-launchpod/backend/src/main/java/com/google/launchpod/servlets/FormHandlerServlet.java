@@ -32,6 +32,8 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.gson.Gson;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.LoginStatus;
@@ -113,29 +115,26 @@ public class FormHandlerServlet extends HttpServlet {
     // res.getWriter().print(rssLink);
 
     Query query =
-        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, userEmail)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, email)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
-      DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-      PreparedQuery results = datastore.prepare(query);
+    PreparedQuery results = datastore.prepare(query);
 
-      ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
-      for (Entity entity : results.asIterable()) {
-        String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
-        String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
-        String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
-        String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
-        String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
-        long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
-        Date date = new Date(timestamp);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
-        String postTime = dateFormat.format(date);
-        Key key = entity.getKey();
-        
-        String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
-        String rssLink = BASE_URL + urlID;
+    ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
+    for (Entity entity : results.asIterable()) {
+      String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+      String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
+      String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+      String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+      long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+      Date date = new Date(userFeedTimestamp);
+      SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+      String postTime = dateFormat.format(date);
+      Key key = entity.getKey();
+      
+      String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+      String rssLink = BASE_URL + urlID;
 
-        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
-      }
+      userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime, urlID));
     }
 
     res.setContentType("application/json");
