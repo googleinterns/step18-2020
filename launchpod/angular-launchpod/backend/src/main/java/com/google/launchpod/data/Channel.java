@@ -25,9 +25,21 @@ public class Channel {
 
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
-  private List<Item> item;
+  private List<Item> items;
 
   public Channel(String podcastTitle, String description, String language, String email, String mp3Link) {
-    this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, description, language, email, mp3Link)));
+    this.items = new ArrayList<>(Arrays.asList(new Item(podcastTitle, description, language, email, mp3Link)));
+  }
+
+  public List<Item> getItems() {
+    return this.items;
+  }
+
+  /**
+  * Add an item to a channel.
+  */
+  public static void addItem(Channel channel, String podcastTitle, String description, String language, String email, String mp3Link) {
+    Item item = new Item(podcastTitle, description, language, email, mp3Link);
+    channel.getItems().add(item);
   }
 }
