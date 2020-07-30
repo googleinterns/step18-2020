@@ -27,6 +27,7 @@ public class CreateByLinkServlet extends HttpServlet {
   private static final String MP3_LINK = "mp3Link";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
+  private static final XmlMapper XML_MAPPER = new XmlMapper();
   // public variable to allow creation of UserFeed objects
   public static final String XML_STRING = "xmlString";
 
@@ -41,6 +42,8 @@ public class CreateByLinkServlet extends HttpServlet {
     String episodeDescription = req.getParameter(EPISODE_DESCRIPTION);
     String episodeLanguage = req.getParameter(EPISODE_LANGUAGE);
     String mp3Link = req.getParameter(MP3_LINK);
+    String entityId = req.getParameter(ID);
+
     if (episodeTitle == null || episodeTitle.isEmpty()) {
       throw new IllegalArgumentException("No episode title inputted, please try again.");
     } else if (episodeDescription == null || episodeDescription.isEmpty()) {
@@ -51,20 +54,30 @@ public class CreateByLinkServlet extends HttpServlet {
       throw new IllegalArgumentException("No mp3 link inputted, please try again.");
     }
 
-    // Creates entity with all desired attributes
-    Entity userFeedEntity = new Entity(USER_FEED);
+    // // Creates entity with all desired attributes
+    // Entity userFeedEntity = new Entity(USER_FEED);
+    // // Generate xml string
+    // RSS rssFeed = new RSS(podcastTitle, mp3Link);
 
-    // Generate xml string
-    RSS rssFeed = new RSS(podcastTitle, mp3Link);
-    try {
-      String xmlString = RSS.toXmlString(rssFeed);
-      userFeedEntity.setProperty(XML_STRING, xmlString);
-    } catch (IOException e) {
-      throw new IOException("Unable to create XML string.");
-    }
+    // try {
+    //   String xmlString = RSS.toXmlString(rssFeed);
+    //   userFeedEntity.setProperty(XML_STRING, xmlString);
+    // } catch (IOException e) {
+    //   throw new IOException("Unable to create XML string.");
+    // }
 
+    // retrieve entity associated with id
+    Key entityKey = KeyFactory.stringToKey(id);
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    datastore.put(userFeedEntity);
+    Entity desiredFeedEntity = datastore.get(entityKey);
+    String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+
+    // modify the xml string
+    RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
+    rssFeed.getChannel().getItems().addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link); // to-do: double check this
+    String modifiedXmlString = RSS.toXmlString(rssFeed);
+    desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
+    datastore.put(desiredFeedEntity);
 
     // return accessible link to user
     String urlID = KeyFactory.keyToString(userFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID.
