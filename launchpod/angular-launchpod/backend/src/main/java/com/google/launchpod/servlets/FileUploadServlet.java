@@ -42,6 +42,7 @@ import com.google.common.base.Strings;
 @MultipartConfig
 public class FileUploadServlet extends HttpServlet {
 
+  // TO-DO after merging: move these to common place
   public static final String PROJECT_ID = "launchpod-step18-2020"; // The ID of your GCP project
   public static final String BUCKET_NAME = "launchpod-mp3-files"; // The ID of the GCS bucket to upload to
 
@@ -64,11 +65,11 @@ public class FileUploadServlet extends HttpServlet {
   private static final String ACTION = "action";
   private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
 
-
+  // TO-DO after merging: move this to common place
   private enum Action {
-    generateRSSLink("generateRSSLink"),
-    generateXml("generateXml"),
-    otherAction("otherAction"); // for testing purposes
+    GENERATE_RSS_LINK("generateRSSLink"),
+    GENERATE_XML("generateXml"),
+    OTHER_ACTION("otherAction"); // for testing purposes
 
     private String action;
  
@@ -91,6 +92,15 @@ public class FileUploadServlet extends HttpServlet {
   }
 
   /**
+  * Helper method for repeated code in catching exceptions.
+  */
+  private void writeResponse(HttpServletResponse res, String message, int statusCode) throws IOException {
+    res.setContentType("text/html");
+    res.getWriter().println(message);
+    res.setStatus(statusCode);
+  }
+
+  /**
    * Requests user inputs in form fields, then creates Entity and places in Datastore.
    * @throws ServletException
    */
@@ -107,6 +117,7 @@ public class FileUploadServlet extends HttpServlet {
     //   email = userService.getCurrentUser().getEmail();
     // }
 
+    // TO-DO after merging: move validation to common place 
     if (Strings.isNullOrEmpty(podcastTitle)) {
       throw new IllegalArgumentException("No Title inputted, please try again.");
     } else if (Strings.isNullOrEmpty(description)) {
@@ -146,7 +157,7 @@ public class FileUploadServlet extends HttpServlet {
 
     // Generate xml string
     RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
-    String xmlString = "";
+    String xmlString;
     try {
       xmlString = RSS.toXmlString(rssFeed);
       savedEntity.setProperty(XML_STRING ,xmlString);
@@ -198,7 +209,6 @@ public class FileUploadServlet extends HttpServlet {
       throw e;
     }
 
-    // StringBuilder htmlForm;
     StringBuilder htmlForm = new StringBuilder();
     if (policy!=null) {
       String formPostHtml = String.format("<form name='mp3-upload' action='%s' method='POST' enctype='multipart/form-data'>\n", policy.getUrl());
@@ -224,29 +234,24 @@ public class FileUploadServlet extends HttpServlet {
     String id = req.getParameter(ID);
 
     if (actionString == null || id == null) {
-      res.setContentType("text/html");
-      res.getWriter().println("Please specify action and/or id.");
-      res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      writeResponse(res, "Please specify action and/or id.", HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
-    // Action act = Action.generateRSSLink; // initialization
     Action action;
     try {
       action = Action.valueOf(actionString);
     } catch (IllegalArgumentException e) {
-      res.setContentType("text/html");
-      res.getWriter().println("Illegal argument for action.");
-      res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      writeResponse(res, "Illegal argument for action.", HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
-    if (action == Action.generateRSSLink) {
+    if (action == Action.GENERATE_RSS_LINK) {
       // Generate link to the RSS feed
       String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + id;
       res.setContentType("text/html");
       res.getWriter().println(rssLink);
-   } else if (action == Action.generateXml) {
+   } else if (action == Action.GENERATE_XML) {
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
       Key entityKey = null;
       Entity desiredFeedEntity = null; 
@@ -254,21 +259,13 @@ public class FileUploadServlet extends HttpServlet {
         // Use key to retrieve entity from Datastore
         entityKey = KeyFactory.stringToKey(id);
         desiredFeedEntity = datastore.get(entityKey);
-
       } catch (IllegalArgumentException e) {
         // If entityId cannot be converted into a key
-        e.printStackTrace();
-        res.setContentType("text/html");
-        res.getWriter().println("Sorry, this is not a valid id.");
-        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
         return;
-        
       } catch (EntityNotFoundException e) {
         // No matching entity in Datastore
-        e.printStackTrace();
-        res.setContentType("text/html");
-        res.getWriter().println("Your entity could not be found.");
-        res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
         return;
       }
 
@@ -286,9 +283,7 @@ public class FileUploadServlet extends HttpServlet {
       res.setContentType("text/xml");
       res.getWriter().println(xmlString);
    } else {
-      res.setContentType("text/html");
-      res.getWriter().println("Sorry, this is not a valid action.");
-      res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      writeResponse(res, "Sorry, this is not a valid action.", HttpServletResponse.SC_BAD_REQUEST);
       return;
    }
   }

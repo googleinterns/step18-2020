@@ -93,8 +93,9 @@ public class FileUploadServletTest extends Mockito {
   private static final String EMPTY_STRING = "";
   private static final String TEST_XML_STRING = "test";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  private static final String GENERATE_XML_ACTION = "generateXml";
-  private static final String GENERATE_RSS_LINK = "generateRSSLink";
+  private static final String GENERATE_XML_ACTION = "GENERATE_XML";
+  private static final String GENERATE_RSS_LINK = "GENERATE_RSS_LINK";
+  private static final String OTHER_ACTION = "OTHER_ACTION";
   private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS");
 
   private static final String PROJECT_ID = "launchpod-step18-2020"; // The ID of your GCP project
@@ -619,7 +620,7 @@ public class FileUploadServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    assertEquals("Sorry, this is not a valid action.".trim(), stringWriter.toString().trim());
+    assertEquals("Illegal argument for action.".trim(), stringWriter.toString().trim());
     verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 

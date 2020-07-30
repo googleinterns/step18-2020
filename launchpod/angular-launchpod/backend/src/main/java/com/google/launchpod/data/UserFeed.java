@@ -2,6 +2,7 @@ package com.google.launchpod.data;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.launchpod.servlets.FormHandlerServlet;
+import com.google.launchpod.servlets.FileUploadServlet;
 
 public final class UserFeed {
 
@@ -18,7 +19,7 @@ public final class UserFeed {
    * @return UserFeed object
    */
   public static UserFeed fromEntity(Entity entity) {
-    String xmlString = (String) entity.getProperty(FormHandlerServlet.XML_STRING);
+    String xmlString = (String) entity.getProperty(FileUploadServlet.XML_STRING); // change this back to form handler after merging
     return new UserFeed(xmlString);
   }
 
