@@ -2,6 +2,7 @@ package com.google.launchpod.data;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.launchpod.servlets.FormHandlerServlet;
 
 public final class UserFeed {
@@ -13,14 +14,15 @@ public final class UserFeed {
   private String description;
   private String email;
   private String postTime;
-  private Key key;
+  private long timestamp;
+  private String key;
+  private String language; 
 
   private UserFeed(String xmlString) {
     this.xmlString = xmlString;
   }
 
-  public UserFeed(String title, String name, String rssLink, String description, String email, String postTime,
-      Key key) {
+  public UserFeed(String title, String name, String rssLink, String description, String email, String postTime, String key, String language) {
     this.title = title;
     this.name = name;
     this.rssLink = rssLink;
@@ -28,6 +30,7 @@ public final class UserFeed {
     this.email = email;
     this.postTime = postTime;
     this.key = key;
+    this.language = language;
   }
 
   /**
@@ -41,6 +44,7 @@ public final class UserFeed {
     return new UserFeed(xmlString);
   }
 
+  // getter for xml string
   public String getXmlString() {
     return this.xmlString;
   }

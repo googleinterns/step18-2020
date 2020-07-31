@@ -16,6 +16,7 @@ public final class LoginStatus {
   public static final String XML_STRING_KEY = "xmlString";
   public static final String POST_TIME_KEY = "postTime";
   public static final String TIMESTAMP_KEY = "timestamp";
+  public static final String LANGUAGE_KEY = "language";
 
   private LoginStatus(boolean isLoggedIn, String message, ArrayList<UserFeed> feeds) {
     this.isLoggedIn = isLoggedIn;

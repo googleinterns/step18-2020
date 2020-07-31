@@ -19,15 +19,18 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.cloud.translate.Translate;
-import com.google.cloud.translate.TranslateOptions;
-import com.google.cloud.translate.Translation;
-import com.google.cloud.translate.Translate.TranslateOption;
+import com.google.cloud.translate.v3.LocationName;
+import com.google.cloud.translate.v3.TranslateTextRequest;
+import com.google.cloud.translate.v3.TranslateTextResponse;
+import com.google.cloud.translate.v3.Translation;
+import com.google.cloud.translate.v3.TranslationServiceClient;
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
 
 @WebServlet("/translate-feed")
 public class TranslationServlet extends HttpServlet {
+
+    //https://launchpod-step18-2020.appspot.com/rss-feed?id=ahdzfmxhdW5jaHBvZC1zdGVwMTgtMjAyMHIVCxIIVXNlckZlZWQYgICAmKXQhgoM
 
   private static final long serialVersionUID = 1L;
   private static final String USER_FEED = "UserFeed";
@@ -72,14 +75,12 @@ public class TranslationServlet extends HttpServlet {
     } catch (Exception e) {
       res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to translate. Try again");
     }
-    
-    // Translate fields to new language
-    Translate translate = TranslateOptions.getDefaultInstance().getService();
-    
+    //Translate all the fields
+    //Channel title
+    rssFeed.getChannel().setTitle(translateText(targetLanguage, rssFeed.getChannel().getTitle()));
+
     // Channel description
-    Translation translation = translate.translate(rssFeed.getChannel().getDescription(),
-        TranslateOption.targetLanguage(targetLanguage));
-    rssFeed.getChannel().setDescription(translation.getTranslatedText());
+    rssFeed.getChannel().setDescription(translateText(targetLanguage, rssFeed.getChannel().getDescription()));
 
     // Language
     rssFeed.getChannel().setLanguage(targetLanguage);
@@ -87,12 +88,10 @@ public class TranslationServlet extends HttpServlet {
       // Episodes
     for (Item item : rssFeed.getChannel().getItems()) {
       // Episode title
-      translation = translate.translate(item.getTitle(), TranslateOption.targetLanguage(targetLanguage));
-      item.setTitle(translation.getTranslatedText());
+      item.setTitle(translateText(targetLanguage, item.getTitle()));
 
       // Episode description
-      translation = translate.translate(item.getDescription(), TranslateOption.targetLanguage(targetLanguage));
-      item.setDescription(translation.getTranslatedText());
+      item.setDescription(translateText(targetLanguage, item.getDescription()));
     }
 
       // Generate Translated XML string then place it into datastore
@@ -105,6 +104,27 @@ public class TranslationServlet extends HttpServlet {
       // display new translated string to the user
       res.setContentType("text/html");
       res.getWriter().println(BASE_URL + translatedFeedId);
+  }
+
+  /**
+   * Translate the text using the translation API request and response client
+   */
+  public static String translateText(String targetLanguage, String text)throws IOException {
+
+    try (TranslationServiceClient client = TranslationServiceClient.create()) {
+      LocationName parent = LocationName.of("launchpod-step18-2020", "global");
+
+      TranslateTextRequest request =
+          TranslateTextRequest.newBuilder()
+              .setParent(parent.toString())
+              .setMimeType("text/plain")
+              .setTargetLanguageCode(targetLanguage)
+              .addContents(text)
+              .build();
+
+      TranslateTextResponse response = client.translateText(request);
+      return response.getTranslations(0).getTranslatedText();
+    }
   }
 
   public static String getIdFromUrl(String rssLink) throws MalformedURLException {

@@ -56,11 +56,17 @@ public class Channel {
   public Channel() {
   }
 
-  public Channel(String name, String email, String podcastTitle, String mp3Link, String category) {
+  public Channel(String name, String email, String podcastTitle, String description, String category, String language) {
     this.itunesOwner = new ArrayList<>(Arrays.asList(new ItunesOwner(name, email)));
     this.itunesCategory = new ArrayList<>(Arrays.asList(new ItunesCategory(category)));
-    this.items = new ArrayList<>(Arrays.asList(new Item(podcastTitle, mp3Link)));
+    this.items = new ArrayList<>();
     this.author = name;
+    this.language = language;
+    this.description = description;
+  }
+
+  public void setTitle(String newTitle){
+    this.title = newTitle;
   }
 
   public void setLanguage(String newLanguage) {
@@ -69,6 +75,10 @@ public class Channel {
 
   public void setDescription(String newDescription) {
     this.description = newDescription;
+  }
+
+  public String getTitle(){
+    return this.title;
   }
 
   public String getLanguage() {
