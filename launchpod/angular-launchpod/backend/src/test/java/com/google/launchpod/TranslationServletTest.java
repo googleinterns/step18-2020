@@ -86,49 +86,6 @@ public class TranslationServletTest extends Mockito {
   }
 
   //TODO: Implement Translation Constructor
-  /**
-   * Test translate helper to ensure it translates the given string
-   */
-  /*
-  @Test
-  public void doPost_TranslateHelperWorks() {
-    String sourceLang = translateMock.detect(TEST_DESCRIPTION).getLanguage();
-    Translation translation = translateMock.translate(TEST_DESCRIPTION, TranslateOption.sourceLanguage(sourceLang),
-        TranslateOption.targetLanguage(TEST_TARGET_LANGUAGE));
-
-    String translatedText = translation.getTranslatedText().toLowerCase();
-    assertEquals("episodio generado por launchpod", translatedText);
-  }
-
-  /**
-   * test to ensure that when rss feed is translated the RSS object is modified as
-   * well
-   * 
-   * @throws JsonProcessingException
-   */
-  /*
-  @Test
-  public void translate_translatesRSSFieldsCorrectly() throws JsonProcessingException {
-    RSS rssTranslatedFeed = TEST_RSS_FEED;
-    // Test channel description translation
-    Translation translation = translateMock.translate(rssTranslatedFeed.getChannel().getDescription(),
-        TranslateOption.targetLanguage(TEST_TARGET_LANGUAGE));
-    rssTranslatedFeed.getChannel().setDescription(translation.getTranslatedText());
-    assertEquals("launchpod generó rss", rssTranslatedFeed.getChannel().getDescription().toLowerCase());
-
-    // Test item
-    for (Item item : rssTranslatedFeed.getChannel().getItems()) {
-      translation = translateMock.translate(item.getTitle(), TranslateOption.targetLanguage(TEST_TARGET_LANGUAGE));
-      item.setTitle(translation.getTranslatedText());
-      assertEquals("vida americana", item.getTitle().toLowerCase());
-
-      // set item description
-      translation = translateMock.translate(item.getDescription(),
-          TranslateOption.targetLanguage(TEST_TARGET_LANGUAGE));
-      item.setDescription(translation.getTranslatedText());
-      assertEquals("episodio generado por launchpod", item.getDescription().toLowerCase());
-    }
-  }
 
   /**
    * Expect doPost to throw IOException when language field is empty
