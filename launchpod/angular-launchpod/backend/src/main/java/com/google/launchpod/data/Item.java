@@ -21,7 +21,7 @@ public class Item {
   @JacksonXmlProperty
   private String pubDate;
 
-  private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
+  private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss z");
   private static final LocalDateTime publishTime = LocalDateTime.now();
 
   public Item(String podcastTitle, String mp3Link) {

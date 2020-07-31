@@ -63,9 +63,13 @@ public class FileUploadServlet extends HttpServlet {
 
   private static final String ID = "id";
   private static final String ACTION = "action";
-  private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
 
   // TO-DO after merging: move this to common place
+  /*
+  * Outlines actions for doGet() method.
+  * GENERATE_RSS_LINK: action for creating the URL to an RSS feed.
+  * GENERATE_XML: action for retrieving the XML string for an RSS feed from Datastore.
+  */
   private enum Action {
     GENERATE_RSS_LINK("generateRSSLink"),
     GENERATE_XML("generateXml"),
@@ -111,11 +115,10 @@ public class FileUploadServlet extends HttpServlet {
     String language = req.getParameter(LANGUAGE);
     String email = req.getParameter(EMAIL);
 
-    // TO-DO after merging: add this in and remove email parameter (because LoginServlet will be set up)
-    // UserService userService = UserServiceFactory.getUserService();
-    // if (userService.isUserLoggedIn()) {
-    //   email = userService.getCurrentUser().getEmail();
-    // }
+    UserService userService = UserServiceFactory.getUserService();
+    if (userService.isUserLoggedIn()) {
+      email = userService.getCurrentUser().getEmail();
+    }
 
     // TO-DO after merging: move validation to common place 
     if (Strings.isNullOrEmpty(podcastTitle)) {
@@ -156,7 +159,7 @@ public class FileUploadServlet extends HttpServlet {
     }
 
     // Generate xml string
-    // String name, String email, String podcastTitle, String description, String category, String language
+    // Note: this will be modified after merging because we will be modifying the existing XML for a feed for the MP3 upload feature
     RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
     String xmlString;
     try {
@@ -206,8 +209,7 @@ public class FileUploadServlet extends HttpServlet {
         storage.generateSignedPostPolicyV4(
             BlobInfo.newBuilder(bucketName, blobName).build(), 10, TimeUnit.MINUTES, fields);
     } catch(Exception e) {
-      errorMessage = e.getMessage();
-      throw e;
+      throw new RuntimeException(errorMessage);
     }
 
     StringBuilder htmlForm = new StringBuilder();
@@ -247,45 +249,46 @@ public class FileUploadServlet extends HttpServlet {
       return;
     }
 
-    if (action == Action.GENERATE_RSS_LINK) {
-      // Generate link to the RSS feed
-      String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + id;
-      res.setContentType("text/html");
-      res.getWriter().println(rssLink);
-   } else if (action == Action.GENERATE_XML) {
-      DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-      Key entityKey = null;
-      Entity desiredFeedEntity = null; 
-      try {
-        // Use key to retrieve entity from Datastore
-        entityKey = KeyFactory.stringToKey(id);
-        desiredFeedEntity = datastore.get(entityKey);
-      } catch (IllegalArgumentException e) {
-        // If entityId cannot be converted into a key
-        writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
-        return;
-      } catch (EntityNotFoundException e) {
-        // No matching entity in Datastore
-        writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
-        return;
-      }
+    switch (action) {
+      case GENERATE_RSS_LINK:
+        String rssLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + id;
+        res.setContentType("text/html");
+        res.getWriter().println(rssLink);
+        break;
+      case GENERATE_XML:
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        Key entityKey = null;
+        Entity desiredFeedEntity = null; 
+        try {
+          // Use key to retrieve entity from Datastore
+          entityKey = KeyFactory.stringToKey(id);
+          desiredFeedEntity = datastore.get(entityKey);
+        } catch (IllegalArgumentException e) {
+          // If entityId cannot be converted into a key
+          writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
+          return;
+        } catch (EntityNotFoundException e) {
+          // No matching entity in Datastore
+          writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
+          return;
+        }
 
-      String podcastTitle = desiredFeedEntity.getProperty(PODCAST_TITLE).toString();
-      String description = desiredFeedEntity.getProperty(DESCRIPTION).toString();
-      String language = desiredFeedEntity.getProperty(LANGUAGE).toString();
-      String email = desiredFeedEntity.getProperty(EMAIL).toString();
+        String podcastTitle = desiredFeedEntity.getProperty(PODCAST_TITLE).toString();
+        String description = desiredFeedEntity.getProperty(DESCRIPTION).toString();
+        String language = desiredFeedEntity.getProperty(LANGUAGE).toString();
+        String email = desiredFeedEntity.getProperty(EMAIL).toString();
 
-      EmbeddedEntity mp3Entity = (EmbeddedEntity) desiredFeedEntity.getProperty(MP3);
-      String mp3Link = mp3Entity.getProperty(MP3_LINK).toString();
+        EmbeddedEntity mp3Entity = (EmbeddedEntity) desiredFeedEntity.getProperty(MP3);
+        String mp3Link = mp3Entity.getProperty(MP3_LINK).toString();
 
-      RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
+        RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
 
-      String xmlString = RSS.toXmlString(rssFeed);
-      res.setContentType("text/xml");
-      res.getWriter().println(xmlString);
-   } else {
-      writeResponse(res, "Sorry, this is not a valid action.", HttpServletResponse.SC_BAD_REQUEST);
-      return;
-   }
+        String xmlString = RSS.toXmlString(rssFeed);
+        res.setContentType("text/xml");
+        res.getWriter().println(xmlString);
+        break;
+      default: 
+        writeResponse(res, "Sorry, this is not a valid action.", HttpServletResponse.SC_BAD_REQUEST);
+    }
   }
 }

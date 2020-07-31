@@ -22,7 +22,7 @@ public class RSS {
   private static final XmlMapper xmlMapper = new XmlMapper();
 
   public RSS(String name, String email, String podcastTitle, String description, String category, String language) {
-    this.channel = new Channel(name, email, podcastTitle, description, category, description);
+    this.channel = new Channel(name, email, podcastTitle, description, category, language);
   }
 
   /**
