@@ -12,14 +12,17 @@ public class RSS {
   @JacksonXmlProperty(isAttribute = true)
   private double version = 2.0;
 
+  @JacksonXmlProperty(isAttribute = true, namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
+  private String itunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
+
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
   private Channel channel;
 
   private static final XmlMapper xmlMapper = new XmlMapper();
 
-  public RSS(String podcastTitle, String mp3Link) {
-    this.channel = new Channel(podcastTitle, mp3Link);
+  public RSS(String name, String email, String podcastTitle, String description, String category, String language) {
+    this.channel = new Channel(name, email, podcastTitle, description, category, description);
   }
 
   public Channel getChannel() {

@@ -13,7 +13,10 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.launchpod.data.RSS;
+import com.google.launchpod.data.Channel;
 
 @WebServlet("/create-by-link")
 public class CreateByLinkServlet extends HttpServlet {
@@ -43,6 +46,12 @@ public class CreateByLinkServlet extends HttpServlet {
     String mp3Link = req.getParameter(MP3_LINK);
     String entityId = req.getParameter(ID);
 
+    UserService userService = UserServiceFactory.getUserService();
+    String email = "";
+    if (userService.isUserLoggedIn()) {
+      email = userService.getCurrentUser().getEmail();
+    }
+
     if (episodeTitle == null || episodeTitle.isEmpty()) {
       throw new IllegalArgumentException("No episode title inputted, please try again.");
     } else if (episodeDescription == null || episodeDescription.isEmpty()) {
@@ -66,20 +75,29 @@ public class CreateByLinkServlet extends HttpServlet {
     // }
 
     // retrieve entity associated with id
-    Key entityKey = KeyFactory.stringToKey(id);
+    Key entityKey = KeyFactory.stringToKey(entityId);
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    Entity desiredFeedEntity = datastore.get(entityKey);
+    Entity desiredFeedEntity;
+    try {
+      desiredFeedEntity = datastore.get(entityKey);
+    } catch (EntityNotFoundException e) {
+      res.setContentType("text/html");
+      res.getWriter().print("<p>Sorry, entity does not exist in Datastore.</p>"); // to-do: come back to this
+      return;
+    }
+
     String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
 
     // modify the xml string
     RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
-    rssFeed.getChannel().getItems().addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link); // to-do: double check this
+    Channel channel = rssFeed.getChannel();
+    channel.addItem(channel, episodeTitle, episodeDescription, episodeLanguage, email, mp3Link); // to-do: double check this
     String modifiedXmlString = RSS.toXmlString(rssFeed);
     desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
     datastore.put(desiredFeedEntity);
 
     // return accessible link to client
-    String urlID = KeyFactory.keyToString(userFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID.
+    String urlID = KeyFactory.keyToString(desiredFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID.
     String rssLink = BASE_URL + urlID;
     res.setContentType("text/html");
     res.getWriter().print(rssLink);
