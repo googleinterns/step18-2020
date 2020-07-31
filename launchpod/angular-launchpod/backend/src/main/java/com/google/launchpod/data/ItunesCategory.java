@@ -10,6 +10,13 @@ public class ItunesCategory {
   @JacksonXmlProperty(isAttribute = true)
   @JsonProperty("text")
   private String text;
+  
+  /**
+   * constructor generated for serialization/deserialization. Ensures that a
+   * constructor is being read for object conversion
+   */
+  public ItunesCategory(){
+  }
 
   public ItunesCategory(String category) {
     this.text = category;

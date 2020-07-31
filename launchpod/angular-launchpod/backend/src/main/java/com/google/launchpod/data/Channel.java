@@ -31,8 +31,8 @@ public class Channel {
   @JsonProperty("description")
   private String description = "Launchpod generated RSS";
 
+  @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty(localName = "owner", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
-  @JsonProperty("itunesOwner")
   private List<ItunesOwner> itunesOwner;
 
   @JacksonXmlElementWrapper(useWrapping = false)
@@ -46,7 +46,6 @@ public class Channel {
   private List<ItunesCategory> itunesCategory;
 
   @JacksonXmlElementWrapper(useWrapping = false)
-  @JacksonXmlProperty
   @JsonProperty("item")
   private List<Item> items;
 

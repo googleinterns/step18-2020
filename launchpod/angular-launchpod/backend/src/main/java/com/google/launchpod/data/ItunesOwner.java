@@ -14,7 +14,14 @@ public class ItunesOwner {
   @JacksonXmlProperty(localName = "email", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
   @JsonProperty("email")
   private String email;
-
+  
+  /**
+  * constructor generated for serialization/deserialization. Ensures that a
+  * constructor is being read for object conversion
+  */
+  public ItunesOwner(){   
+  }
+  
   public ItunesOwner(String name, String email) {
     this.name = name;
     this.email = email;

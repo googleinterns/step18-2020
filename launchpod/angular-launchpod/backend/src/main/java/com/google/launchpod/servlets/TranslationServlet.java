@@ -48,38 +48,52 @@ public class TranslationServlet extends HttpServlet {
     if (targetLanguage == null || targetLanguage == "") {
       throw new IOException("Please give valid language.");
     }
+
+    //get ID from parameter and turn into key
+    String id = getIdFromUrl(link);
+    Key desiredFeedKey = KeyFactory.stringToKey(id);
+
+    //Search for key from given Link
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    Entity desiredFeedEntity = null;
+    try {
+      desiredFeedEntity = datastore.get(desiredFeedKey);
+    } catch (EntityNotFoundException e){
+      e.printStackTrace();
+      res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to find given URL key, Please try again");
+    }
+    String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+    
+    RSS rssFeed = null;
     try {
       XML_MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-      String id = getIdFromUrl(link);
-      
-      //Search for key from given Link
-      Key desiredFeedKey = KeyFactory.stringToKey(id);
-      DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-      Entity desiredFeedEntity = datastore.get(desiredFeedKey);
-      String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
-      RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
+      rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
 
-      // Translate fields to new language
-      Translate translate = TranslateOptions.getDefaultInstance().getService();
+    } catch (Exception e) {
+      res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to translate. Try again");
+    }
+    
+    // Translate fields to new language
+    Translate translate = TranslateOptions.getDefaultInstance().getService();
+    
+    // Channel description
+    Translation translation = translate.translate(rssFeed.getChannel().getDescription(),
+        TranslateOption.targetLanguage(targetLanguage));
+    rssFeed.getChannel().setDescription(translation.getTranslatedText());
 
-      // Channel description
-      Translation translation = translate.translate(rssFeed.getChannel().getDescription(),
-          TranslateOption.targetLanguage(targetLanguage));
-      rssFeed.getChannel().setDescription(translation.getTranslatedText());
-
-      // Language
-      rssFeed.getChannel().setLanguage(targetLanguage);
+    // Language
+    rssFeed.getChannel().setLanguage(targetLanguage);
 
       // Episodes
-      for (Item item : rssFeed.getChannel().getItems()) {
-        // Episode title
-        translation = translate.translate(item.getTitle(), TranslateOption.targetLanguage(targetLanguage));
-        item.setTitle(translation.getTranslatedText());
+    for (Item item : rssFeed.getChannel().getItems()) {
+      // Episode title
+      translation = translate.translate(item.getTitle(), TranslateOption.targetLanguage(targetLanguage));
+      item.setTitle(translation.getTranslatedText());
 
-        // Episode description
-        translation = translate.translate(item.getDescription(), TranslateOption.targetLanguage(targetLanguage));
-        item.setDescription(translation.getTranslatedText());
-      }
+      // Episode description
+      translation = translate.translate(item.getDescription(), TranslateOption.targetLanguage(targetLanguage));
+      item.setDescription(translation.getTranslatedText());
+    }
 
       // Generate Translated XML string then place it into datastore
       String translatedXmlString = RSS.toXmlString(rssFeed);
@@ -87,16 +101,11 @@ public class TranslationServlet extends HttpServlet {
       translatedUserFeedEntity.setProperty(XML_STRING, translatedXmlString);
       datastore.put(translatedUserFeedEntity);
       String translatedFeedId = KeyFactory.keyToString(translatedUserFeedEntity.getKey());
-
+      
       // display new translated string to the user
       res.setContentType("text/html");
       res.getWriter().println(BASE_URL + translatedFeedId);
-
-    } catch (EntityNotFoundException e) {
-      res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to translate. Try again");
-    }
   }
-
 
   public static String getIdFromUrl(String rssLink) throws MalformedURLException {
     // Get the ID from the link that is being pasted

@@ -20,11 +20,7 @@ public class Item {
 
   @JacksonXmlProperty
   @JsonProperty("description")
-  private String description;
-
-  @JacksonXmlProperty
-  @JsonProperty("email")
-  private String email;
+  private String description = "Episode 1";
 
   @JacksonXmlProperty
   @JsonProperty("pubDate")
