@@ -22,6 +22,10 @@ public class RSS {
     this.channel = new Channel(podcastTitle, mp3Link);
   }
 
+  public Channel getChannel() {
+    return this.channel;
+  }
+
   /**
    * Create RSS XML string from given fields
    * 

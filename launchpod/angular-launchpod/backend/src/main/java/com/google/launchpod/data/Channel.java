@@ -31,7 +31,23 @@ public class Channel {
     this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, mp3Link)));
   }
 
-    public List<Item> getItems() {
+  public void setLanguage(String newLanguage) {
+    this.language = newLanguage;
+  }
+
+  public void setDescription(String newDescription) {
+    this.description = newDescription;
+  }
+
+  public String getLanguage() {
+    return this.language;
+  }
+
+  public String getDescription() {
+    return this.description;
+  }
+
+  public List<Item> getItems() {
     return this.items;
   }
 

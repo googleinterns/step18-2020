@@ -20,7 +20,6 @@ public class CreateByLinkServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
   private static final String USER_FEED = "UserFeed";
-  // private static final String PODCAST_TITLE = "title";
   private static final String EPISODE_TITLE = "episodeTitle";
   private static final String EPISODE_DESCRIPTION = "episodeDescription";
   private static final String EPISODE_LANGUAGE = "episodeLanguage";
@@ -79,7 +78,7 @@ public class CreateByLinkServlet extends HttpServlet {
     desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
     datastore.put(desiredFeedEntity);
 
-    // return accessible link to user
+    // return accessible link to client
     String urlID = KeyFactory.keyToString(userFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID.
     String rssLink = BASE_URL + urlID;
     res.setContentType("text/html");
