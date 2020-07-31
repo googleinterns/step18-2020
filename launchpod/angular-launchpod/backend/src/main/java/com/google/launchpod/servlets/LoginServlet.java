@@ -56,8 +56,10 @@ public class LoginServlet extends HttpServlet {
       String logoutUrl = userService.createLogoutURL(urlToRedirectTo);
       String loginMessage = "<p>Logged in as " + userEmail + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
 
-      Query query =
-        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, userEmail)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+      // Query query =
+      //   new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, userEmail)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+
+      Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
       PreparedQuery results = datastore.prepare(query);
@@ -65,21 +67,23 @@ public class LoginServlet extends HttpServlet {
       ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
       for (Entity entity : results.asIterable()) {
         String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
-        String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
-        String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
-        String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
-        String language = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
-        String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
-        long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
-        Date date = new Date(timestamp);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
-        String postTime = dateFormat.format(date);
-        Key key = entity.getKey();
-        
-        String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
-        String rssLink = BASE_URL + urlID;
+        if (userEmail.equals(userFeedEmail)) {
+          String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+          String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
+          String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+          String language = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
+          String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+          long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+          Date date = new Date(timestamp);
+          SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+          String postTime = dateFormat.format(date);
+          Key key = entity.getKey();
+          
+          String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+          String rssLink = BASE_URL + urlID;
 
-        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID, language));
+          userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID, language));
+        }
       }
 
       LoginStatus loginStatus = LoginStatus.forSuccessfulLogin(loginMessage, userFeeds);
@@ -106,8 +110,9 @@ public class LoginServlet extends HttpServlet {
 
     datastore.delete(key);
 
-    Query query =
-        new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+    // Query query =
+    //     new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+    Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
     PreparedQuery results = datastore.prepare(query);
 

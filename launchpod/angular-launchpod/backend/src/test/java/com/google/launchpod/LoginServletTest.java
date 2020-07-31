@@ -26,13 +26,29 @@ import java.security.interfaces.DSAKey;
 
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.gson.Gson;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 import com.google.gson.JsonParser;
 import com.google.launchpod.data.LoginStatus;
+import com.google.launchpod.data.UserFeed;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.google.launchpod.servlets.LoginServlet;
+import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
@@ -67,13 +83,16 @@ public class LoginServletTest extends Mockito {
   @Rule // JUnit 4 uses Rules for testing specific messages
   public ExpectedException thrown = ExpectedException.none();
 
-  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalUserServiceTestConfig());
+  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
 
   private static final Gson GSON = new Gson();
+  JsonParser parser = new JsonParser();
 
   private static final String EMAIL = "email";
 
-  private static final String TEST_EMAIL = "123@abc.com";
+  private static final String TEST_EMAIL = "123@google.com";
+
+  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
 
   @Before
   public void setUp() {
@@ -87,11 +106,12 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() gets the user's correct status when logged in.
+   * Asserts that doGet() gets the user's correct status when logged in.
    */
   @Test
   public void doGet_GetsCorrectStatusLoggedIn() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
     StringWriter stringWriter = new StringWriter();
@@ -100,21 +120,18 @@ public class LoginServletTest extends Mockito {
 
     servlet.doGet(request, response);
 
-    String urlToRedirectToAfterUserLogsOut = "/index.html";
-    String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
-    String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
-    LoginStatus loginStatus = new LoginStatus(true, loginMessage);
     verify(response).setContentType("application/json");
-    assertEquals(loginStatus.isLoggedIn, GSON.fromJson(stringWriter.toString(), LoginStatus.class).isLoggedIn);
+    assertEquals(true, GSON.fromJson(stringWriter.toString(), LoginStatus.class).isLoggedIn);
   }
 
   /**
-   * Asserts that doPost() gets the user's email and successfully sends
+   * Asserts that doGet() gets the user's email and successfully sends
    * a corresponding loginStatus object as the response.
    */
   @Test
   public void doGet_GetsCorrectMessageLoggedIn() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
     StringWriter stringWriter = new StringWriter();
@@ -126,13 +143,62 @@ public class LoginServletTest extends Mockito {
     String urlToRedirectToAfterUserLogsOut = "/index.html";
     String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
     String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
-    LoginStatus loginStatus = new LoginStatus(true, loginMessage);
     verify(response).setContentType("application/json");
-    assertEquals(loginStatus.message, GSON.fromJson(stringWriter.toString(), LoginStatus.class).message);
+    assertEquals(loginMessage, GSON.fromJson(stringWriter.toString(), LoginStatus.class).message);
   }
 
   /**
-   * Asserts that doPost() gets the user's correct status when logged out.
+   * Asserts that doGet() gets the user's feeds and successfully sends
+   * a corresponding loginStatus object as the response.
+   */
+  @Test
+  public void doGet_GetsCorrectFeedsLoggedIn() throws IOException {
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter writer = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(writer);
+
+    servlet.doGet(request, response);
+
+    String urlToRedirectToAfterUserLogsOut = "/index.html";
+    String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
+    String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
+
+    Query query =
+        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, TEST_EMAIL)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    PreparedQuery results = datastore.prepare(query);
+
+    ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
+    for (Entity entity : results.asIterable()) {
+      String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
+      String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+      String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
+      String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+      String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+      String language = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
+      long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+      Date date = new Date(timestamp);
+      SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss");
+      String postTime = dateFormat.format(date);
+      Key key = entity.getKey();
+      
+      String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+      String rssLink = BASE_URL + urlID;
+
+      userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID, language));
+    }
+
+    verify(response).setContentType("application/json");
+    assertEquals(userFeeds, GSON.fromJson(stringWriter.toString(), LoginStatus.class).feeds);
+  }
+
+  /**
+   * Asserts that doGet() gets the user's correct status when logged out.
    */
   @Test
   public void doGet_GetsCorrectStatusLoggedOut() throws IOException {
@@ -145,16 +211,12 @@ public class LoginServletTest extends Mockito {
 
     servlet.doGet(request, response);
 
-    String urlToRedirectToAfterUserLogsOut = "/index.html";
-    String loginUrl = userService.createLoginURL(urlToRedirectToAfterUserLogsOut);
-    String loginMessage = loginUrl;
-    LoginStatus loginStatus = new LoginStatus(false, loginMessage);
     verify(response).setContentType("application/json");
-    assertEquals(loginStatus.isLoggedIn, GSON.fromJson(stringWriter.toString(), LoginStatus.class).isLoggedIn);
+    assertEquals(false, GSON.fromJson(stringWriter.toString(), LoginStatus.class).isLoggedIn);
   }
 
   /**
-   * Asserts that doPost() successfully sends a login url as the
+   * Asserts that doGet() successfully sends a login url as the
    * response when the user is not logged in.
    */
   @Test
@@ -171,8 +233,8 @@ public class LoginServletTest extends Mockito {
     String urlToRedirectToAfterUserLogsOut = "/index.html";
     String loginUrl = userService.createLoginURL(urlToRedirectToAfterUserLogsOut);
     String loginMessage = loginUrl;
-    LoginStatus loginStatus = new LoginStatus(false, loginMessage);
-    verify(response, atLeast(1)).setContentType("application/json");
-    assertEquals(loginStatus.message, GSON.fromJson(stringWriter.toString(), LoginStatus.class).message);
+
+    verify(response).setContentType("application/json");
+    assertEquals(loginMessage, GSON.fromJson(stringWriter.toString(), LoginStatus.class).message);
   }
 }
