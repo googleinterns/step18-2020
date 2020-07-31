@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.lang.SecurityException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -208,7 +209,7 @@ public class FileUploadServlet extends HttpServlet {
       policy =
         storage.generateSignedPostPolicyV4(
             BlobInfo.newBuilder(bucketName, blobName).build(), 10, TimeUnit.MINUTES, fields);
-    } catch(Exception e) {
+    } catch(SecurityException | IOException e) {
       throw e;
     }
 
