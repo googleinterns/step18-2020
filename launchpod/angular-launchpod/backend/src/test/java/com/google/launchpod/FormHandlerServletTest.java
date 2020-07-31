@@ -1,10 +1,23 @@
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package com.google.launchpod;
 
 import static com.google.appengine.api.datastore.FetchOptions.Builder.withLimit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.beans.Transient;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,18 +30,29 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.launchpod.servlets.FormHandlerServlet;
 import com.google.launchpod.data.UserFeed;
 import com.google.launchpod.data.RSS;
+import com.google.launchpod.data.LoginStatus;
+import com.google.launchpod.data.UserFeed;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
-import com.google.cloud.storage.testing.RemoteStorageHelper;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+import java.util.ArrayList;
+import java.util.Date;
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,39 +86,39 @@ public class FormHandlerServletTest extends Mockito {
   @Rule // JUnit 4 uses Rules for testing specific messages
   public ExpectedException thrown = ExpectedException.none();
 
-  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
-
-  // Keys
+  // keys
   private static final String USER_FEED = "UserFeed";
   private static final String PODCAST_TITLE = "title";
   private static final String XML_STRING = "xmlString";
+  private static final String TIMESTAMP = "timestamp";
+  private static final String NAME = "name";
+  private static final String EMAIL = "email";
+  private static final String ID = "id";
+  private static final String CATEGORY = "category";
   private static final String DESCRIPTION = "description";
   private static final String LANGUAGE = "language";
-  private static final String TIMESTAMP = "timestamp";
-  private static final String EMAIL = "email";
-  private static final String MP3 = "mp3";
-  private static final String MP3_LINK = "mp3Link";
-  private static final String ID = "id";
-  private static final String ACTION = "action";
 
   private static final String TEST_PODCAST_TITLE = "TEST_PODCAST_TITLE";
-  private static final String TEST_DESCRIPTION= "TEST_DESCRIPTION";
-  private static final String TEST_LANGUAGE= "en";
+  private static final String TEST_LANGUAGE = "en";
+  private static final String TEST_DESCRIPTION = "TEST_DESCRIPTION";
   private static final long TEST_TIMESTAMP = System.currentTimeMillis();
   private static final String TEST_ID = "123456";
   private static final String TEST_ID_TWO = "789012";
   private static final String TEST_PUBDATE = "2020/06/26 01:32:06";
-  private static final String TEST_EMAIL = "123@google.com";
+  private static final String TEST_NAME = "John Doe";
+  private static final String TEST_EMAIL = "123@abc.com";
   private static final String TEST_INCORRECT_EMAIL = "123@cde.com";
   private static final String TEST_EMAIL_TWO = "456@abc.com";
+  private static final String TEST_CATEGORY = "Technology";
   private static final String EMPTY_STRING = "";
   private static final String TEST_XML_STRING = "test";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  private static final String GENERATE_XML_ACTION = "generateXml";
-  private static final String GENERATE_RSS_LINK = "generateRSSLink";
+  private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+  private static final Gson GSON = new Gson();
+  JsonParser parser = new JsonParser();
 
-  private static final String PROJECT_ID = "launchpod-step18-2020"; // The ID of your GCP project
-  private static final String BUCKET_NAME = "launchpod-mp3-files"; // The ID of the GCS bucket to upload to
+  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig())
+  .setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
 
   @Before
   public void setUp() {
@@ -107,52 +131,19 @@ public class FormHandlerServletTest extends Mockito {
     helper.tearDown();
   }
 
-  private enum Action {
-    GENERATE_RSS_LINK("generateRSSLink"), GENERATE_XML("generateXml");
-
-    private String action;
- 
-    Action(String action) {
-        this.action = action;
-    }
-
-    @Override
-    public String toString() {
-      return action;
-    }
-  }
-
-  /**
-   * Creates a test user feed entity with an embedded entity for the MP3 object.
-   */
-  private Entity makeEntity(String title, String description, String language, String email, String xmlString) {
-    Entity userFeedEntity = new Entity(USER_FEED);
-    userFeedEntity.setProperty(PODCAST_TITLE, title);
-    userFeedEntity.setProperty(DESCRIPTION, description);
-    userFeedEntity.setProperty(LANGUAGE, language);
-    userFeedEntity.setProperty(EMAIL, email);
-
-    userFeedEntity.setProperty(XML_STRING, xmlString);
-    return userFeedEntity;
-  }
-
   /**
    * Creates a test user feed entity.
    */
-  private EmbeddedEntity makeEmbeddedEntity(String entityId, String email) {
-    EmbeddedEntity mp3 = new EmbeddedEntity();
-    mp3.setProperty(ID, entityId);
-    mp3.setProperty(MP3_LINK, makeMp3Link(entityId));
-    mp3.setProperty(EMAIL, email);
-    return mp3;
-  }
-
-  /**
-   * Creates a test MP3 link.
-   */
-  private String makeMp3Link(String entityId) {
-    String link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
-    return link;
+  private Entity makeEntity(String name, String email, String title, String description, String category, String language, String xmlString) {
+    Entity userFeedEntity = new Entity(USER_FEED);
+    userFeedEntity.setProperty(NAME, name);
+    userFeedEntity.setProperty(EMAIL, email);
+    userFeedEntity.setProperty(PODCAST_TITLE, title);
+    userFeedEntity.setProperty(DESCRIPTION, description);
+    userFeedEntity.setProperty(CATEGORY, category);
+    userFeedEntity.setProperty(LANGUAGE, language);
+    userFeedEntity.setProperty(XML_STRING, xmlString);
+    return userFeedEntity;
   }
 
   /**
@@ -162,11 +153,13 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_StoresCorrectFormInput() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
     when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
-    when(request.getParameter(EMAIL)).thenReturn(TEST_EMAIL);
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -175,20 +168,32 @@ public class FormHandlerServletTest extends Mockito {
     servlet.doPost(request, response);
 
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+
+    Query query = new Query(USER_FEED);
+    PreparedQuery preparedQuery = ds.prepare(query);
+    Entity desiredEntity = preparedQuery.asSingleEntity();
+
+    String expectedXmlString = RSS.toXmlString(TEST_RSS_FEED);
+
+    assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
   }
 
   /**
-   * Asserts that doPost() takes in form inputs from client, successfully
-   * stores that information in a Datastore entity, and correctly creates and stores xml string.
+   * Asserts that doPost() takes in form inputs from client, successfully stores
+   * that information in a Datastore entity, and returns a URL link to the
+   * generated RSS feed.
    */
   @Test
-  public void doPost_StoresCorrectFormInput_StoresCorrectXmlString() throws IOException {
+  public void doPost_ReturnsCorrectFeeds() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+    String email = userService.getCurrentUser().getEmail();
 
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
     when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
-    when(request.getParameter(EMAIL)).thenReturn(TEST_EMAIL);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -196,78 +201,35 @@ public class FormHandlerServletTest extends Mockito {
 
     servlet.doPost(request, response);
 
-    Query query = new Query(USER_FEED);
-    PreparedQuery preparedQuery = ds.prepare(query);
-    Entity desiredEntity = preparedQuery.asSingleEntity();
+    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
 
-    String id = KeyFactory.keyToString(desiredEntity.getKey());
-    RSS testRSSFeed = new RSS(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, makeMp3Link(id));
+    Query query =
+        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, email)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
-    // Verify xml string generation
-    String testXmlString = RSS.toXmlString(testRSSFeed);
-    assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
-  }
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    PreparedQuery results = datastore.prepare(query);
 
-  /**
-   * Asserts that doPost() takes in form inputs from client and successfully
-   * stores that information + MP3 information as an embedded entity in Datastore.
-   */
-  @Test
-  public void doPost_StoresCorrectFormInput_StoresCorrectMp3Info() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
+    for (Entity entity : results.asIterable()) {
+      String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+      String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
+      String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+      String userFeedLanguage = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
+      String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+      long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+      Date date = new Date(userFeedTimestamp);
+      SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+      String postTime = dateFormat.format(date);
+      Key key = entity.getKey();
+      
+      String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+      String rssLink = BASE_URL + urlID;
 
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
-    when(request.getParameter(EMAIL)).thenReturn(TEST_EMAIL);
+      userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime, urlID, userFeedLanguage));
+    }
 
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doPost(request, response);
-
-    Query query = new Query(USER_FEED);
-    PreparedQuery preparedQuery = ds.prepare(query);
-    Entity desiredEntity = preparedQuery.asSingleEntity();
-
-    String id = KeyFactory.keyToString(desiredEntity.getKey());
-
-    // Verify embedded entity
-    EmbeddedEntity testEmbeddedEntity = makeEmbeddedEntity(id, TEST_EMAIL);
-    assertEquals(testEmbeddedEntity, desiredEntity.getProperty(MP3));
-  }
-
-  /**
-   * Asserts that doPost() takes in form inputs from client and returns an HTML form.
-   */
-  @Test
-  public void doPost_ReturnsHtmlForm() throws IOException, Exception {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
-    when(request.getParameter(EMAIL)).thenReturn(TEST_EMAIL);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doPost(request, response);
-
-    Query query = new Query(USER_FEED);
-    PreparedQuery preparedQuery = ds.prepare(query);
-    Entity desiredEntity = preparedQuery.asSingleEntity();
-
-    String id = KeyFactory.keyToString(desiredEntity.getKey());
-
-    assertEquals(1, ds.prepare(query).countEntities(withLimit(10)));
-
-    // Verify that the HTML returned contains the form name
-    verify(response, times(1)).setContentType("text/html");
-    writer.flush();
-    assertTrue(stringWriter.toString().contains("mp3-upload"));
+    verify(response).setContentType("application/json");
+    assertEquals(parser.parse(GSON.toJson(userFeeds)), parser.parse(stringWriter.toString()));
   }
 
   /**
@@ -277,7 +239,13 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputEmptyTitle_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn("");
+    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
+    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Title inputted, please try again.");
@@ -293,7 +261,13 @@ public class FormHandlerServletTest extends Mockito {
   @Test
   public void doPost_FormInputNullTitle_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn(null);
+    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
+    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Title inputted, please try again.");
@@ -303,163 +277,110 @@ public class FormHandlerServletTest extends Mockito {
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the description field
+   * Expects doPost() to throw an IllegalArgumentException when the category field
    * is empty.
    */
   @Test
-  public void doPost_FormInputEmptyDescription_ThrowsErrorMessage() throws IOException {
+  public void doPost_FormInputEmptyCategory_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn("");
+    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn("");
+    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("No description inputted, please try again.");
+    thrown.expectMessage("No Category inputted, please try again.");
     servlet.doPost(request, response);
 
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the description field
+   * Expects doPost() to throw an IllegalArgumentException when the category field
    * is null.
    */
   @Test
-  public void doPost_FormInputNullDescription_ThrowsErrorMessage() throws IOException {
+  public void doPost_FormInputNullCategory_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(null);
+    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
+    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
+    when(request.getParameter(CATEGORY)).thenReturn(null);
+    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("No description inputted, please try again.");
+    thrown.expectMessage("No Category inputted, please try again.");
     servlet.doPost(request, response);
 
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the language field
+   * Expects doPost() to throw an IllegalArgumentException when the Name field
    * is empty.
    */
   @Test
-  public void doPost_FormInputEmptyLanguage_ThrowsErrorMessage() throws IOException {
+  public void doPost_FormInputEmptyName_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(LANGUAGE)).thenReturn("");
+    when(request.getParameter(NAME)).thenReturn("");
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
+    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("No language inputted, please try again.");
+    thrown.expectMessage("No Name inputted, please try again.");
     servlet.doPost(request, response);
+
+    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the language field
+   * Expects doPost() to throw an IllegalArgumentException when the Name field
    * is null.
    */
   @Test
-  public void doPost_FormInputNullLanguage_ThrowsErrorMessage() throws IOException {
+  public void doPost_FormInputNullName_ThrowsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    UserService userService = UserServiceFactory.getUserService();
+
     when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
     when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(LANGUAGE)).thenReturn(null);
+    when(request.getParameter(NAME)).thenReturn(null);
+    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
+    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("No language inputted, please try again.");
+    thrown.expectMessage("No Name inputted, please try again.");
     servlet.doPost(request, response);
+
+    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the email field
-   * is empty.
+   * Asserts that doGet() returns correct XML string when given an entity ID, with
+   * one entity in Datstore.
    */
   @Test
-  public void doPost_FormInputEmptyEmail_ThrowsErrorMessage() throws IOException {
+  public void doGet_SingleEntity_ReturnsCorrectXmlString() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);    
-    when(request.getParameter(EMAIL)).thenReturn("");
+    UserService userService = UserServiceFactory.getUserService();
 
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("You are not logged in. Please try again.");
-    servlet.doPost(request, response);
-  }
-
-  /**
-   * Expects doPost() to throw an IllegalArgumentException when the email field
-   * is null.
-   */
-  @Test
-  public void doPost_FormInputNullEmail_ThrowsErrorMessage() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);  
-    when(request.getParameter(EMAIL)).thenReturn(null);
-
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("You are not logged in. Please try again.");
-    servlet.doPost(request, response);
-  }
-
-  // Note: Post-MVP, we will change the language input into a dropdown to prevent invalid inputs.
-
-  /**
-   * Asserts that doGet() successfully creates link to the RSS feed when given an action and entity ID,
-   * with one entity in Datastore.
-   */
-  @Test
-  public void doGet_ReturnsRSSLink() throws IOException {
-
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    String testXmlString = RSS.toXmlString(rss);
+    Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE, testXmlString);
     ds.put(entity);
 
-    String action = GENERATE_RSS_LINK;
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(ACTION)).thenReturn(action);
     when(request.getParameter(ID)).thenReturn(id);
-
-    String testRSSLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + id;
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doGet(request, response);
-
-    verify(response, times(1)).setContentType("text/html");
-    writer.flush();
-    assertEquals(testRSSLink.trim(), stringWriter.toString().trim());
-  }
-
-  /**
-   * Asserts that doGet() successfully creates an xml string when given an action and entity ID,
-   * with one entity in Datastore.
-   */
-  @Test
-  public void doGet_SingleEntity_ReturnsCorrectXmlString() throws IOException, EntityNotFoundException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
-    ds.put(entity);
-
-    Entity desiredEntity = ds.get(entity.getKey());
-    String id = KeyFactory.keyToString(desiredEntity.getKey());
-    EmbeddedEntity mp3 = makeEmbeddedEntity(id, TEST_EMAIL);
-    desiredEntity.setProperty(MP3, mp3);
-    ds.put(desiredEntity);
-
-    when(request.getParameter(ACTION)).thenReturn(GENERATE_XML_ACTION);
-    when(request.getParameter(ID)).thenReturn(id);
-
-    RSS testRSSFeed = new RSS(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, makeMp3Link(id));
-    String testXmlString = RSS.toXmlString(testRSSFeed);
-    
-    assertEquals(TEST_PODCAST_TITLE, desiredEntity.getProperty(PODCAST_TITLE).toString());
-    assertEquals(TEST_DESCRIPTION, desiredEntity.getProperty(DESCRIPTION).toString());
-    assertEquals(TEST_LANGUAGE, desiredEntity.getProperty(LANGUAGE).toString());
-    assertEquals(TEST_EMAIL, desiredEntity.getProperty(EMAIL).toString());
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -469,7 +390,7 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/xml");
     writer.flush();
-    assertEquals(testXmlString.trim(), stringWriter.toString().trim());
+    assertEquals(testXmlString, stringWriter.toString());
   }
 
   /**
@@ -477,29 +398,22 @@ public class FormHandlerServletTest extends Mockito {
    * multiple entities in Datastore.
    */
   @Test
-  public void doGet_MultipleEntities_ReturnsCorrectXmlString() throws IOException, EntityNotFoundException {
+  public void doGet_MultipleEntities_ReturnsCorrectXmlString() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
-    Entity entityTwo = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL_TWO, TEST_XML_STRING);
+    UserService userService = UserServiceFactory.getUserService();
+
+    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    String testXmlString = RSS.toXmlString(rss);
+
+    Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE, testXmlString);
+    Entity entityTwo = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE, testXmlString);
     ds.put(entity);
     ds.put(entityTwo);
 
     String id = KeyFactory.keyToString(entity.getKey());
-    EmbeddedEntity mp3 = makeEmbeddedEntity(id, TEST_EMAIL);
-    Entity desiredFeedEntity = ds.get(entity.getKey());
-    desiredFeedEntity.setProperty(MP3, mp3);
-    ds.put(desiredFeedEntity);
-    
-    RSS testRSSFeed = new RSS(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, makeMp3Link(id));
-    String testXmlString = RSS.toXmlString(testRSSFeed);
+    String idTwo = KeyFactory.keyToString(entityTwo.getKey());
 
-    when(request.getParameter(ACTION)).thenReturn(GENERATE_XML_ACTION);
     when(request.getParameter(ID)).thenReturn(id);
-
-    assertEquals(TEST_PODCAST_TITLE, desiredFeedEntity.getProperty(PODCAST_TITLE).toString());
-    assertEquals(TEST_DESCRIPTION, desiredFeedEntity.getProperty(DESCRIPTION).toString());
-    assertEquals(TEST_LANGUAGE, desiredFeedEntity.getProperty(LANGUAGE).toString());
-    assertEquals(TEST_EMAIL, desiredFeedEntity.getProperty(EMAIL).toString());
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -509,22 +423,23 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/xml");
     writer.flush();
-    assertEquals(testXmlString.trim(), stringWriter.toString().trim());
+    assertEquals(testXmlString, stringWriter.toString());
   }
 
   /**
-   * Asserts that doGet() returns an error message when an entity with request id
+   * Expects that doGet() returns an error message when an entity with request id
    * does not exist in Datastore.
    */
   @Test
-  public void doGet_EntityNotFound_SendsErrorMessage() throws IOException {
+  public void doGet_EntityNotFound() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+    UserService userService = UserServiceFactory.getUserService();
+
+    Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE, TEST_XML_STRING);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
     ds.delete(entity.getKey());
 
-    when(request.getParameter(ACTION)).thenReturn(GENERATE_XML_ACTION);
     when(request.getParameter(ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
@@ -535,126 +450,22 @@ public class FormHandlerServletTest extends Mockito {
 
     verify(response, times(1)).setContentType("text/html");
     writer.flush();
-    assertEquals("Your entity could not be found.".trim(), stringWriter.toString().trim());
-    verify(response, times(1)).setStatus(HttpServletResponse.SC_NOT_FOUND);
+    assertEquals("<p>Sorry. This is not a valid link.</p>", stringWriter.toString());
   }
 
   /**
-   * Asserts that doGet() returns an error message by catching an IllegalArgumentException
-   * when an entity with request id cannot be converted to a key.
+   * Expects doGet() to throw an error message when there are no entities in
+   * Datastore period. TO-DO: add this test to testing file for LoginServlet (MVP)
    */
   @Test
-  public void doGet_InvalidId_SendsErrorMessage() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
-    ds.put(entity);
-    String id = "1234"; // incorrect id
-
-    when(request.getParameter(ACTION)).thenReturn(GENERATE_XML_ACTION);
-    when(request.getParameter(ID)).thenReturn(id);
+  public void doGet_NoEntitiesInDatastore_ThrowsErrorMessage() throws IOException {
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
     when(response.getWriter()).thenReturn(writer);
 
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Sorry, no matching Id was found in Datastore.");
     servlet.doGet(request, response);
-
-    verify(response, times(1)).setContentType("text/html");
-    writer.flush();
-    assertEquals("Sorry, this is not a valid id.".trim(), stringWriter.toString().trim());
-    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-  }
-
-  /**
-   * Asserts that doGet() returns an error message when it catches an
-   * IllegalArgumentException pertaining to an unexpected action.
-   */
-  @Test
-  public void doGet_NonexistentAction_SendsErrorMessage() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
-    ds.put(entity);
-    String id = KeyFactory.keyToString(entity.getKey());
-
-    when(request.getParameter(ACTION)).thenReturn("generateFake");
-    when(request.getParameter(ID)).thenReturn(id);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doGet(request, response);
-
-    verify(response, times(1)).setContentType("text/html");
-    writer.flush();
-    assertEquals("Illegal argument for action.".trim(), stringWriter.toString().trim());
-    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-  }
-
-  /**
-   * Asserts that doGet() returns an error message when the action parameter is not
-   * generateRSSLink or generateXml. (Goes to else branch in servlet) 
-   */
-  @Test
-  public void doGet_OtherAction_SendsErrorMessage() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
-    ds.put(entity);
-    String id = KeyFactory.keyToString(entity.getKey());
-
-    when(request.getParameter(ACTION)).thenReturn("otherAction");
-    when(request.getParameter(ID)).thenReturn(id);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doGet(request, response);
-
-    verify(response, times(1)).setContentType("text/html");
-    writer.flush();
-    assertEquals("Sorry, this is not a valid action.".trim(), stringWriter.toString().trim());
-    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-  }
-
-  /**
-   * Asserts that doGet() returns a message asking for action if action is null.
-   */
-  @Test
-  public void doGet_NullAction_SendsErrorMessage() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    when(request.getParameter(ACTION)).thenReturn(null);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doGet(request, response);
-
-    verify(response, times(1)).setContentType("text/html");
-    writer.flush();
-    assertEquals("Please specify action and/or id.".trim(), stringWriter.toString().trim());
-    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-  }
-
-  /**
-   * Asserts that doGet() returns a message asking for id if the id is null.
-   */
-  @Test
-  public void doGet_NullId_SendsErrorMessage() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    when(request.getParameter(ID)).thenReturn(null);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doGet(request, response);
-
-    verify(response, times(1)).setContentType("text/html");
-    writer.flush();
-    assertEquals("Please specify action and/or id.".trim(), stringWriter.toString().trim());
-    String expectedMessage = "Please specify action and/or id.";
-    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 }

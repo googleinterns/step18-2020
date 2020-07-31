@@ -1,0 +1,24 @@
+<body>
+  <h2>My RSS Feeds</h2>
+
+  <div id="my-feeds-container">
+    <mat-card *ngFor="let feed of myFeeds; let i = index" class="parent" [ngClass]="{'highlight': hasNewFeed && i == 0}">
+      <mat-card-header class="child inline-block">
+        <mat-card-title>{{feed.title}}</mat-card-title>
+        <mat-card-subtitle>{{feed.postTime}}</mat-card-subtitle>
+      </mat-card-header>
+      <span class="toolbar-spacer"></span>
+      <mat-card-content class="child inline-block">
+        <a [attr.href]="feed.rssLink">{{feed.rssLink}}</a>
+        <button title="Copy to clipboard" [cdkCopyToClipboard]="feed.rssLink" (click)="openSnackBar()" mat-icon-button matSuffix>
+          <mat-icon>content_copy</mat-icon>
+        </button>
+      </mat-card-content>
+      <span class="toolbar-spacer"></span>
+      <mat-card-actions class="child inline-block">
+        <button mat-button color="primary">ADD EPISODES</button>
+        <button mat-button color="warn" (click)="deleteFeed(feed.key)">DELETE</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</body>

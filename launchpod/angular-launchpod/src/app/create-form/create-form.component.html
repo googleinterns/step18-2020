@@ -6,6 +6,24 @@
     </mat-form-field>
     <br />
 
+    <h2>Select the Category</h2>
+    <mat-form-field appearance="fill">
+      <mat-label>Category</mat-label>
+      <mat-select name="category" id="category" [(ngModel)]="selectedCategory">
+        <mat-option *ngFor="let category of categories" [value]="category.value">
+          {{category.value}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <br />
+
+    <h2>Enter the Owner's Name</h2>
+    <mat-form-field appearance="outline">
+        <mat-label>Podcast Owner</mat-label>
+        <input matInput name="name" id="name" placeholder="Enter your name">
+    </mat-form-field>
+    <br />
+
     <h2>Description of Your Podcast</h2>
     <mat-form-field appearance="outline">
         <mat-label>Podcast Description</mat-label>
@@ -13,22 +31,21 @@
     </mat-form-field>
     <br />
 
-    <h2>Language of Your Podcast (in ISO)</h2>
-    <mat-form-field appearance="outline">
-        <mat-label>Podcast Language</mat-label>
-        <input matInput name="language" id="language" placeholder="Ex. en">
+    <h2>Select Language</h2>
+    <mat-form-field appearance="fill">
+      <mat-label>Language</mat-label>
+      <mat-select name="language" id="language" [(ngModel)]="selectedLanguage">
+        <mat-option *ngFor="let language of languages" [value]="language.value">
+          {{language.viewValue}}
+        </mat-option>
+      </mat-select>
     </mat-form-field>
     <br />
 
-    <h2>Your Email</h2>
-    <mat-form-field appearance="outline">
-        <mat-label>Email</mat-label>
-        <input matInput name="email" id="email" placeholder="Ex. 123@google.com">
-    </mat-form-field>
-    <br />
-
-    <button mat-raised-button type="button" (click)="postUploadData()" routerLink="/mp3-form">Create RSS Feed</button>
-    <p> You'll be taken to a page where you can add an episode. </p>
+    <!-- TO-DO after merging: move to MP3 upload component -->
+    <!-- <button mat-raised-button type="button" (click)="postUploadData()" routerLink="/mp3-form">Create RSS Feed</button>
+    <p> You'll be taken to a page where you can add an episode. </p> -->
+    <button mat-raised-button type="button" (click)="postFormData()">Create RSS Feed</button>
     <p id="message"></p>
 </form>
 

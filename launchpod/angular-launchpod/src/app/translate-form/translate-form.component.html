@@ -1,0 +1,22 @@
+<form>
+    <h2>Add the Rss Feed You Want to Translate</h2>
+    <mat-form-field appearance="outline">
+        <mat-label>Rss Feed Link</mat-label>
+        <input matInput name="rssFeedLink" id="rssFeedLink">
+    </mat-form-field>
+    <br />
+
+    <h2>Select the New Language</h2>
+    <mat-form-field appearance="fill">
+      <mat-label>Language</mat-label>
+      <mat-select>
+        <mat-option *ngFor="let language of languages" [value]="language.value">
+          {{language.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <br />
+
+    <button mat-raised-button type="button" (click)="postFormData()" routerLink="/result">Transcribe RSS Feed</button>
+    <p id="message"></p>
+</form>
