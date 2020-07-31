@@ -33,7 +33,7 @@ export class FormHandlerService {
   }
 
   /**
-   * Post form inputs to back-end and retrieve url for rss feed.
+   * Post input from form inputs to back end and retrieve URL for RSS feed.
    */
   postFormData(formData): Observable<string> {
     return this.http.post(FEED_URL, formData, { responseType: 'text' });

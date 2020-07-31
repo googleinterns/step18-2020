@@ -1,1 +1,36 @@
-<p>episode-link-form works!</p>
+<form>
+    <h2>Name of Your Episode </h2>
+    <mat-form-field appearance="outline">
+        <mat-label>Episode Title</mat-label>
+        <input matInput name="title" id="title" placeholder="Ex. We Are in the Future">
+    </mat-form-field>
+    <br />
+
+    <h2>Description of Your Episode </h2>
+    <mat-form-field appearance="outline">
+        <mat-label>Episode Description</mat-label>
+        <input matInput name="title" id="title" placeholder="Ex. In this moment of sorrow, protest, and rage, we offer this as a break from the dreadful present: our show about Afrofuturism.">
+    </mat-form-field>
+    <br />
+
+    <h2>Select Language</h2>
+    <mat-form-field appearance="fill">
+      <mat-label>Language</mat-label>
+      <mat-select name="language" id="language" [(ngModel)]="selectedLanguage">
+        <mat-option *ngFor="let language of languages" [value]="language.value">
+          {{language.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <br />
+
+    <h2>Provide Your mp3 Link</h2>
+    <mat-form-field appearance="outline">
+        <mat-label>mp3 Link</mat-label>
+        <input matInput name="mp3Link" id="mp3Link" placeholder="Paste the link to your public mp3 file here">
+    </mat-form-field>
+    <br />
+
+    <button mat-raised-button type="button" (click)="postFormData()" routerLink="/my-feeds">Add Episode</button>
+    <p id="message"></p>
+</form>
