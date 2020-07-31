@@ -29,7 +29,7 @@ public class Item {
   @JacksonXmlProperty
   private String pubDate;
 
-  private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS z");
+  private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS z");
 
   public Item(String podcastTitle, String mp3Link) {
     this.title = podcastTitle;
@@ -37,6 +37,6 @@ public class Item {
     this.language = language; 
     this.email = email;
     this.link = mp3Link;
-    this.pubDate = this.pubDate = dateFormatter.format(DateTimeUtils.currentTimeMillis());
+    this.pubDate = this.pubDate = DATE_FORMATTER.format(DateTimeUtils.currentTimeMillis());
   }
 }
