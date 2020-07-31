@@ -16,12 +16,13 @@ public final class UserFeed {
   private String postTime;
   private long timestamp;
   private String key;
+  private String language; 
 
   private UserFeed(String xmlString) {
     this.xmlString = xmlString;
   }
 
-  public UserFeed(String title, String name, String rssLink, String description, String email, String postTime, String key) {
+  public UserFeed(String title, String name, String rssLink, String description, String email, String postTime, String key, String language) {
     this.title = title;
     this.name = name;
     this.rssLink = rssLink;
@@ -29,6 +30,7 @@ public final class UserFeed {
     this.email = email;
     this.postTime = postTime;
     this.key = key;
+    this.language = language;
   }
 
   /**

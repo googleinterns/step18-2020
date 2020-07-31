@@ -9,6 +9,7 @@ interface Feed {
   postTime: string;
   description: string;
   key: string;
+  language: string;
 }
 
 @Component({

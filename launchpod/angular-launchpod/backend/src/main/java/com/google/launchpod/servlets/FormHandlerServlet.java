@@ -49,7 +49,7 @@ public class FormHandlerServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private static final String USER_FEED = "UserFeed";
   private static final String TITLE = "title";
-  private static final String MP3_LINK = "mp3Link";
+  private static final String LANGUAGE = "language";
   private static final String USER_NAME = "name";
   private static final String USER_EMAIL = "email";
   private static final String TIMESTAMP = "timestamp";
@@ -72,19 +72,24 @@ public class FormHandlerServlet extends HttpServlet {
     UserService userService = UserServiceFactory.getUserService();
 
     String title = req.getParameter(TITLE);
-    String mp3Link = req.getParameter(MP3_LINK);
     String name = req.getParameter(USER_NAME);
     String category = req.getParameter(CATEGORY);
+    String description = req.getParameter(DESCRIPTION);
+    String language = req.getParameter(LANGUAGE);
     String email = userService.getCurrentUser().getEmail();
 
     long timestamp = System.currentTimeMillis();
 
     if (title == null || title.isEmpty()) {
       throw new IllegalArgumentException("No Title inputted, please try again.");
-    } else if (mp3Link == null || mp3Link.isEmpty()) {
-      throw new IllegalArgumentException("No Mp3 inputted, please try again.");
+    } else if (language == null || language.isEmpty()) {
+      throw new IllegalArgumentException("No Language inputted, please try again.");
     } else if (name == null || name.isEmpty()) {
       throw new IllegalArgumentException("No Name inputted, please try again.");
+    } else if (description == null || description.isEmpty()) {
+      throw new IllegalArgumentException("No Description inputted, please try again.");
+    } else if (category == null || category.isEmpty()) {
+      throw new IllegalArgumentException("No Category inputted, please try again.");
     }
 
     // Creates entity with all desired attributes
@@ -94,10 +99,11 @@ public class FormHandlerServlet extends HttpServlet {
     userFeedEntity.setProperty(USER_NAME, name);
     userFeedEntity.setProperty(USER_EMAIL, email);
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
-    userFeedEntity.setProperty(DESCRIPTION, "Podcast created using LaunchPod.");
+    userFeedEntity.setProperty(DESCRIPTION, description);
+    userFeedEntity.setProperty(LANGUAGE, language);
 
     // Generate xml string
-    RSS rssFeed = new RSS(name, email, title, mp3Link, category);
+    RSS rssFeed = new RSS(name, email, title, description, category, language);
     try {
       String xmlString = RSS.toXmlString(rssFeed);
       userFeedEntity.setProperty(XML_STRING, xmlString);
@@ -118,6 +124,7 @@ public class FormHandlerServlet extends HttpServlet {
       String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
       String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
       String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+      String userFeedLanguage = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
       String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
       long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
       Date date = new Date(userFeedTimestamp);
@@ -128,7 +135,7 @@ public class FormHandlerServlet extends HttpServlet {
       String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
       String rssLink = BASE_URL + urlID;
 
-      userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime, urlID));
+      userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime, urlID, userFeedLanguage));
     }
 
     res.setContentType("application/json");

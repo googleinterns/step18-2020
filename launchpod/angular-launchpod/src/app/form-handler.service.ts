@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 
 const FEED_URL = '/rss-feed';
+const UPLOAD_URL = 'create-by-upload';
 const LOGIN_URL = '/login-status';
 
 @Injectable({
@@ -60,10 +61,25 @@ export class FormHandlerService {
   }
 
   /**
+   * Post form inputs to back-end and retrieve url for rss feed for MP3 uploads.
+   */
+  postUploadData(formData): Observable<string> {
+    console.log("Form data: " + formData);
+    return this.http.post(UPLOAD_URL, formData, { responseType: 'text' });
+  }
+
+  /**
    * Fetch Login Status from LoginServlet.
    */
   getLoginData(): Observable<any> {
     return this.http.get(LOGIN_URL);
+  }
+
+  /**
+   * Get action needed to generate link to RSS feed.
+   */
+  getLinkToCopy(): Observable<any> {
+    return this.http.get(FEED_URL, { responseType: 'text' });
   }
 
   /**
@@ -72,5 +88,4 @@ export class FormHandlerService {
   deleteFeedEntity(formData): Observable<any> {
     return this.http.post(LOGIN_URL, formData);
   }
-
 }

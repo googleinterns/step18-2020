@@ -1,5 +1,5 @@
 <form>
-    <h2>Enter the Name of Your Podcast</h2>
+    <h2>Name of Your Podcast</h2>
     <mat-form-field appearance="outline">
         <mat-label>Podcast Title</mat-label>
         <input matInput name="title" id="title" placeholder="Ex. This American Life">
@@ -9,7 +9,7 @@
     <h2>Select the Category</h2>
     <mat-form-field appearance="fill">
       <mat-label>Category</mat-label>
-      <mat-select name="category" id="category" [(ngModel)]="selected">
+      <mat-select name="category" id="category" [(ngModel)]="selectedCategory">
         <mat-option *ngFor="let category of categories" [value]="category.value">
           {{category.value}}
         </mat-option>
@@ -24,13 +24,28 @@
     </mat-form-field>
     <br />
 
-    <h2>Provide Your mp3 Link</h2>
+    <h2>Description of Your Podcast</h2>
     <mat-form-field appearance="outline">
-        <mat-label>mp3 Link</mat-label>
-        <input matInput name="mp3Link" id="mp3Link" placeholder="Paste the mp3 link here">
+        <mat-label>Podcast Description</mat-label>
+        <input matInput name="description" id="description" placeholder="Ex. This American Life is a public radio show...">
     </mat-form-field>
     <br />
 
+    <h2>Select Language</h2>
+    <mat-form-field appearance="fill">
+      <mat-label>Language</mat-label>
+      <mat-select name="language" id="language" [(ngModel)]="selectedLanguage">
+        <mat-option *ngFor="let language of languages" [value]="language.value">
+          {{language.viewValue}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <br />
+
+    <!-- TO-DO after merging: move to MP3 upload component -->
+    <!-- <button mat-raised-button type="button" (click)="postUploadData()" routerLink="/mp3-form">Create RSS Feed</button>
+    <p> You'll be taken to a page where you can add an episode. </p> -->
     <button mat-raised-button type="button" (click)="postFormData()">Create RSS Feed</button>
     <p id="message"></p>
 </form>
+

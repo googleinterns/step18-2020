@@ -68,6 +68,7 @@ public class LoginServlet extends HttpServlet {
         String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
         String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
         String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+        String language = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
         String email = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
         long timestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
         Date date = new Date(timestamp);
@@ -78,7 +79,7 @@ public class LoginServlet extends HttpServlet {
         String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
         String rssLink = BASE_URL + urlID;
 
-        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID));
+        userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID, language));
       }
 
       LoginStatus loginStatus = LoginStatus.forSuccessfulLogin(loginMessage, userFeeds);
@@ -117,6 +118,7 @@ public class LoginServlet extends HttpServlet {
         String feedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
         String feedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
         String feedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+        String feedLanguage = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
         String feedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
         long feedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
         Date date = new Date(feedTimestamp);
@@ -127,7 +129,7 @@ public class LoginServlet extends HttpServlet {
         String feedUrlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
         String feedRssLink = BASE_URL + feedUrlID;
 
-        userFeeds.add(new UserFeed(feedTitle, feedName, feedRssLink, feedDescription, feedEmail, feedPostTime, feedUrlID));
+        userFeeds.add(new UserFeed(feedTitle, feedName, feedRssLink, feedDescription, feedEmail, feedPostTime, feedUrlID, feedLanguage));
       }
     }
 

@@ -22,10 +22,10 @@ public class Channel {
   private String link = "https://launchpod-step18-2020.appspot.com";
 
   @JacksonXmlProperty
-  private String language = "en";
+  private String language;
 
   @JacksonXmlProperty
-  private String description = "Launchpod generated RSS";
+  private String description;
 
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty(localName = "owner", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
@@ -41,12 +41,14 @@ public class Channel {
 
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
-  private List<Item> item;
+  private List<Item> items;
 
-  public Channel(String name, String email, String podcastTitle, String mp3Link, String category) {
+  public Channel(String name, String email, String podcastTitle, String description, String category, String language) {
     this.itunesOwner = new ArrayList<>(Arrays.asList(new ItunesOwner(name, email)));
     this.itunesCategory = new ArrayList<>(Arrays.asList(new ItunesCategory(category)));
-    this.item = new ArrayList<>(Arrays.asList(new Item(podcastTitle, mp3Link)));
+    this.items = new ArrayList<>();
     this.author = name;
+    this.language = language;
+    this.description = description;
   }
 }
