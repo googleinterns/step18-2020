@@ -209,7 +209,7 @@ public class FileUploadServlet extends HttpServlet {
         storage.generateSignedPostPolicyV4(
             BlobInfo.newBuilder(bucketName, blobName).build(), 10, TimeUnit.MINUTES, fields);
     } catch(Exception e) {
-      throw new RuntimeException(errorMessage);
+      throw e;
     }
 
     StringBuilder htmlForm = new StringBuilder();
