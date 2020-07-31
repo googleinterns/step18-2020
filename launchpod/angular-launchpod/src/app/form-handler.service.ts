@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 
 const FEED_URL = '/rss-feed';
+const UPLOAD_URL = 'create-by-upload';
+const LINK_URL = 'create-by-link';
 const LOGIN_URL = '/login-status';
 
 @Injectable({
@@ -10,11 +12,18 @@ const LOGIN_URL = '/login-status';
 })
 export class FormHandlerService {
 
-  private feedValueSubject = new BehaviorSubject<string>("Loading URL...");
+  private readonly feedValueSubject = new BehaviorSubject<string>("Loading URL...");
   feedValue = this.feedValueSubject.asObservable();
 
-  private loginLinkSubject = new BehaviorSubject<string>("Loading...");
+  private readonly loginLinkSubject = new BehaviorSubject<string>("Loading...");
   loginLink = this.loginLinkSubject.asObservable();
+
+  private readonly myFeedsSubject = new BehaviorSubject<Array<any>>([]);
+  myFeeds = this.myFeedsSubject.asObservable();
+
+  private readonly hasNewFeedSubject = new BehaviorSubject<boolean>(false);
+  hasNewFeed = this.hasNewFeedSubject.asObservable();
+
 
   constructor(private http: HttpClient) {}
 
@@ -33,10 +42,31 @@ export class FormHandlerService {
   }
 
   /**
-   * Post input from form inputs to back end and retrieve URL for RSS feed.
+  * Update the list of "my feeds" with the feeds from post request.
+  */
+  sendMyFeeds(feeds) {
+    this.myFeedsSubject.next(feeds);
+  }
+
+  /**
+  * Update the newFeed boolean when a new feed is added.
+  */
+  updateHasNewFeed() {
+    this.hasNewFeedSubject.next(true);
+  }
+
+  /**
+   * Post inputs from feed creation form to back end and retrieve URL for RSS feed.
    */
   postFormData(formData): Observable<string> {
     return this.http.post(FEED_URL, formData, { responseType: 'text' });
+  }
+
+  /**
+   * Post input from episode by link creation form to back end and retrieve URL for RSS feed.
+  */
+  postEpisodeLinkData(formData): Observable<string> {
+    return this.http.post(LINK_URL, formData, { responseType: 'text' });
   }
 
   /**

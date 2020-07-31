@@ -27,15 +27,16 @@ export class EpisodeLinkFormComponent implements OnInit {
   }
 
   // Sends episode creation data to back end when user clicks the "Add Episode" button.
-  public postFormData() {
+  public postEpisodeLinkData() {
     let formData = new HttpParams();
-    formData = formData.set('title', (document.getElementById("title") as HTMLInputElement).value);
-    formData = formData.set('description', (document.getElementById("description") as HTMLInputElement).value);
-    formData = formData.set('language', this.selectedLanguage);
+    formData = formData.set('episodeTitle', (document.getElementById("episodeTitle") as HTMLInputElement).value);
+    formData = formData.set('episodeDescription', (document.getElementById("episodeDescription") as HTMLInputElement).value);
+    formData = formData.set('episodeLanguage', this.selectedLanguage);
     formData = formData.set('mp3Link', (document.getElementById("mp3Link") as HTMLInputElement).value);
 
-    this.formHandlerService.postFormData(formData)
+    this.formHandlerService.postEpisodeLinkData(formData)
       .subscribe((response) => {
+        // this.feedValue = response;
         this.formHandlerService.sendFeedValue(response);
       });
   }
