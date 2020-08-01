@@ -24,19 +24,13 @@ public class Channel {
   private String link = "https://launchpod-step18-2020.appspot.com";
 
   @JacksonXmlProperty
-<<<<<<< HEAD
   @JsonProperty("language")
   private String language;
 
   @JacksonXmlProperty
   @JsonProperty("description")
   private String description = "Launchpod generated RSS";
-=======
-  private String language;
 
-  @JacksonXmlProperty
-  private String description;
->>>>>>> b1cedde8cbc972904261c16b49d51681f48211c9
 
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty(localName = "owner", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
