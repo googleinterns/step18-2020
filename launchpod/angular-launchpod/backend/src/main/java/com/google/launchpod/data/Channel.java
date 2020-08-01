@@ -34,6 +34,7 @@ public class Channel {
 
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty(localName = "owner", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
+  @JsonProperty("itunesOwner")
   private List<ItunesOwner> itunesOwner;
 
   @JacksonXmlElementWrapper(useWrapping = false)
@@ -92,5 +93,17 @@ public class Channel {
 
   public List<Item> getItems() {
     return this.items;
+  }
+
+  public List<ItunesCategory> getItunesCategory(){
+    return this.itunesCategory;
+  }
+
+  public List<ItunesOwner> getItunesOwner(){
+    return this.itunesOwner;
+  }
+
+  public String getAuthor(){
+    return this.author;
   }
 }

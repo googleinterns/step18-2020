@@ -62,8 +62,7 @@ export class TranslateFormComponent implements OnInit {
   public postFormData() {
     let formData = new HttpParams();
     formData = formData.set('rssFeedLink', (document.getElementById("rssFeedLink") as HTMLInputElement).value);
-    formData = formData.set('language', (document.getElementById("language") as HTMLInputElement).value);
-    //formData = formData.set('language', this.selected);
+    formData = formData.set('language', this.selected);
 
     this.formHandlerService.postTranslationData(formData)
     .subscribe((response) => {

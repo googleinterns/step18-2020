@@ -26,4 +26,8 @@ public class ItunesOwner {
     this.name = name;
     this.email = email;
   }
+
+  public String getName(){
+    return this.name;
+  }
 }

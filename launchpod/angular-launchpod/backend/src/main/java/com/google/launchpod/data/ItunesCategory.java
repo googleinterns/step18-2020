@@ -21,4 +21,12 @@ public class ItunesCategory {
   public ItunesCategory(String category) {
     this.text = category;
   }
+
+  public String getText(){
+    return this.text;
+  }
+
+  public void setText(String newText){
+    this.text = newText;
+  }
 }

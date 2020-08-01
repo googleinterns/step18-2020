@@ -18,6 +18,9 @@ import com.google.cloud.translate.Translate;
 import com.google.cloud.translate.Translate.TranslateOption;
 import com.google.cloud.translate.Translation;
 import com.google.cloud.translate.testing.RemoteTranslateHelper;
+import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.servlets.TranslationServlet;
@@ -53,8 +56,6 @@ public class TranslationServletTest extends Mockito {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
-  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
-
   // keys
   private static final String USER_FEED = "UserFeed";
   private static final String LANGUAGE = "language";
@@ -69,10 +70,14 @@ public class TranslationServletTest extends Mockito {
   private static final String TEST_ID = "123456";
   private static final String TEST_EMAIL = "123@abc.com";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_MP3_LINK, TEST_CATEGORY);
+
+  private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_CATEGORY);
   private RemoteTranslateHelper translateHelper = RemoteTranslateHelper
       .create("AIzaSyBlu9s7xFLjlHAdvlVuUISq_MbyELuCRZo");
   private Translate translateMock = translateHelper.getOptions().getService();
+
+  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig())
+  .setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
 
   @Before
   public void setUp() {
@@ -100,7 +105,7 @@ public class TranslationServletTest extends Mockito {
     when(request.getParameter(LANGUAGE)).thenReturn("");
     when(request.getParameter(RSS_FEED_LINK)).thenReturn(BASE_URL + TEST_ID);
 
-    thrown.expect(IOException.class);
+    thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("Please give valid language.");
 
     servlet.doPost(request, response);
@@ -120,7 +125,7 @@ public class TranslationServletTest extends Mockito {
     when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
     when(request.getParameter(RSS_FEED_LINK)).thenReturn("");
 
-    thrown.expect(IOException.class);
+    thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("Please give valid link.");
 
     servlet.doPost(request, response);
