@@ -34,6 +34,8 @@ import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
 
+import com.google.launchpod.data.ItunesOwner;
+import com.google.launchpod.data.ItunesCategory;
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.LoginStatus;
@@ -74,6 +76,7 @@ public class TranslationServlet extends HttpServlet {
     String link = req.getParameter(RSS_FEED_LINK);
     String targetLanguage = req.getParameter(LANGUAGE);
     String email = userService.getCurrentUser().getEmail();
+    long timestamp = System.currentTimeMillis();
 
     if (link == null || link.isEmpty()) {
       throw new IllegalArgumentException("Please give valid link.");
@@ -116,19 +119,32 @@ public class TranslationServlet extends HttpServlet {
     // Language
     rssFeed.getChannel().setLanguage(targetLanguage);
 
-      // Episodes
-    for (Item item : rssFeed.getChannel().getItems()) {
-      // Episode title
-      item.setTitle(translateText(targetLanguage, item.getTitle()));
+    //Category
+    for(ItunesCategory category: rssFeed.getChannel().getItunesCategory()) {
+      category.setText(translateText(targetLanguage, category.getText()));
+    }
 
-      // Episode description
-      item.setDescription(translateText(targetLanguage, item.getDescription()));
+      // Episodes
+    if(rssFeed.getChannel().getItems() != null) {
+      for (Item item : rssFeed.getChannel().getItems()) {
+        // Episode title
+        item.setTitle(translateText(targetLanguage, item.getTitle()));
+
+        // Episode description
+        item.setDescription(translateText(targetLanguage, item.getDescription()));
+      }
     }
 
     // Generate Translated XML string then place it into datastore
     String translatedXmlString = RSS.toXmlString(rssFeed);
     Entity translatedUserFeedEntity = new Entity(USER_FEED);
     translatedUserFeedEntity.setProperty(XML_STRING, translatedXmlString);
+    translatedUserFeedEntity.setProperty(TITLE, rssFeed.getChannel().getTitle());
+    translatedUserFeedEntity.setProperty(USER_NAME, rssFeed.getChannel().getAuthor());
+    translatedUserFeedEntity.setProperty(USER_EMAIL, email);
+    translatedUserFeedEntity.setProperty(TIMESTAMP, timestamp);
+    translatedUserFeedEntity.setProperty(DESCRIPTION, rssFeed.getChannel().getDescription());
+    translatedUserFeedEntity.setProperty(LANGUAGE, targetLanguage);
     datastore.put(translatedUserFeedEntity);
       
     Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
@@ -137,7 +153,7 @@ public class TranslationServlet extends HttpServlet {
 
     ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
     for (Entity entity : results.asIterable()) {
-      if(entity.getProperty(USER_EMAIL) == email){
+      if(entity.getProperty(USER_EMAIL).toString() == email){
         String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
         String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
         String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
