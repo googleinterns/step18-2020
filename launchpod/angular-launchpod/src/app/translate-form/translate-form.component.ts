@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormHandlerService } from '../form-handler.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
+import { Router } from '@angular/router'
 
 interface Language {
   value: string;
@@ -52,9 +53,9 @@ export class TranslateFormComponent implements OnInit {
     {value: 'vi', viewValue: 'Vietnamese'},
   ];
 
-  selected = this.languages[0].value;
+  selected = this.languages[9].value;
 
-  constructor(private formHandlerService: FormHandlerService) {}
+  constructor(private formHandlerService: FormHandlerService , private router: Router) {}
 
   ngOnInit(): void {}
 
@@ -62,13 +63,15 @@ export class TranslateFormComponent implements OnInit {
     let formData = new HttpParams();
     formData = formData.set('rssFeedLink', (document.getElementById("rssFeedLink") as HTMLInputElement).value);
     formData = formData.set('language', (document.getElementById("language") as HTMLInputElement).value);
+    //formData = formData.set('language', this.selected);
 
     this.formHandlerService.postTranslationData(formData)
-      .subscribe((response) => {
-        this.feedValue = response;
-        console.log("Create feedValue: " + this.feedValue);
-        this.formHandlerService.sendFeedValue(response);
-      });
+    .subscribe((response) => {
+      this.formHandlerService.sendMyFeeds(response);
+      this.formHandlerService.updateHasNewFeed();
+    });
+
+    this.router.navigate(['/my-feeds']);
   }
 
 }

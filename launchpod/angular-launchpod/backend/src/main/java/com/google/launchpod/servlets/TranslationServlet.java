@@ -13,43 +13,74 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
+
 import com.google.cloud.translate.v3.LocationName;
 import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
+
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.RSS;
+import com.google.launchpod.data.LoginStatus;
+import com.google.launchpod.data.UserFeed;
+
+import com.google.gson.Gson;
+
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+import java.util.ArrayList;
+import java.util.Date;
 
 @WebServlet("/translate-feed")
 public class TranslationServlet extends HttpServlet {
 
-    //https://launchpod-step18-2020.appspot.com/rss-feed?id=ahdzfmxhdW5jaHBvZC1zdGVwMTgtMjAyMHIVCxIIVXNlckZlZWQYgICAmKXQhgoM
-
   private static final long serialVersionUID = 1L;
   private static final String USER_FEED = "UserFeed";
   private static final String RSS_FEED_LINK = "rssFeedLink";
+  private static final String TITLE = "title";
   private static final String LANGUAGE = "language";
+  private static final String USER_NAME = "name";
+  private static final String USER_EMAIL = "email";
+  private static final String TIMESTAMP = "timestamp";
+  private static final String POST_TIME = "postTime";
+  private static final String CATEGORY = "category";
+  private static final String DESCRIPTION = "description";
+  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
+  private static final String ID = "id";
   private static final String XML_STRING = "xmlString";
   private static final XmlMapper XML_MAPPER = new XmlMapper();
-  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
+  private static final Gson GSON = new Gson();
 
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res)
       throws JsonParseException, JsonMappingException, IOException {
+    UserService userService = UserServiceFactory.getUserService();
+
     String link = req.getParameter(RSS_FEED_LINK);
     String targetLanguage = req.getParameter(LANGUAGE);
-    if (link == null || link == "") {
-      throw new IOException("Please give valid link.");
-    }
-    if (targetLanguage == null || targetLanguage == "") {
-      throw new IOException("Please give valid language.");
+    String email = userService.getCurrentUser().getEmail();
+
+    if (link == null || link.isEmpty()) {
+      throw new IllegalArgumentException("Please give valid link.");
+    }else if (targetLanguage == null || targetLanguage.isEmpty()) {
+      throw new IllegalArgumentException("Please give valid language.");
+    } else if (email.isEmpty() || email == null){
+      throw new IllegalArgumentException("Please log in to access the feed.");
     }
 
     //get ID from parameter and turn into key
@@ -94,16 +125,39 @@ public class TranslationServlet extends HttpServlet {
       item.setDescription(translateText(targetLanguage, item.getDescription()));
     }
 
-      // Generate Translated XML string then place it into datastore
-      String translatedXmlString = RSS.toXmlString(rssFeed);
-      Entity translatedUserFeedEntity = new Entity(USER_FEED);
-      translatedUserFeedEntity.setProperty(XML_STRING, translatedXmlString);
-      datastore.put(translatedUserFeedEntity);
-      String translatedFeedId = KeyFactory.keyToString(translatedUserFeedEntity.getKey());
+    // Generate Translated XML string then place it into datastore
+    String translatedXmlString = RSS.toXmlString(rssFeed);
+    Entity translatedUserFeedEntity = new Entity(USER_FEED);
+    translatedUserFeedEntity.setProperty(XML_STRING, translatedXmlString);
+    datastore.put(translatedUserFeedEntity);
       
-      // display new translated string to the user
-      res.setContentType("text/html");
-      res.getWriter().println(BASE_URL + translatedFeedId);
+    Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+
+    PreparedQuery results = datastore.prepare(query);
+
+    ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
+    for (Entity entity : results.asIterable()) {
+      if(entity.getProperty(USER_EMAIL) == email){
+        String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+        String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
+        String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+        String userFeedLanguage = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
+        String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+        long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+        Date date = new Date(userFeedTimestamp);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+        String postTime = dateFormat.format(date);
+        Key key = entity.getKey();
+      
+        String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+        String rssLink = BASE_URL + urlID;
+
+        userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime, urlID, userFeedLanguage));
+      }
+    }
+
+    res.setContentType("application/json");
+    res.getWriter().println(GSON.toJson(userFeeds));
   }
 
   /**
