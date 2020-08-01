@@ -31,14 +31,14 @@ export class AppComponent implements OnInit {
       .subscribe((user) => {
         if (user.isLoggedIn) {
           document.getElementById("login-container").innerHTML = user.message;
+          this.formHandlerService.sendMyFeeds(user.feeds);
         } else {
           this.loginLink = user.message;
           this.formHandlerService.sendLoginLink(user.message);
+          
           const dialogConfig = new MatDialogConfig();
-
           dialogConfig.disableClose = true;
           dialogConfig.autoFocus = true;
-
           this.dialog.open(LoginPopupComponent, dialogConfig);
         }
       });

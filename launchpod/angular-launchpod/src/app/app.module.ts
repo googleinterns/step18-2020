@@ -7,6 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { CreateFormComponent } from './create-form/create-form.component';
 import { FormsModule } from '@angular/forms';
+import { HashLocationStrategy } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { LayoutModule } from '@angular/cdk/layout';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,17 +18,18 @@ import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ResultPageComponent } from './result-page/result-page.component';
+import { Mp3FormComponent } from './mp3-form/mp3-form.component'
 import { TranslateFormComponent } from './translate-form/translate-form.component';
 import { TranscribeFormComponent } from './transcribe-form/transcribe-form.component';
 import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
+import { LocationStrategy } from '@angular/common';
 import { LoginPopupComponent } from './login-popup/login-popup.component'
 
 @NgModule({
   declarations: [
     AppComponent,
     CreateFormComponent,
-    ResultPageComponent,
+    Mp3FormComponent,
     TranslateFormComponent,
     TranscribeFormComponent,
     MyFeedsPageComponent,
@@ -50,7 +52,7 @@ import { LoginPopupComponent } from './login-popup/login-popup.component'
     MatToolbarModule,
     ReactiveFormsModule
   ],
-  providers: [],
+  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
   bootstrap: [AppComponent],
   entryComponents: [LoginPopupComponent]
 })
