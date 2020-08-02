@@ -1,7 +1,5 @@
 package com.google.launchpod.data;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -52,7 +50,7 @@ public class Item {
     this.language = language; 
     this.email = email;
     this.link = mp3Link;
-    this.pubDate = this.pubDate = DATE_FORMATTER.format(DateTimeUtils.currentTimeMillis());
+    this.pubDate = DATE_FORMATTER.format(DateTimeUtils.currentTimeMillis());
   }
 
   public void setTitle(String newTitle) {

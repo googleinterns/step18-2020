@@ -1,14 +1,16 @@
 package com.google.launchpod.servlets;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -17,17 +19,15 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
-import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.LoginStatus;
+import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.ArrayList;
-import java.util.Date;
 
 @WebServlet("/rss-feed")
 public class FormHandlerServlet extends HttpServlet {
@@ -49,7 +49,8 @@ public class FormHandlerServlet extends HttpServlet {
   private static final Gson GSON = new Gson();
 
   /**
-   * Requests user inputs in form fields, then creates Entity and places in Datastore.
+   * Requests user inputs in form fields, then creates Entity and places in
+   * Datastore.
    *
    * @throws IOException,IllegalArgumentException
    */
@@ -100,8 +101,9 @@ public class FormHandlerServlet extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
 
-    Query query =
-        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, email)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+    Query query = new Query(LoginStatus.USER_FEED_KEY)
+        .setFilter(new FilterPredicate("email", FilterOperator.EQUAL, email))
+        .addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
     PreparedQuery results = datastore.prepare(query);
 
@@ -117,11 +119,13 @@ public class FormHandlerServlet extends HttpServlet {
       SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
       String postTime = dateFormat.format(date);
       Key key = entity.getKey();
-      
-      String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+
+      String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the
+                                                              // numeric ID.
       String rssLink = BASE_URL + urlID;
 
-      userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime, urlID, userFeedLanguage));
+      userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime,
+          urlID, userFeedLanguage));
     }
 
     res.setContentType("application/json");
@@ -130,6 +134,7 @@ public class FormHandlerServlet extends HttpServlet {
 
   /**
    * Display RSS feed xml string that user tries recalling with the given ID.
+   * 
    * @throws IOException
    */
   @Override
