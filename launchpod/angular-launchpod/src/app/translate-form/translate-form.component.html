@@ -9,14 +9,13 @@
     <h2>Select the New Language</h2>
     <mat-form-field appearance="fill">
       <mat-label>Language</mat-label>
-      <mat-select>
+      <mat-select name="language" id="language" [(ngModel)]="selected">
         <mat-option *ngFor="let language of languages" [value]="language.value">
           {{language.viewValue}}
         </mat-option>
       </mat-select>
     </mat-form-field>
     <br />
-
-    <button mat-raised-button type="button" (click)="postFormData()" routerLink="/result">Transcribe RSS Feed</button>
+    <button mat-raised-button type="button" (click)="postFormData()" >Translate RSS Feed</button>
     <p id="message"></p>
 </form>
