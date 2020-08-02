@@ -33,7 +33,7 @@ import com.google.cloud.translate.v3.TranslateTextRequest;
 import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.Translation;
 import com.google.cloud.translate.v3.TranslationServiceClient;
-
+import com.google.common.base.Strings;
 import com.google.launchpod.data.ItunesOwner;
 import com.google.launchpod.data.ItunesCategory;
 import com.google.launchpod.data.Item;
@@ -82,11 +82,11 @@ public class TranslationServlet extends HttpServlet {
     String email = userService.getCurrentUser().getEmail();
     long timestamp = System.currentTimeMillis();
 
-    if (link == null || link.isEmpty()) {
+    if (Strings.isNullOrEmpty(link)) {
       throw new IllegalArgumentException("Please give valid link.");
-    } else if (targetLanguage == null || targetLanguage.isEmpty()) {
+    } else if (Strings.isNullOrEmpty(targetLanguage)) {
       throw new IllegalArgumentException("Please give valid language.");
-    } else if (email.isEmpty() || email == null) {
+    } else if (Strings.isNullOrEmpty(email)) {
       throw new IllegalArgumentException("Please log in to access the feed.");
     }
 
