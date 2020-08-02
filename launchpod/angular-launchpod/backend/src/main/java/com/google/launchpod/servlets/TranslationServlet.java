@@ -201,7 +201,7 @@ public class TranslationServlet extends HttpServlet {
     URL feedUrl = new URL(rssLink);
     String queryString = feedUrl.getQuery();
     String[] querySplit = queryString.split("=");
-    if (querySplit.length <= 1){
+    if (querySplit.length <= 1) {
       throw new IllegalArgumentException("URL is not valid for translation");
     }
     String id = querySplit[1];
