@@ -108,5 +108,4 @@ export class TranslateFormComponent implements OnInit {
 
     this.router.navigate(['/my-feeds']);
   }
-
 }
