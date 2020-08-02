@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ResultPageComponent } from './result-page.component';
+import { Mp3FormComponent } from './mp3-form.component';
 
-describe('ResultPageComponent', () => {
-  let component: ResultPageComponent;
-  let fixture: ComponentFixture<ResultPageComponent>;
+describe('Mp3FormComponent', () => {
+  let component: Mp3FormComponent;
+  let fixture: ComponentFixture<Mp3FormComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ ResultPageComponent ]
+      declarations: [ Mp3FormComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ResultPageComponent);
+    fixture = TestBed.createComponent(Mp3FormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

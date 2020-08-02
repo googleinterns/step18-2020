@@ -17,6 +17,7 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.Channel;
+import com.google.common.base.Strings;
 
 @WebServlet("/create-by-link")
 public class CreateByLinkServlet extends HttpServlet {
@@ -34,8 +35,16 @@ public class CreateByLinkServlet extends HttpServlet {
   public static final String XML_STRING = "xmlString";
 
   /**
+  * Helper method for repeated code in catching exceptions.
+  */
+  private void writeResponse(HttpServletResponse res, String message, int statusCode) throws IOException {
+    res.setContentType("text/html");
+    res.getWriter().println(message);
+    res.setStatus(statusCode);
+  }
+
+  /**
    * Requests user inputs in form fields, then creates Entity and places in Datastore.
-   *
    * @throws IOException,IllegalArgumentException
    */
   @Override
@@ -44,7 +53,7 @@ public class CreateByLinkServlet extends HttpServlet {
     String episodeDescription = req.getParameter(EPISODE_DESCRIPTION);
     String episodeLanguage = req.getParameter(EPISODE_LANGUAGE);
     String mp3Link = req.getParameter(MP3_LINK);
-    String entityId = req.getParameter(ID);
+    String id = req.getParameter(ID);
 
     UserService userService = UserServiceFactory.getUserService();
     String email = "";
@@ -52,14 +61,18 @@ public class CreateByLinkServlet extends HttpServlet {
       email = userService.getCurrentUser().getEmail();
     }
 
-    if (episodeTitle == null || episodeTitle.isEmpty()) {
+    if (Strings.isNullOrEmpty(episodeTitle)) {
       throw new IllegalArgumentException("No episode title inputted, please try again.");
-    } else if (episodeDescription == null || episodeDescription.isEmpty()) {
+    } else if (Strings.isNullOrEmpty(episodeDescription)) {
       throw new IllegalArgumentException("No episode description inputted, please try again.");
-    } else if (episodeLanguage == null || episodeLanguage.isEmpty()) {
+    } else if (Strings.isNullOrEmpty(episodeLanguage)) {
       throw new IllegalArgumentException("No episode language inputted, please try again.");
-    } else if (mp3Link == null || mp3Link.isEmpty()) {
+    } else if (Strings.isNullOrEmpty(mp3Link)) {
       throw new IllegalArgumentException("No mp3 link inputted, please try again.");
+    } else if (Strings.isNullOrEmpty(id)) {
+      throw new IllegalArgumentException("Sorry, no entity Id could be found.");
+    } else if (Strings.isNullOrEmpty(email)) {
+      throw new IllegalArgumentException("You are not logged in. Please try again.");
     }
 
     // // Creates entity with all desired attributes
@@ -74,21 +87,27 @@ public class CreateByLinkServlet extends HttpServlet {
     //   throw new IOException("Unable to create XML string.");
     // }
 
-    // retrieve entity associated with id
-    Key entityKey = KeyFactory.stringToKey(entityId);
+    // Retrieve entity associated with id
+    Key entityKey = null;
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     Entity desiredFeedEntity;
     try {
+      // Use key to retrieve entity from Datastore
+      entityKey = KeyFactory.stringToKey(id);
       desiredFeedEntity = datastore.get(entityKey);
+    } catch (IllegalArgumentException e) {
+      // If entityId cannot be converted into a key
+      writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
+      return;
     } catch (EntityNotFoundException e) {
-      res.setContentType("text/html");
-      res.getWriter().print("<p>Sorry, entity does not exist in Datastore.</p>"); // to-do: come back to this
+      // No matching entity in Datastore
+      writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
       return;
     }
 
     String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
 
-    // modify the xml string
+    // Modify the xml string
     RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
     Channel channel = rssFeed.getChannel();
     channel.addItem(channel, episodeTitle, episodeDescription, episodeLanguage, email, mp3Link); // to-do: double check this
@@ -96,7 +115,7 @@ public class CreateByLinkServlet extends HttpServlet {
     desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
     datastore.put(desiredFeedEntity);
 
-    // return accessible link to client
+    // Return accessible link to client
     String urlID = KeyFactory.keyToString(desiredFeedEntity.getKey()); // the key string associated with the entity, not the numeric ID.
     String rssLink = BASE_URL + urlID;
     res.setContentType("text/html");
@@ -104,7 +123,7 @@ public class CreateByLinkServlet extends HttpServlet {
   }
 
   /**
-   * Display RSS feed xml string that user tries recalling with the given ID.
+   * Display RSS feed xml string when a user clicks on an RSS feed from their "My RSS Feeds" page.
    * @throws IOException
    */
   @Override
@@ -114,24 +133,28 @@ public class CreateByLinkServlet extends HttpServlet {
     if (id == null) {
       throw new IllegalArgumentException("Sorry, no matching Id was found in Datastore.");
     }
-    Key urlID = KeyFactory.stringToKey(id);
-    // Search key in datastore
+    Key urlId = null;
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    // create entity that contains id from datastore
+    Entity desiredFeedEntity;
+    
+    // Create entity that contains id from datastore
     try {
-      Entity desiredFeedEntity = datastore.get(urlID);
+      urlId = KeyFactory.stringToKey(id);
+      desiredFeedEntity = datastore.get(urlId);
 
       // generate xml string
       String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
       res.setContentType("text/xml");
       res.getWriter().print(xmlString);
-
-      // If there is no entity that matches the key
+    } catch (IllegalArgumentException e) {
+      // If entityId cannot be converted into a key
+      writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
+      return;
     } catch (EntityNotFoundException e) {
-      e.printStackTrace();
-      res.setContentType("text/html");
-      res.getWriter().print("<p>Sorry. This is not a valid link.</p>");
+      // If there is no entity that matches the key
+      writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
       return;
     }
+    
   }
 }

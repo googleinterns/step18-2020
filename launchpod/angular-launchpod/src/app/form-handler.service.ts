@@ -24,7 +24,6 @@ export class FormHandlerService {
   private readonly hasNewFeedSubject = new BehaviorSubject<boolean>(false);
   hasNewFeed = this.hasNewFeedSubject.asObservable();
 
-
   constructor(private http: HttpClient) {}
 
   /**
@@ -58,8 +57,16 @@ export class FormHandlerService {
   /**
    * Post inputs from feed creation form to back end and retrieve URL for RSS feed.
    */
-  postFormData(formData): Observable<string> {
-    return this.http.post(FEED_URL, formData, { responseType: 'text' });
+  postFormData(formData): Observable<any> {
+    return this.http.post(FEED_URL, formData);
+  }
+
+  /**
+   * Post form inputs to back-end and retrieve url for rss feed for MP3 uploads.
+   */
+  postUploadData(formData): Observable<string> {
+    console.log("Form data: " + formData);
+    return this.http.post(UPLOAD_URL, formData, { responseType: 'text' });
   }
 
   /**
@@ -74,5 +81,19 @@ export class FormHandlerService {
    */
   getLoginData(): Observable<any> {
     return this.http.get(LOGIN_URL);
+  }
+
+  /**
+   * Get action needed to generate link to RSS feed.
+   */
+  getLinkToCopy(): Observable<any> {
+    return this.http.get(FEED_URL, { responseType: 'text' });
+  }
+
+  /**
+   * Post deletion request to LoginServlet.
+   */
+  deleteFeedEntity(formData): Observable<any> {
+    return this.http.post(LOGIN_URL, formData);
   }
 }
