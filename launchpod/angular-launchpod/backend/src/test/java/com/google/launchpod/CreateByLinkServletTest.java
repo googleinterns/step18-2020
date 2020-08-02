@@ -80,7 +80,6 @@ public class CreateByLinkServletTest extends Mockito {
   public ExpectedException thrown = ExpectedException.none();
 
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
-  // private final LocalServiceTestHelper userHelper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
 
   // keys
   private static final String USER_FEED = "UserFeed";
@@ -108,9 +107,7 @@ public class CreateByLinkServletTest extends Mockito {
   private static final String TEST_INCORRECT_EMAIL = "123@cde.com";
   private static final String TEST_EMAIL_TWO = "456@abc.com";
   private static final String EMPTY_STRING = "";
-  // private static final String TEST_XML_STRING = "test";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  // private static final RSS TEST_RSS_FEED = new RSS(TEST_TITLE, TEST_MP3_LINK);
   private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS");
 
   @Before
@@ -141,7 +138,6 @@ public class CreateByLinkServletTest extends Mockito {
   * Given and RSS feed and episode details, adds that episode to the RSS Feed and returns the XML of that modified feed.
   */
   private String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription, String episodeLanguage, String email, String mp3Link) throws JsonProcessingException {
-    // RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
     Channel channel = rssFeed.getChannel();
     channel.addItem(channel, episodeTitle, episodeDescription, episodeLanguage, email, mp3Link); // to-do: double check this
     String modifiedXmlString = RSS.toXmlString(rssFeed);
@@ -193,7 +189,6 @@ public class CreateByLinkServletTest extends Mockito {
     PreparedQuery preparedQuery = ds.prepare(query);
     Entity desiredEntity = preparedQuery.asSingleEntity();
 
-    // String expectedXmlString = RSS.toXmlString(TEST_RSS_FEED);
     String expectedXmlString = createModifiedXml(rss, TEST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_MP3_LINK);
 
     assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
@@ -577,7 +572,6 @@ public class CreateByLinkServletTest extends Mockito {
    */
   @Test
   public void doGet_EntityNotFound() throws IOException {
-    // to-do: create helper function for setting up datastore entity
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);

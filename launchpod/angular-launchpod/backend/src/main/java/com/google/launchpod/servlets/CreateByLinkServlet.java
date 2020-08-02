@@ -75,19 +75,6 @@ public class CreateByLinkServlet extends HttpServlet {
       throw new IllegalArgumentException("You are not logged in. Please try again.");
     }
 
-    // // Creates entity with all desired attributes
-    // Entity userFeedEntity = new Entity(USER_FEED);
-    // // Generate xml string
-    // RSS rssFeed = new RSS(podcastTitle, mp3Link);
-
-    // try {
-    //   String xmlString = RSS.toXmlString(rssFeed);
-    //   userFeedEntity.setProperty(XML_STRING, xmlString);
-    // } catch (IOException e) {
-    //   throw new IOException("Unable to create XML string.");
-    // }
-
-    // Retrieve entity associated with id
     Key entityKey = null;
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     Entity desiredFeedEntity;
@@ -110,7 +97,7 @@ public class CreateByLinkServlet extends HttpServlet {
     // Modify the xml string
     RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
     Channel channel = rssFeed.getChannel();
-    channel.addItem(channel, episodeTitle, episodeDescription, episodeLanguage, email, mp3Link); // to-do: double check this
+    channel.addItem(channel, episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
     String modifiedXmlString = RSS.toXmlString(rssFeed);
     desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
     datastore.put(desiredFeedEntity);
@@ -142,7 +129,7 @@ public class CreateByLinkServlet extends HttpServlet {
       urlId = KeyFactory.stringToKey(id);
       desiredFeedEntity = datastore.get(urlId);
 
-      // generate xml string
+      // Generate xml string
       String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
       res.setContentType("text/xml");
       res.getWriter().print(xmlString);
