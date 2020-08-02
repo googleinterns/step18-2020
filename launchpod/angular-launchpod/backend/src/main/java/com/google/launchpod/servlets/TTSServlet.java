@@ -1,8 +1,6 @@
 package com.google.launchpod.servlets;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -13,7 +11,8 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.repackaged.com.google.protos.gdata.proto2api.Core.Response;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
@@ -36,6 +35,8 @@ public class TTSServlet extends HttpServlet {
     private static final String LANGUAGE = "language";
     private static final String DESCRIPTION = "description";
     private static final String EMAIL = "email";
+    private static final String NAME = "name";
+    private static final String CATEGORY = "category";
     private static final String TEXT = "text";
     private static final String XML_STRING = "xmlString";
     private static final String USER_FEED = "UserFeed";
@@ -47,14 +48,19 @@ public class TTSServlet extends HttpServlet {
     private static final String CLOUD_BASE_URL = "https://storage.googleapis.com/" + BUCKET_NAME + "/";
 
     public void doPost(HttpServletRequest request, HttpServletResponse res) throws IOException {
+        UserService userService = UserServiceFactory.getUserService();
+
+        String userEmail = userService.getCurrentUser().getEmail();
         String podcastTitle = request.getParameter(TITLE);
         String podcastLanguage = request.getParameter(LANGUAGE);
         String podcastDescription = request.getParameter(DESCRIPTION);
+        String userName = request.getParameter(NAME);
+        String category = request.getParameter(CATEGORY);
         String podcastText = request.getParameter(TEXT);
 
         Entity userFeedEntity = new Entity(USER_FEED);
         userFeedEntity.setProperty(LANGUAGE, podcastLanguage);
-        userFeedEntity.setProperty(EMAIL, "123@example.com");
+        userFeedEntity.setProperty(EMAIL, userEmail);
 
         String feedId = KeyFactory.keyToString(userFeedEntity.getKey());
         ByteString synthesizedMp3 = null;
@@ -67,11 +73,11 @@ public class TTSServlet extends HttpServlet {
         BlobId blobId = BlobId.of(BUCKET_NAME, feedId);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
         // create an uploadble array of bytes for blobstore
-        byte[] mp3Bytes = synthesizedMp3.toStringUtf8().getBytes();
+        byte[] mp3Bytes = synthesizedMp3.toByteArray();
         storage.create(blobInfo, mp3Bytes);
-
-        RSS rssFeed = new RSS(podcastTitle, podcastDescription, podcastLanguage, "123@example.com",
-                CLOUD_BASE_URL + feedId);
+        
+        String mp3Link = CLOUD_BASE_URL + feedId;
+        RSS rssFeed = new RSS(userName, userEmail, podcastTitle, podcastDescription, category, podcastLanguage);
         String xmlString = RSS.toXmlString(rssFeed);
         userFeedEntity.setProperty(XML_STRING, xmlString);
 
@@ -106,11 +112,7 @@ public class TTSServlet extends HttpServlet {
             // Get the audio contents from the response
             ByteString audioContents = response.getAudioContent();
 
-            // Write the response to the output file.
-            try (OutputStream out = new FileOutputStream(id + ".mp3")) {
-                out.write(audioContents.toByteArray());
-                return audioContents;
-            }
+            return audioContents;
         }
     }
 }
