@@ -72,8 +72,8 @@ export class FormHandlerService {
   /**
    * Post form inputs to back-end and retrieve url for rss feed.
    */
-  postTranslationData(formData): Observable<string> {
-    return this.http.post(TRANSLATION_URL, formData, { responseType: 'text' });
+  postTranslationData(formData): Observable<any> {
+    return this.http.post(TRANSLATION_URL, formData);
   }
 
   /**
