@@ -68,6 +68,10 @@ public class TranslationServlet extends HttpServlet {
   private static final XmlMapper XML_MAPPER = new XmlMapper();
   private static final Gson GSON = new Gson();
 
+  static {
+    XML_MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  }
+
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res)
       throws JsonParseException, JsonMappingException, IOException {
@@ -80,37 +84,35 @@ public class TranslationServlet extends HttpServlet {
 
     if (link == null || link.isEmpty()) {
       throw new IllegalArgumentException("Please give valid link.");
-    }else if (targetLanguage == null || targetLanguage.isEmpty()) {
+    } else if (targetLanguage == null || targetLanguage.isEmpty()) {
       throw new IllegalArgumentException("Please give valid language.");
-    } else if (email.isEmpty() || email == null){
+    } else if (email.isEmpty() || email == null) {
       throw new IllegalArgumentException("Please log in to access the feed.");
     }
 
-    //get ID from parameter and turn into key
+    // get ID from parameter and turn into key
     String id = getIdFromUrl(link);
     Key desiredFeedKey = KeyFactory.stringToKey(id);
 
-    //Search for key from given Link
+    // Search for key from given Link
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     Entity desiredFeedEntity = null;
     try {
       desiredFeedEntity = datastore.get(desiredFeedKey);
-    } catch (EntityNotFoundException e){
+    } catch (EntityNotFoundException e) {
       e.printStackTrace();
       res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to find given URL key, Please try again");
     }
     String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
-    
+
     RSS rssFeed = null;
     try {
-      XML_MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
       rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
-
     } catch (Exception e) {
       res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to translate. Try again");
     }
-    //Translate all the fields
-    //Channel title
+    // Translate all the fields
+    // Channel title
     rssFeed.getChannel().setTitle(translateText(targetLanguage, rssFeed.getChannel().getTitle()));
 
     // Channel description
@@ -119,13 +121,13 @@ public class TranslationServlet extends HttpServlet {
     // Language
     rssFeed.getChannel().setLanguage(targetLanguage);
 
-    //Category
-    for(ItunesCategory category: rssFeed.getChannel().getItunesCategory()) {
+    // Category
+    for (ItunesCategory category : rssFeed.getChannel().getItunesCategory()) {
       category.setText(translateText(targetLanguage, category.getText()));
     }
 
-      // Episodes
-    if(rssFeed.getChannel().getItems() != null) {
+    // Episodes
+    if (rssFeed.getChannel().getItems() != null) {
       for (Item item : rssFeed.getChannel().getItems()) {
         // Episode title
         item.setTitle(translateText(targetLanguage, item.getTitle()));
@@ -146,14 +148,14 @@ public class TranslationServlet extends HttpServlet {
     translatedUserFeedEntity.setProperty(DESCRIPTION, rssFeed.getChannel().getDescription());
     translatedUserFeedEntity.setProperty(LANGUAGE, targetLanguage);
     datastore.put(translatedUserFeedEntity);
-      
+
     Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
     PreparedQuery results = datastore.prepare(query);
 
     ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
     for (Entity entity : results.asIterable()) {
-      if(entity.getProperty(USER_EMAIL).toString() == email){
+      if (entity.getProperty(USER_EMAIL).toString() == email) {
         String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
         String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
         String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
@@ -164,11 +166,13 @@ public class TranslationServlet extends HttpServlet {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
         String postTime = dateFormat.format(date);
         Key key = entity.getKey();
-      
-        String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+
+        String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the
+                                                                // numeric ID.
         String rssLink = BASE_URL + urlID;
 
-        userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime, urlID, userFeedLanguage));
+        userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime,
+            urlID, userFeedLanguage));
       }
     }
 
@@ -179,29 +183,27 @@ public class TranslationServlet extends HttpServlet {
   /**
    * Translate the text using the translation API request and response client
    */
-  public static String translateText(String targetLanguage, String text)throws IOException {
+  public static String translateText(String targetLanguage, String text) throws IOException {
 
     try (TranslationServiceClient client = TranslationServiceClient.create()) {
       LocationName parent = LocationName.of("launchpod-step18-2020", "global");
 
-      TranslateTextRequest request =
-          TranslateTextRequest.newBuilder()
-              .setParent(parent.toString())
-              .setMimeType("text/plain")
-              .setTargetLanguageCode(targetLanguage)
-              .addContents(text)
-              .build();
+      TranslateTextRequest request = TranslateTextRequest.newBuilder().setParent(parent.toString())
+          .setMimeType("text/plain").setTargetLanguageCode(targetLanguage).addContents(text).build();
 
       TranslateTextResponse response = client.translateText(request);
       return response.getTranslations(0).getTranslatedText();
     }
   }
 
-  public static String getIdFromUrl(String rssLink) throws MalformedURLException {
+  public static String getIdFromUrl(String rssLink) throws MalformedURLException, IllegalArgumentException {
     // Get the ID from the link that is being pasted
     URL feedUrl = new URL(rssLink);
     String queryString = feedUrl.getQuery();
     String[] querySplit = queryString.split("=");
+    if (querySplit.length <= 1){
+      throw new IllegalArgumentException("URL is not valid for translation");
+    }
     String id = querySplit[1];
     return id;
   }
