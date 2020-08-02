@@ -111,42 +111,48 @@ public class TranslationServlet extends HttpServlet {
     } catch (Exception e) {
       res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to translate. Try again");
     }
+
+    String sourceLanguage = rssFeed.getChannel().getLanguage();
     // Translate all the fields
     // Channel title
-    rssFeed.getChannel().setTitle(translateText(targetLanguage, rssFeed.getChannel().getTitle()));
+    rssFeed.getChannel().setTitle(translateText(sourceLanguage, targetLanguage, rssFeed.getChannel().getTitle()));
 
     // Channel description
-    rssFeed.getChannel().setDescription(translateText(targetLanguage, rssFeed.getChannel().getDescription()));
+    rssFeed.getChannel().setDescription(translateText(sourceLanguage, targetLanguage, rssFeed.getChannel().getDescription()));
 
     // Language
     rssFeed.getChannel().setLanguage(targetLanguage);
 
     // Category
     for (ItunesCategory category : rssFeed.getChannel().getItunesCategory()) {
-      category.setText(translateText(targetLanguage, category.getText()));
+      category.setText(translateText(sourceLanguage, targetLanguage, category.getText()));
     }
 
     // Episodes
     if (rssFeed.getChannel().getItems() != null) {
       for (Item item : rssFeed.getChannel().getItems()) {
         // Episode title
-        item.setTitle(translateText(targetLanguage, item.getTitle()));
+        if(!Strings.isNullOrEmpty(item.getTitle())){
+          item.setTitle(translateText(sourceLanguage, targetLanguage, item.getTitle()));
+        }
 
         // Episode description
-        item.setDescription(translateText(targetLanguage, item.getDescription()));
+        if(!Strings.isNullOrEmpty(item.getDescription())){
+          item.setDescription(translateText(sourceLanguage, targetLanguage, item.getDescription()));
+        }
       }
     }
 
     // Generate Translated XML string then place it into datastore
     String translatedXmlString = RSS.toXmlString(rssFeed);
     Entity translatedUserFeedEntity = new Entity(USER_FEED);
-    translatedUserFeedEntity.setProperty(XML_STRING, translatedXmlString);
     translatedUserFeedEntity.setProperty(TITLE, rssFeed.getChannel().getTitle());
     translatedUserFeedEntity.setProperty(USER_NAME, rssFeed.getChannel().getAuthor());
     translatedUserFeedEntity.setProperty(USER_EMAIL, email);
     translatedUserFeedEntity.setProperty(TIMESTAMP, timestamp);
     translatedUserFeedEntity.setProperty(DESCRIPTION, rssFeed.getChannel().getDescription());
     translatedUserFeedEntity.setProperty(LANGUAGE, targetLanguage);
+    translatedUserFeedEntity.setProperty(XML_STRING, translatedXmlString);
     datastore.put(translatedUserFeedEntity);
 
     Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
@@ -183,15 +189,18 @@ public class TranslationServlet extends HttpServlet {
   /**
    * Translate the text using the translation API request and response client
    */
-  public static String translateText(String targetLanguage, String text) throws IOException {
-
+  public static String translateText(String sourceLanguage, String targetLanguage, String text) throws IOException {
+    String projectId = "launchpod-step18-2020";
+    String location = "global";
     try (TranslationServiceClient client = TranslationServiceClient.create()) {
-      LocationName parent = LocationName.of("launchpod-step18-2020", "global");
+      LocationName parent = LocationName.of(projectId, location);
 
       TranslateTextRequest request = TranslateTextRequest.newBuilder().setParent(parent.toString())
-          .setMimeType("text/plain").setTargetLanguageCode(targetLanguage).addContents(text).build();
+          .setMimeType("text/html").setTargetLanguageCode(targetLanguage)
+          .addContents(text).build();
 
       TranslateTextResponse response = client.translateText(request);
+      request.toBuilder().clearContents();
       return response.getTranslations(0).getTranslatedText();
     }
   }
