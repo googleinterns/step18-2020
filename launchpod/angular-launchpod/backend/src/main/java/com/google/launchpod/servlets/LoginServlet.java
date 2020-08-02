@@ -14,8 +14,17 @@
 
 package com.google.launchpod.servlets;
 
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -24,20 +33,11 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
-import com.google.appengine.api.datastore.Query.FilterOperator;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.ArrayList;
-import java.util.Date;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.UserFeed;
-import java.io.IOException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/login-status")
 public class LoginServlet extends HttpServlet {
@@ -63,7 +63,7 @@ public class LoginServlet extends HttpServlet {
 
       ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
       for (Entity entity : results.asIterable()) {
-        if (userEmail == entity.getProperty(FormHandlerServlet.USER_EMAIL).toString()) {
+        if (userEmail.equals(entity.getProperty(FormHandlerServlet.USER_EMAIL).toString())) {
           String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
           String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
           String name = (String) entity.getProperty(LoginStatus.NAME_KEY);

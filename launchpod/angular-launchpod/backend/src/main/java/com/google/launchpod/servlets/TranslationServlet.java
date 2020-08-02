@@ -155,7 +155,7 @@ public class TranslationServlet extends HttpServlet {
 
     ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
     for (Entity entity : results.asIterable()) {
-      if (entity.getProperty(USER_EMAIL).toString() == email) {
+      if (email.equals(entity.getProperty(USER_EMAIL).toString())) {
         String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
         String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
         String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
