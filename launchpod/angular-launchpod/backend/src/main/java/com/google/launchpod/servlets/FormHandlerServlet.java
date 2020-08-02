@@ -37,7 +37,7 @@ public class FormHandlerServlet extends HttpServlet {
   private static final String TITLE = "title";
   private static final String LANGUAGE = "language";
   private static final String USER_NAME = "name";
-  private static final String USER_EMAIL = "email";
+  public static final String USER_EMAIL = "email";
   private static final String TIMESTAMP = "timestamp";
   private static final String POST_TIME = "postTime";
   private static final String CATEGORY = "category";
@@ -101,31 +101,31 @@ public class FormHandlerServlet extends HttpServlet {
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(userFeedEntity);
 
-    Query query = new Query(LoginStatus.USER_FEED_KEY)
-        .setFilter(new FilterPredicate("email", FilterOperator.EQUAL, email))
-        .addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+    Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
     PreparedQuery results = datastore.prepare(query);
 
     ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
     for (Entity entity : results.asIterable()) {
-      String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
-      String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
-      String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
-      String userFeedLanguage = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
-      String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
-      long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
-      Date date = new Date(userFeedTimestamp);
-      SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
-      String postTime = dateFormat.format(date);
-      Key key = entity.getKey();
+      if (email == entity.getProperty(USER_EMAIL).toString()) {
+        String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+        String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
+        String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+        String userFeedLanguage = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
+        String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+        long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+        Date date = new Date(userFeedTimestamp);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+        String postTime = dateFormat.format(date);
+        Key key = entity.getKey();
 
-      String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the
-                                                              // numeric ID.
-      String rssLink = BASE_URL + urlID;
+        String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the
+                                                                // numeric ID.
+        String rssLink = BASE_URL + urlID;
 
-      userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime,
-          urlID, userFeedLanguage));
+        userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime,
+            urlID, userFeedLanguage));
+      }
     }
 
     res.setContentType("application/json");
