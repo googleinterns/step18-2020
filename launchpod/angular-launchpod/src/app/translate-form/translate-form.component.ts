@@ -53,7 +53,7 @@ export class TranslateFormComponent implements OnInit {
     {value: 'vi', viewValue: 'Vietnamese'},
   ];
 
-  selected = this.languages[9].value;
+  selected = null;
 
   constructor(private formHandlerService: FormHandlerService , private router: Router) {}
 

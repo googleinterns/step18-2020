@@ -23,7 +23,7 @@ public class Item {
 
   @JacksonXmlProperty
   @JsonProperty("description")
-  private String description = "Episode 1";
+  private String description;
 
   @JacksonXmlProperty
   @JsonProperty("language")
@@ -46,9 +46,9 @@ public class Item {
   public Item() {
   }
 
-  public Item(String podcastTitle, String mp3Link) {
+  public Item(String podcastTitle, String podcastDescription, String mp3Link) {
     this.title = podcastTitle;
-    this.description = description;
+    this.description = podcastDescription;
     this.language = language; 
     this.email = email;
     this.link = mp3Link;

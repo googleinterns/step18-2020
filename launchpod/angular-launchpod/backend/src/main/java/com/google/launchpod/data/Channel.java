@@ -17,7 +17,7 @@ public class Channel {
 
   @JacksonXmlProperty
   @JsonProperty("title")
-  private String title = "Launchpod";
+  private String title;
 
   @JacksonXmlProperty
   @JsonProperty("link")
@@ -29,8 +29,7 @@ public class Channel {
 
   @JacksonXmlProperty
   @JsonProperty("description")
-  private String description = "Launchpod generated RSS";
-
+  private String description;
 
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty(localName = "owner", namespace = "http://www.itunes.com/dtds/podcast-1.0.dtd")
@@ -58,7 +57,8 @@ public class Channel {
   public Channel() {
   }
 
-  public Channel(String name, String email, String podcastTitle, String description, String category, String language) {
+  public Channel(String name, String email, String channelTitle, String description, String category, String language) {
+    this.title = channelTitle;
     this.itunesOwner = new ArrayList<>(Arrays.asList(new ItunesOwner(name, email)));
     this.itunesCategory = new ArrayList<>(Arrays.asList(new ItunesCategory(category)));
     this.items = new ArrayList<>();
