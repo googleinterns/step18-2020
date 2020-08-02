@@ -1,17 +1,35 @@
 package com.google.launchpod.data;
 
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.launchpod.servlets.FormHandlerServlet;
 
 public final class UserFeed {
 
   private String xmlString;
+  private String title;
+  private String name;
+  private String rssLink;
+  private String description;
   private String email;
-  private String language;
+  private String postTime;
+  private long timestamp;
+  private String key;
+  private String language; 
 
-  private UserFeed(String xmlString, String email, String language) {
+  private UserFeed(String xmlString) {
     this.xmlString = xmlString;
+  }
+
+  public UserFeed(String title, String name, String rssLink, String description, String email, String postTime, String key, String language) {
+    this.title = title;
+    this.name = name;
+    this.rssLink = rssLink;
+    this.description = description;
     this.email = email;
+    this.postTime = postTime;
+    this.key = key;
     this.language = language;
   }
 
@@ -23,22 +41,11 @@ public final class UserFeed {
    */
   public static UserFeed fromEntity(Entity entity) {
     String xmlString = (String) entity.getProperty(FormHandlerServlet.XML_STRING);
-    String email = (String) entity.getProperty(FormHandlerServlet.EMAIL);
-    String language = (String) entity.getProperty(FormHandlerServlet.LANGUAGE);
-    return new UserFeed(xmlString, email, language);
+    return new UserFeed(xmlString);
   }
 
   // getter for xml string
   public String getXmlString() {
     return this.xmlString;
-  }
-
-  // getter for email
-  public String getEmail() {
-    return this.email;
-  }
-
-  public String getLanguage(){
-    return this.language;
   }
 }
