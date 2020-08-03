@@ -31,8 +31,9 @@ export class MyFeedsPageComponent implements OnInit {
         this.hasNewFeed = result;
       });
     });
-    
-    
+   setInterval(() => {
+      this.formHandlerService.updateHasNewFeed();
+    }, 1000); 
   }
 
   // Send the key for the feed the user wants to delete to the backend.

@@ -5,6 +5,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 const FEED_URL = '/rss-feed';
 const UPLOAD_URL = 'create-by-upload';
 const LOGIN_URL = '/login-status';
+const TRANSLATION_URL = "/translate-feed";
 
 @Injectable({
   providedIn: 'root'
@@ -66,6 +67,13 @@ export class FormHandlerService {
   postUploadData(formData): Observable<string> {
     console.log("Form data: " + formData);
     return this.http.post(UPLOAD_URL, formData, { responseType: 'text' });
+  }
+
+  /**
+   * Post form inputs to back-end and retrieve url for rss feed.
+   */
+  postTranslationData(formData): Observable<any> {
+    return this.http.post(TRANSLATION_URL, formData);
   }
 
   /**
