@@ -11,4 +11,9 @@ keys/
 
 # Ignore editor config
 .idea
+
+#Ignore factorypath
+.factorypath
+
+#Ignore keys folder
 /keys

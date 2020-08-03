@@ -4,28 +4,32 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 @JacksonXmlRootElement(localName = "channel")
-@JsonPropertyOrder({"title", "link", "language", "description", "author", "owner", "category", "item"})
+@JsonPropertyOrder({ "title", "link", "language", "description", "author", "owner", "category", "item" })
 public class Channel {
 
   @JacksonXmlProperty
-  private String title = "Launchpod";
+  @JsonProperty("title")
+  private String title;
 
   @JacksonXmlProperty
+  @JsonProperty("link")
   private String link = "https://launchpod-step18-2020.appspot.com";
 
   @JacksonXmlProperty
+  @JsonProperty("language")
   private String language;
 
   @JacksonXmlProperty
+  @JsonProperty("description")
   private String description;
 
   @JacksonXmlElementWrapper(useWrapping = false)
@@ -49,13 +53,14 @@ public class Channel {
   private List<Item> items;
 
   /**
-  * Constructor generated for serialization/deserialization. Ensures that a
-  * constructor is being read for object conversion.
-  */
+   * constructor generated for serialization/deserialization. Ensures that a
+   * constructor is being read for object conversion
+   */
   public Channel() {
   }
 
-  public Channel(String name, String email, String podcastTitle, String description, String category, String language) {
+  public Channel(String name, String email, String channelTitle, String description, String category, String language) {
+    this.title = channelTitle;
     this.itunesOwner = new ArrayList<>(Arrays.asList(new ItunesOwner(name, email)));
     this.itunesCategory = new ArrayList<>(Arrays.asList(new ItunesCategory(category)));
     this.items = new ArrayList<>();
@@ -64,12 +69,19 @@ public class Channel {
     this.description = description;
   }
 
+  public void setTitle(String newTitle){
+    this.title = newTitle;
+  }
   public void setLanguage(String newLanguage) {
     this.language = newLanguage;
   }
 
   public void setDescription(String newDescription) {
     this.description = newDescription;
+  }
+
+  public String getTitle(){
+    return this.title;
   }
 
   public String getLanguage() {
@@ -83,6 +95,18 @@ public class Channel {
   public List<Item> getItems() {
     return this.items;
   }
+    
+  public List<ItunesCategory> getItunesCategory(){
+    return this.itunesCategory;
+  }
+
+  public List<ItunesOwner> getItunesOwner(){
+    return this.itunesOwner;
+  }
+
+  public String getAuthor(){
+    return this.author;
+  }
 
   /**
   * Add an item to a channel.
@@ -93,5 +117,5 @@ public class Channel {
       this.items = new ArrayList<>();
     }
     this.items.add(item);
-  }
+
 }

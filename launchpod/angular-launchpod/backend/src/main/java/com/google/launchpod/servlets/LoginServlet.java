@@ -14,8 +14,17 @@
 
 package com.google.launchpod.servlets;
 
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -24,20 +33,11 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
-import com.google.appengine.api.datastore.Query.FilterOperator;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.ArrayList;
-import java.util.Date;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.UserFeed;
-import java.io.IOException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/login-status")
 public class LoginServlet extends HttpServlet {
@@ -52,13 +52,10 @@ public class LoginServlet extends HttpServlet {
     String urlToRedirectTo = "/index.html";
     if (userService.isUserLoggedIn() && userService.getCurrentUser().getEmail().contains("@google.com")) {
       String userEmail = userService.getCurrentUser().getEmail();
-      
+
       String logoutUrl = userService.createLogoutURL(urlToRedirectTo);
       String loginMessage = "<p>Logged in as " + userEmail + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
-
-      // Query query =
-      //   new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, userEmail)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
-
+      
       Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -66,8 +63,8 @@ public class LoginServlet extends HttpServlet {
 
       ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
       for (Entity entity : results.asIterable()) {
-        String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
-        if (userEmail.equals(userFeedEmail)) {
+        if (userEmail.equals(entity.getProperty(FormHandlerServlet.USER_EMAIL).toString())) {
+          String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
           String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
           String name = (String) entity.getProperty(LoginStatus.NAME_KEY);
           String description = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
@@ -110,8 +107,6 @@ public class LoginServlet extends HttpServlet {
 
     datastore.delete(key);
 
-    // Query query =
-    //     new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
     Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
     PreparedQuery results = datastore.prepare(query);
@@ -129,12 +124,14 @@ public class LoginServlet extends HttpServlet {
         Date date = new Date(feedTimestamp);
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
         String feedPostTime = dateFormat.format(date);
-        Key feedKey = entity.getKey();
-        
-        String feedUrlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+        Key feedKey = (Key) entity.getKey();
+
+        String feedUrlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not
+                                                                    // the numeric ID.
         String feedRssLink = BASE_URL + feedUrlID;
 
-        userFeeds.add(new UserFeed(feedTitle, feedName, feedRssLink, feedDescription, feedEmail, feedPostTime, feedUrlID, feedLanguage));
+        userFeeds.add(new UserFeed(feedTitle, feedName, feedRssLink, feedDescription, feedEmail, feedPostTime,
+            feedUrlID, feedLanguage));
       }
     }
 
