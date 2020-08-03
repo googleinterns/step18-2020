@@ -118,40 +118,4 @@ public class CreateByLinkServlet extends HttpServlet {
     res.setContentType("text/html");
     res.getWriter().print(rssLink);
   }
-
-  /**
-   * Display RSS feed xml string when a user clicks on an RSS feed from their "My RSS Feeds" page.
-   * @throws IOException
-   */
-  @Override
-  public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-    // Get ID passed in request
-    String id = req.getParameter(ID);
-    if (id == null) {
-      throw new IllegalArgumentException("Sorry, no matching Id was found in Datastore.");
-    }
-    Key urlId = null;
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    Entity desiredFeedEntity;
-    
-    // Create entity that contains id from datastore
-    try {
-      urlId = KeyFactory.stringToKey(id);
-      desiredFeedEntity = datastore.get(urlId);
-
-      // Generate xml string
-      String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
-      res.setContentType("text/xml");
-      res.getWriter().print(xmlString);
-    } catch (IllegalArgumentException e) {
-      // If entityId cannot be converted into a key
-      writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
-      return;
-    } catch (EntityNotFoundException e) {
-      // If there is no entity that matches the key
-      writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
-      return;
-    }
-    
-  }
 }
