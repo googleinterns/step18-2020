@@ -166,7 +166,7 @@ public class FileUploadServletTest extends Mockito {
   */
   private String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription, String episodeLanguage, String email, String mp3Link) throws JsonProcessingException {
     Channel channel = rssFeed.getChannel();
-    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link); // to-do: double check this
+    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
     String modifiedXmlString = RSS.toXmlString(rssFeed);
     return modifiedXmlString;
   }

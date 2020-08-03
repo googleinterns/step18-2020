@@ -11,10 +11,11 @@ const routes: Routes = [
   { path: '', component: CreateFormComponent},
   { path: 'create', component: CreateFormComponent },
   { path: 'mp3-form', component: Mp3FormComponent},
+  { path: 'link-form', component: EpisodeLinkFormComponent},
+  { path: 'upload-form', component: EpisodeUploadFormComponent},
   { path: 'transcribe', component: TranscribeFormComponent },
   { path: 'translate', component: TranslateFormComponent },
   { path: 'my-feeds', component: MyFeedsPageComponent },
-  { path: ''}
   { path: '**', redirectTo: '/create', pathMatch: 'full' }
 ];
 
