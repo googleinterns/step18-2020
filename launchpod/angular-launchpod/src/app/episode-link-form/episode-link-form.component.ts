@@ -12,6 +12,7 @@ interface Language {
   templateUrl: './episode-link-form.component.html',
   styleUrls: ['./episode-link-form.component.css']
 })
+// TO-DO: add tests for this
 export class EpisodeLinkFormComponent implements OnInit {
   
   languages: Language[] = [
