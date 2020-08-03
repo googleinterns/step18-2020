@@ -1,6 +1,9 @@
 package com.google.launchpod.servlets;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,6 +13,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -21,13 +29,16 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.search.query.ExpressionParser.num_return;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.repackaged.com.google.gson.Gson;
+import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.google.cloud.storage.Blob.BlobSourceOption;
 import com.google.cloud.texttospeech.v1.AudioConfig;
 import com.google.cloud.texttospeech.v1.AudioEncoding;
 import com.google.cloud.texttospeech.v1.SsmlVoiceGender;
@@ -35,6 +46,7 @@ import com.google.cloud.texttospeech.v1.SynthesisInput;
 import com.google.cloud.texttospeech.v1.SynthesizeSpeechResponse;
 import com.google.cloud.texttospeech.v1.TextToSpeechClient;
 import com.google.cloud.texttospeech.v1.VoiceSelectionParams;
+import com.google.common.base.Strings;
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.RSS;
@@ -54,10 +66,11 @@ public class TTSServlet extends HttpServlet {
     private static final String FEED_KEY = "feedKey";
     private static final String TEXT = "text";
     private static final String XML_STRING = "xmlString";
+    private static final String ID = "id";
     private static final String USER_FEED = "UserFeed";
     private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
+    private static final String TTS_BASE_URL = "https://launchpod-step18-2020.appspot.com/create-by-tts?id=";
     private static final Gson GSON = new Gson();
-    
 
     // Variables required for cloud storage
     private static final String PROJECT_ID = "launchpod-step18-2020"; // ID of GCP Project
@@ -78,14 +91,22 @@ public class TTSServlet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse res) throws IOException {
         UserService userService = UserServiceFactory.getUserService();
 
-        //TODO: ADD EDGE CASES CONDITIONS
-
         String userEmail = userService.getCurrentUser().getEmail();
         String feedKey = request.getParameter(FEED_KEY);
         String podcastTitle = request.getParameter(TITLE);
-        String podcastLanguage = request.getParameter(LANGUAGE);
         String podcastDescription = request.getParameter(DESCRIPTION);
         String podcastText = request.getParameter(TEXT);
+
+        // throw exception when parameters are empty or null
+        if (Strings.isNullOrEmpty(feedKey)) {
+            throw new IllegalArgumentException("Unable to get key. Please try again");
+        } else if (Strings.isNullOrEmpty(podcastTitle)) {
+            throw new IllegalArgumentException("Unable to get Podcast Title. Please try again");
+        } else if (Strings.isNullOrEmpty(podcastDescription)) {
+            throw new IllegalArgumentException("Unable to get Podcast Description. Please try again");
+        } else if (Strings.isNullOrEmpty(podcastText)) {
+            throw new IllegalArgumentException("Unable to get Podcast Text. Please try again");
+        }
 
         // Search for key from given feed id
         Key desiredFeedKey = KeyFactory.stringToKey(feedKey);
@@ -112,7 +133,7 @@ public class TTSServlet extends HttpServlet {
                                                                                // channel to be modified
         ByteString synthesizedMp3 = null;
         try {
-           synthesizedMp3 = synthesizeText(podcastText);
+            synthesizedMp3 = synthesizeText(podcastText);
         } catch (Exception e) {
             res.sendError(HttpServletResponse.SC_CONFLICT, "unable to create mp3 from request. Please try again.");
         }
@@ -125,7 +146,7 @@ public class TTSServlet extends HttpServlet {
         storage.create(blobInfo, mp3Bytes);
 
         // Generate mp3 link
-        String mp3Link = CLOUD_BASE_URL + ttsFeedId;
+        String mp3Link = TTS_BASE_URL + ttsFeedId;
 
         Item generatedItem = new Item(podcastTitle, podcastDescription, mp3Link);
         rssFeed.getChannel().addItem(generatedItem);
@@ -164,6 +185,41 @@ public class TTSServlet extends HttpServlet {
 
         res.setContentType("application/json");
         res.getWriter().println(GSON.toJson(userFeeds));
+    }
+
+    public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String id = req.getParameter(ID);
+
+        if (Strings.isNullOrEmpty(id)) {
+            throw new IllegalArgumentException("Invalid URL. Please try again");
+        }
+
+        // Search for id in cloud storage from parameter ID
+        Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
+        Blob desiredFeedBlob = storage.get(BUCKET_NAME, id);
+        byte[] blobBytes = desiredFeedBlob.getContent(BlobSourceOption.generationMatch());
+
+        ByteArrayInputStream bStream = new ByteArrayInputStream(blobBytes);
+        AudioInputStream stream = null;
+        try {
+            stream = AudioSystem.getAudioInputStream(bStream);
+        } catch (UnsupportedAudioFileException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        Clip clip = null;
+        try {
+            clip = AudioSystem.getClip();
+        } catch (LineUnavailableException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        try {
+            clip.open(stream);
+        } catch (LineUnavailableException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } 
     }
 
     /**
