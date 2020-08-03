@@ -97,7 +97,7 @@ public class CreateByLinkServlet extends HttpServlet {
     // Modify the xml string
     RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
     Channel channel = rssFeed.getChannel();
-    channel.addItem(channel, episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
+    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
     String modifiedXmlString = RSS.toXmlString(rssFeed);
     desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
     datastore.put(desiredFeedEntity);
