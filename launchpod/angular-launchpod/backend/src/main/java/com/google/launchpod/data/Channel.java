@@ -106,4 +106,14 @@ public class Channel {
   public String getAuthor(){
     return this.author;
   }
+
+  /**
+  * Add an item to a channel.
+  */
+  public void addItem(Item item) {
+    if(this.items.isEmpty()){
+      this.items = new ArrayList<>();
+    }
+    this.items.add(item);
+  }
 }

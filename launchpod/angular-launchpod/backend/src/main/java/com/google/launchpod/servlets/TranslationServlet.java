@@ -65,7 +65,7 @@ public class TranslationServlet extends HttpServlet {
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String ID = "id";
   private static final String XML_STRING = "xmlString";
-  private static final XmlMapper XML_MAPPER = new XmlMapper();
+  public static final XmlMapper XML_MAPPER = new XmlMapper();
   private static final Gson GSON = new Gson();
 
   static {
