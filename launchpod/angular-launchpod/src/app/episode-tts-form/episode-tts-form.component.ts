@@ -21,7 +21,7 @@ export class EpisodeTtsFormComponent implements OnInit {
 
   selectedLanguage = this.languages[0].value;
 
-  constructor(private formHandlerService: FormHandlerService) { }
+  constructor(private formHandlerService: FormHandlerService) {}
 
   ngOnInit(): void {}
 
@@ -32,11 +32,9 @@ export class EpisodeTtsFormComponent implements OnInit {
     formData = formData.set('episodeLanguage', this.selectedLanguage);
     formData = formData.set('text', (document.getElementById("text") as HTMLInputElement).value);
 
-
     this.formHandlerService.postEpisodeTTSData(formData)
       .subscribe((response) => {
         this.formHandlerService.sendFeedValue(response);
       });
   }
-
 }
