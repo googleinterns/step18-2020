@@ -142,7 +142,6 @@ export class CreateFormComponent implements OnInit {
     this.formHandlerService.postFormData(formData)
     .subscribe((response) => {
       this.formHandlerService.sendMyFeeds(response);
-      // this.formHandlerService.updateHasNewFeed();
       setInterval(() => {
         this.formHandlerService.updateHasNewFeed();
       }, 1000); 
