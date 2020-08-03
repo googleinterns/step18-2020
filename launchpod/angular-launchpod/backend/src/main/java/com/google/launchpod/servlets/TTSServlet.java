@@ -1,9 +1,11 @@
 package com.google.launchpod.servlets;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,6 +35,7 @@ import com.google.appengine.api.search.query.ExpressionParser.num_return;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.repackaged.com.google.gson.Gson;
+import com.google.appengine.tools.admin.ConfirmationCallback.Response;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
@@ -198,7 +201,11 @@ public class TTSServlet extends HttpServlet {
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
         Blob desiredFeedBlob = storage.get(BUCKET_NAME, id);
         byte[] blobBytes = desiredFeedBlob.getContent(BlobSourceOption.generationMatch());
-
+        
+        FileOutputStream outputStream = new FileOutputStream(id + ".mp3");
+        outputStream.write(blobBytes);
+        outputStream.close();
+        /*
         ByteArrayInputStream bStream = new ByteArrayInputStream(blobBytes);
         AudioInputStream stream = null;
         try {
@@ -220,6 +227,9 @@ public class TTSServlet extends HttpServlet {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } 
+        */
+        res.setContentType("audio/mpeg");
+        res.addHeader("Content-Disposition","attachment; filename=" + id + ".mp3");
     }
 
     /**
@@ -239,7 +249,7 @@ public class TTSServlet extends HttpServlet {
                     .setSsmlGender(SsmlVoiceGender.FEMALE).build();
 
             // Select audio to be MP3
-            AudioConfig audioConfig = AudioConfig.newBuilder().setAudioEncoding(AudioEncoding.MP3).build();
+            AudioConfig audioConfig = AudioConfig.newBuilder().setAudioEncoding(AudioEncoding.LINEAR16).build();
 
             // Perform the text-to-speech request
             SynthesizeSpeechResponse response = textToSpeechClient.synthesizeSpeech(input, voice, audioConfig);
