@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormHandlerService } from '../form-handler.service';
 import { HttpParams } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 interface Language {
   value: string;
@@ -14,6 +15,8 @@ interface Language {
 })
 export class EpisodeTtsFormComponent implements OnInit {
 
+  key: String;
+
   languages: Language[] = [
     {value: 'en', viewValue: 'English'},
     {value: 'es', viewValue: 'Spanish'},
@@ -21,7 +24,7 @@ export class EpisodeTtsFormComponent implements OnInit {
 
   selectedLanguage = this.languages[0].value;
 
-  constructor(private formHandlerService: FormHandlerService) {}
+  constructor(private formHandlerService: FormHandlerService, private router: Router) {}
 
   ngOnInit(): void {}
 
@@ -31,6 +34,10 @@ export class EpisodeTtsFormComponent implements OnInit {
     formData = formData.set('episodeDescription', (document.getElementById("episodeDescription") as HTMLInputElement).value);
     formData = formData.set('episodeLanguage', this.selectedLanguage);
     formData = formData.set('text', (document.getElementById("text") as HTMLInputElement).value);
+
+    this.formHandlerService.currentFeedKey.subscribe((key) => {
+      formData = formData.set('keyId', key);
+    });
 
     this.formHandlerService.postEpisodeTTSData(formData)
       .subscribe((response) => {

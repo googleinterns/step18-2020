@@ -2,7 +2,7 @@ import { FormHandlerService } from '../form-handler.service';
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpParams } from '@angular/common/http';
-import { Router } from '@angular/router'
+import { Router } from '@angular/router';
 
 interface Feed {
   title: string;

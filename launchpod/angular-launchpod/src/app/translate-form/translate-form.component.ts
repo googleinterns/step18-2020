@@ -103,7 +103,9 @@ export class TranslateFormComponent implements OnInit {
     this.formHandlerService.postTranslationData(formData)
     .subscribe((response) => {
       this.formHandlerService.sendMyFeeds(response);
-      this.formHandlerService.updateHasNewFeed();
+      setInterval(() => {
+        this.formHandlerService.updateHasNewFeed();
+      }, 1000);
     });
 
     this.router.navigate(['/my-feeds']);
