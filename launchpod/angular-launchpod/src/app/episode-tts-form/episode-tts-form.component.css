@@ -1,0 +1,13 @@
+button {
+    background-color: green;
+    color: white;
+}
+
+form {
+    display: inline-block;
+    text-align: center;
+}
+
+.mat-form-field {
+    width: 30vw;
+}

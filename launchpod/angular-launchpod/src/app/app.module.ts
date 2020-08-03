@@ -23,7 +23,8 @@ import { TranslateFormComponent } from './translate-form/translate-form.componen
 import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
 import { LocationStrategy } from '@angular/common';
 import { LoginPopupComponent } from './login-popup/login-popup.component';
-import { EpisodeChoiceComponent } from './episode-choice/episode-choice.component'
+import { EpisodeChoiceComponent } from './episode-choice/episode-choice.component';
+import { EpisodeTtsFormComponent } from './episode-tts-form/episode-tts-form.component'
 
 @NgModule({
   declarations: [
@@ -33,7 +34,8 @@ import { EpisodeChoiceComponent } from './episode-choice/episode-choice.componen
     TranslateFormComponent,
     MyFeedsPageComponent,
     LoginPopupComponent,
-    EpisodeChoiceComponent
+    EpisodeChoiceComponent,
+    EpisodeTtsFormComponent
   ],
   imports: [
     AppRoutingModule,

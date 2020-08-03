@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 
 const FEED_URL = '/rss-feed';
 const UPLOAD_URL = 'create-by-upload';
+const TTS_URL = 'create-by-tts';
 const LOGIN_URL = '/login-status';
 
 @Injectable({
@@ -76,6 +77,13 @@ export class FormHandlerService {
   postUploadData(formData): Observable<string> {
     console.log("Form data: " + formData);
     return this.http.post(UPLOAD_URL, formData, { responseType: 'text' });
+  }
+
+  /**
+   * Post input from episode by link creation form to back end and retrieve URL for RSS feed.
+  */
+  postEpisodeTTSData(formData): Observable<string> {
+    return this.http.post(TTS_URL, formData, { responseType: 'text' });
   }
 
   /**
