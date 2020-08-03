@@ -16,18 +16,18 @@ public class ItunesOwner {
   private String email;
 
   /**
-  * Constructor generated for serialization/deserialization. Ensures that a
-  * constructor is being read for object conversion.
-  */
+   * Constructor generated for serialization/deserialization. Ensures that a
+   * constructor is being read for object conversion.
+   */
   public ItunesOwner() {
   }
-  
+
   public ItunesOwner(String name, String email) {
     this.name = name;
     this.email = email;
   }
 
-  public String getName(){
+  public String getName() {
     return this.name;
   }
 }

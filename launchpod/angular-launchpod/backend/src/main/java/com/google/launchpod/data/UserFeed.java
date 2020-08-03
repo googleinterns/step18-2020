@@ -1,8 +1,6 @@
 package com.google.launchpod.data;
 
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 import com.google.launchpod.servlets.FormHandlerServlet;
 
 public final class UserFeed {
