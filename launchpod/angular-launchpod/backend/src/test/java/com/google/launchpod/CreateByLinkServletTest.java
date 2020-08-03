@@ -131,6 +131,7 @@ public class CreateByLinkServletTest extends Mockito {
     userFeedEntity.setProperty(PODCAST_TITLE, title);
     userFeedEntity.setProperty(MP3_LINK, mp3Link);
     userFeedEntity.setProperty(XML_STRING, xmlString);
+    userFeedEntity.setProperty(EMAIL, TEST_EMAIL);
     return userFeedEntity;
   }
 
@@ -147,7 +148,7 @@ public class CreateByLinkServletTest extends Mockito {
   /**
   * Creates an entity with an XML string in Datastore.
   */
-  private Entity setUpEntityinDatastore() throws JsonProcessingException {
+  private static Entity setUpEntityinDatastore() throws JsonProcessingException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
@@ -195,41 +196,29 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() takes in form inputs from client, successfully stores
-   * that information in a Datastore entity, and returns a URL link to the
-   * generated RSS feed.
-   */
-  // @Test
-  // public void doPost_ReturnsCorrectUrl() throws IOException {
-  //   DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+  * Expects doPost() to throw an IOException when a user tries to modify another user's feed.
+  */
+  @Test
+  public void doPost_CorrectlyVerifiesUser() throws IOException {
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL_TWO).setEnvAuthDomain("localhost");
+    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    RSS rss = new RSS(TEST_NAME, TEST_EMAIL_TWO, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    String testXmlString = RSS.toXmlString(rss);
+    Entity entity = makeEntity(TEST_TITLE, TEST_MP3_LINK, testXmlString);
+    ds.put(entity);
+    String id = KeyFactory.keyToString(entity.getKey());
 
-  //   when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-  //   when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(EPISODE_TITLE)).thenReturn(TEST_TITLE);
+    when(request.getParameter(EPISODE_DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
+    when(request.getParameter(EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(ID)).thenReturn(id);
 
-  //   StringWriter stringWriter = new StringWriter();
-  //   PrintWriter writer = new PrintWriter(stringWriter);
-  //   when(response.getWriter()).thenReturn(writer);
-
-  //   servlet.doPost(request, response);
-
-  //   assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
-
-  //   Query query = new Query(USER_FEED);
-  //   PreparedQuery preparedQuery = ds.prepare(query);
-  //   Entity desiredEntity = preparedQuery.asSingleEntity();
-
-  //   String expectedXmlString = RSS.toXmlString(TEST_RSS_FEED);
-  //   assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
-
-  //   String testXmlString = RSS.toXmlString(TEST_RSS_FEED);
-  //   assertEquals(testXmlString, desiredEntity.getProperty(XML_STRING).toString());
-
-  //   String id = KeyFactory.keyToString(desiredEntity.getKey());
-  //   String rssLink = BASE_URL + id;
-
-  //   verify(response, times(1)).setContentType("text/html");
-  //   assertEquals(0, rssLink.compareTo(stringWriter.toString()));
-  // }
+    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+    thrown.expect(IOException.class);
+    thrown.expectMessage("You are trying to edit a feed that's not yours!");
+    servlet.doPost(request, response);
+  }
 
   /**
    * Expects doPost() to throw an IllegalArgumentException when the episode title field is

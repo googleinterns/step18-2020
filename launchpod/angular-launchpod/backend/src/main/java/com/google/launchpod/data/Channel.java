@@ -96,8 +96,8 @@ public class Channel {
   public List<Item> getItems() {
     return this.items;
   }
-  
-  public List<ItunesCategory> getItunesCategory() {
+    
+  public List<ItunesCategory> getItunesCategory(){
     return this.itunesCategory;
   }
 
@@ -119,4 +119,5 @@ public class Channel {
     }
     this.items.add(item);
   }
+
 }

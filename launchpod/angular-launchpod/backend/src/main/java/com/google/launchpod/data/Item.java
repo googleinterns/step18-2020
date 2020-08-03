@@ -1,6 +1,4 @@
 package com.google.launchpod.data;
-
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;
@@ -47,7 +45,7 @@ public class Item {
   public Item() {
   }
 
-  public Item(String podcastTitle, String podcastDescription, String mp3Link) {
+  public Item(String podcastTitle, String description, String language, String email, String mp3Link) {
     this.title = podcastTitle;
     this.description = podcastDescription;
     this.language = language; 

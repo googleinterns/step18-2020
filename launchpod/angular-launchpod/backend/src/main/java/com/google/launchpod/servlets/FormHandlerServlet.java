@@ -112,7 +112,6 @@ public class FormHandlerServlet extends HttpServlet {
         String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
         String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
         String userFeedLanguage = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
-        String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
         long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
         Date date = new Date(userFeedTimestamp);
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
