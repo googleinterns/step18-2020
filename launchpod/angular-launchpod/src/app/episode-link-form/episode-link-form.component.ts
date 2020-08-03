@@ -37,7 +37,6 @@ export class EpisodeLinkFormComponent implements OnInit {
 
     this.formHandlerService.postEpisodeLinkData(formData)
       .subscribe((response) => {
-        // this.feedValue = response;
         this.formHandlerService.sendFeedValue(response);
       });
   }
