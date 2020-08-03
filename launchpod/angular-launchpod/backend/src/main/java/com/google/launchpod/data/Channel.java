@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -65,6 +66,7 @@ public class Channel {
     this.author = name;
     this.language = language;
     this.description = description;
+    this.items = null;
   }
 
   public void setTitle(String newTitle){
@@ -111,7 +113,7 @@ public class Channel {
   * Add an item to a channel.
   */
   public void addItem(Item item) {
-    if(this.items.isEmpty()){
+    if(this.items.isEmpty() || this.items == null){
       this.items = new ArrayList<>();
     }
     this.items.add(item);

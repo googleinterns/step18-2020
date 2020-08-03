@@ -41,7 +41,7 @@ import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
 import com.google.protobuf.ByteString;
 
-@WebServlet("/tts-feed")
+@WebServlet("/create-by-tts")
 public class TTSServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -55,8 +55,9 @@ public class TTSServlet extends HttpServlet {
     private static final String TEXT = "text";
     private static final String XML_STRING = "xmlString";
     private static final String USER_FEED = "UserFeed";
-    private static final String BASE_URL = "https://launchpod-step187-2020.appspot.com/rss-feed?id=";
+    private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
     private static final Gson GSON = new Gson();
+    
 
     // Variables required for cloud storage
     private static final String PROJECT_ID = "launchpod-step18-2020"; // ID of GCP Project
@@ -76,6 +77,8 @@ public class TTSServlet extends HttpServlet {
      */
     public void doPost(HttpServletRequest request, HttpServletResponse res) throws IOException {
         UserService userService = UserServiceFactory.getUserService();
+
+        //TODO: ADD EDGE CASES CONDITIONS
 
         String userEmail = userService.getCurrentUser().getEmail();
         String feedKey = request.getParameter(FEED_KEY);
@@ -109,7 +112,7 @@ public class TTSServlet extends HttpServlet {
                                                                                // channel to be modified
         ByteString synthesizedMp3 = null;
         try {
-            synthesizedMp3 = synthesizeText(podcastText);
+           synthesizedMp3 = synthesizeText(podcastText);
         } catch (Exception e) {
             res.sendError(HttpServletResponse.SC_CONFLICT, "unable to create mp3 from request. Please try again.");
         }
@@ -124,7 +127,7 @@ public class TTSServlet extends HttpServlet {
         // Generate mp3 link
         String mp3Link = CLOUD_BASE_URL + ttsFeedId;
 
-        Item generatedItem = new Item(podcastTitle, podcastDescription, podcastLanguage, userEmail, mp3Link);
+        Item generatedItem = new Item(podcastTitle, podcastDescription, mp3Link);
         rssFeed.getChannel().addItem(generatedItem);
 
         desiredFeedEntity.setProperty(XML_STRING, RSS.toXmlString(rssFeed));
