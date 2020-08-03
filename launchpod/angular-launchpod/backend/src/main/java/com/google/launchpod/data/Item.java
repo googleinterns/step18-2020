@@ -61,11 +61,19 @@ public class Item {
     this.description = newDescription;
   }
 
+  public void setLanguage(String newLanguage){
+    this.language = newLanguage;
+  }
+
   public String getTitle() {
     return this.title;
   }
 
   public String getDescription() {
     return this.description;
+  }
+
+  public String getLanguage(){
+    return this.language;
   }
 }
