@@ -65,7 +65,7 @@ export class FormHandlerService {
   /**
    * Post form inputs to back-end and retrieve url for rss feed for MP3 uploads.
    */
-  postUploadData(formData): Observable<string> {
+  postEpisodeUploadData(formData): Observable<string> {
     console.log("Form data: " + formData);
     return this.http.post(UPLOAD_URL, formData, { responseType: 'text' });
   }

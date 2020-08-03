@@ -55,7 +55,7 @@ public class LoginServlet extends HttpServlet {
 
       String logoutUrl = userService.createLogoutURL(urlToRedirectTo);
       String loginMessage = "<p>Logged in as " + userEmail + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
-      
+
       Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();

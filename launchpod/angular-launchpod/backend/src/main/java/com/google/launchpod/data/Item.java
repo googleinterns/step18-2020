@@ -1,5 +1,4 @@
 package com.google.launchpod.data;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;

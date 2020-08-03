@@ -53,9 +53,9 @@ public class Channel {
   private List<Item> items;
 
   /**
-   * constructor generated for serialization/deserialization. Ensures that a
-   * constructor is being read for object conversion
-   */
+  * Constructor generated for serialization/deserialization. Ensures that a
+  * constructor is being read for object conversion.
+  */
   public Channel() {
   }
 
@@ -72,6 +72,7 @@ public class Channel {
   public void setTitle(String newTitle){
     this.title = newTitle;
   }
+
   public void setLanguage(String newLanguage) {
     this.language = newLanguage;
   }
@@ -100,11 +101,11 @@ public class Channel {
     return this.itunesCategory;
   }
 
-  public List<ItunesOwner> getItunesOwner(){
+  public List<ItunesOwner> getItunesOwner() {
     return this.itunesOwner;
   }
 
-  public String getAuthor(){
+  public String getAuthor() {
     return this.author;
   }
 
@@ -117,5 +118,6 @@ public class Channel {
       this.items = new ArrayList<>();
     }
     this.items.add(item);
+  }
 
 }
