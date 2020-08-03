@@ -141,11 +141,6 @@ public class TranslationServlet extends HttpServlet {
         if (!Strings.isNullOrEmpty(item.getDescription())) {
           item.setDescription(translateText(sourceLanguage, targetLanguage, item.getDescription()));
         }
-
-        // Episode Language
-        if (!Strings.isNullOrEmpty(item.getLanguage())) {
-          item.setLanguage(targetLanguage);
-        }
       }
     }
 

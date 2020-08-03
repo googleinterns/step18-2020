@@ -1,11 +1,7 @@
 package com.google.launchpod.servlets;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,11 +11,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -31,17 +22,15 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
-import com.google.appengine.api.search.query.ExpressionParser.num_return;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.repackaged.com.google.gson.Gson;
-import com.google.appengine.tools.admin.ConfirmationCallback.Response;
 import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Blob.BlobSourceOption;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import com.google.cloud.storage.Blob.BlobSourceOption;
 import com.google.cloud.texttospeech.v1.AudioConfig;
 import com.google.cloud.texttospeech.v1.AudioEncoding;
 import com.google.cloud.texttospeech.v1.SsmlVoiceGender;
@@ -50,7 +39,6 @@ import com.google.cloud.texttospeech.v1.SynthesizeSpeechResponse;
 import com.google.cloud.texttospeech.v1.TextToSpeechClient;
 import com.google.cloud.texttospeech.v1.VoiceSelectionParams;
 import com.google.common.base.Strings;
-import com.google.launchpod.data.Item;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
@@ -87,7 +75,7 @@ public class TTSServlet extends HttpServlet {
     /**
      * Requests user inputs from the form field to add item to existing channel, and
      * synthesizes the podcast Text. Then returns original RSS feed with the updated
-     * item added by the user
+     * item added by the user0
      * 
      * @throws IOException
      */
@@ -98,6 +86,7 @@ public class TTSServlet extends HttpServlet {
         String feedKey = request.getParameter(FEED_KEY);
         String podcastTitle = request.getParameter(TITLE);
         String podcastDescription = request.getParameter(DESCRIPTION);
+        String podcastLanguage = request.getParameter(LANGUAGE);
         String podcastText = request.getParameter(TEXT);
 
         // throw exception when parameters are empty or null
@@ -151,8 +140,7 @@ public class TTSServlet extends HttpServlet {
         // Generate mp3 link
         String mp3Link = TTS_BASE_URL + ttsFeedId;
 
-        Item generatedItem = new Item(podcastTitle, podcastDescription, mp3Link);
-        rssFeed.getChannel().addItem(generatedItem);
+        rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage, mp3Link, userEmail);
 
         desiredFeedEntity.setProperty(XML_STRING, RSS.toXmlString(rssFeed));
 
@@ -201,10 +189,10 @@ public class TTSServlet extends HttpServlet {
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
         Blob desiredFeedBlob = storage.get(BUCKET_NAME, id);
         byte[] blobBytes = desiredFeedBlob.getContent(BlobSourceOption.generationMatch());
-        
-        FileOutputStream outputStream = new FileOutputStream(id + ".mp3");
-        outputStream.write(blobBytes);
-        outputStream.close();
+
+        res.setContentType("text/html");
+        res.getWriter().println("<h1>MP3 Bytes: </h1>" + blobBytes);
+
         /*
         ByteArrayInputStream bStream = new ByteArrayInputStream(blobBytes);
         AudioInputStream stream = null;
@@ -228,8 +216,6 @@ public class TTSServlet extends HttpServlet {
             e.printStackTrace();
         } 
         */
-        res.setContentType("audio/mpeg");
-        res.addHeader("Content-Disposition","attachment; filename=" + id + ".mp3");
     }
 
     /**
