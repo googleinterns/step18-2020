@@ -136,17 +136,33 @@ public class FileUploadServlet extends HttpServlet {
       throw new IllegalArgumentException("You are not logged in. Please try again.");
     }
 
-    // Create entity with all desired attributes
-    Entity userFeedEntity = new Entity(USER_FEED);
-    userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
-    userFeedEntity.setProperty(DESCRIPTION, description);
-    userFeedEntity.setProperty(LANGUAGE, language);
-    userFeedEntity.setProperty(EMAIL, email);
+    // // Create entity with all desired attributes
+    // Entity userFeedEntity = new Entity(USER_FEED);
+    // userFeedEntity.setProperty(PODCAST_TITLE, podcastTitle);
+    // userFeedEntity.setProperty(DESCRIPTION, description);
+    // userFeedEntity.setProperty(LANGUAGE, language);
+    // userFeedEntity.setProperty(EMAIL, email);
 
+    // DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    // Key entityKey = datastore.put(userFeedEntity);
+
+    // String entityId = KeyFactory.keyToString(entityKey);
+    Key entityKey = null;
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    Key entityKey = datastore.put(userFeedEntity);
-
-    String entityId = KeyFactory.keyToString(entityKey);
+    Entity desiredFeedEntity;
+    try {
+      // Use key to retrieve entity from Datastore
+      entityKey = KeyFactory.stringToKey(id);
+      desiredFeedEntity = datastore.get(entityKey);
+    } catch (IllegalArgumentException e) {
+      // If entityId cannot be converted into a key
+      writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
+      return;
+    } catch (EntityNotFoundException e) {
+      // No matching entity in Datastore
+      writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
     String mp3Link = makeMp3Link(entityId);
 
     // Create embedded entity to store MP3 data
@@ -155,28 +171,35 @@ public class FileUploadServlet extends HttpServlet {
     mp3.setProperty(MP3_LINK, mp3Link);
     mp3.setProperty(EMAIL, email);
 
-    // Retrieve entity from Datastore
-    Entity savedEntity;
-    try {
-      savedEntity = datastore.get(entityKey);
-    } catch(EntityNotFoundException e) {
-      throw new IOException("Entity not found in Datastore.");
-    }
-
-    // Generate xml string
-    // TO-DO in mp3 episode PR: name, email, podcastTitle, description, category, language
-    RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
-    String xmlString;
-    try {
-      xmlString = RSS.toXmlString(rssFeed);
-      savedEntity.setProperty(XML_STRING ,xmlString);
-    } catch(IOException e){
-      throw new IOException("Unable to create XML string.");
-    }
-
     // Update entity by adding embedded mp3 entity as a property
-    savedEntity.setProperty(MP3, mp3);
-    datastore.put(savedEntity);
+    desiredEntity.setProperty(MP3, mp3);
+
+    // try {
+    //   desiredFeedEntity = datastore.get(entityKey);
+    // } catch(EntityNotFoundException e) {
+    //   throw new IOException("Entity not found in Datastore.");
+    // }
+
+    String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+
+    // Modify the xml string
+    RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
+    Channel channel = rssFeed.getChannel();
+    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
+    String modifiedXmlString = RSS.toXmlString(rssFeed);
+    desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
+    datastore.put(desiredFeedEntity);
+    // TO-DO in mp3 episode PR: name, email, podcastTitle, description, category, language
+    // RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
+    // String xmlString;
+    // try {
+    //   xmlString = RSS.toXmlString(rssFeed);
+    //   savedEntity.setProperty(XML_STRING ,xmlString);
+    // } catch(IOException e){
+    //   throw new IOException("Unable to create XML string.");
+    // }
+    
+    datastore.put(desiredEntity);
 
     //write the file upload form
     String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, entityId);
