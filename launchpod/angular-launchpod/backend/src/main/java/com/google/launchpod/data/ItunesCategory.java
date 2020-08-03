@@ -18,6 +18,13 @@ public class ItunesCategory {
   public ItunesCategory(){
   }
 
+  /**
+  * Constructor generated for serialization/deserialization. Ensures that a
+  * constructor is being read for object conversion.
+  */
+  public ItunesCategory() {
+  }
+
   public ItunesCategory(String category) {
     this.text = category;
   }

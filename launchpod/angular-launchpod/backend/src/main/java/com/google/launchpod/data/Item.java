@@ -1,5 +1,7 @@
 package com.google.launchpod.data;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -42,7 +44,7 @@ public class Item {
   public Item() {
   }
 
-  public Item(String podcastTitle, String podcastDescription, String mp3Link) {
+  public Item(String podcastTitle, String description, String language, String email, String mp3Link) {
     this.title = podcastTitle;
     this.description = podcastDescription;
     this.link = mp3Link;
@@ -57,11 +59,19 @@ public class Item {
     this.description = newDescription;
   }
 
+  public void setLanguage(String newLanguage){
+    this.language = newLanguage;
+  }
+
   public String getTitle() {
     return this.title;
   }
 
   public String getDescription() {
     return this.description;
+  }
+
+  public String getLanguage(){
+    return this.language;
   }
 }

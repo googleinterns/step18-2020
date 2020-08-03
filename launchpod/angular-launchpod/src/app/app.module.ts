@@ -22,8 +22,9 @@ import { Mp3FormComponent } from './mp3-form/mp3-form.component'
 import { TranslateFormComponent } from './translate-form/translate-form.component';
 import { TranscribeFormComponent } from './transcribe-form/transcribe-form.component';
 import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
+import { LoginPopupComponent } from './login-popup/login-popup.component';
+import { EpisodeLinkFormComponent } from './episode-link-form/episode-link-form.component'
 import { LocationStrategy } from '@angular/common';
-import { LoginPopupComponent } from './login-popup/login-popup.component'
 
 @NgModule({
   declarations: [
@@ -33,7 +34,8 @@ import { LoginPopupComponent } from './login-popup/login-popup.component'
     TranslateFormComponent,
     TranscribeFormComponent,
     MyFeedsPageComponent,
-    LoginPopupComponent
+    LoginPopupComponent,
+    EpisodeLinkFormComponent
   ],
   imports: [
     AppRoutingModule,

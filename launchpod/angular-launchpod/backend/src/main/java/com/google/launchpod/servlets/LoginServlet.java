@@ -55,7 +55,7 @@ public class LoginServlet extends HttpServlet {
 
       String logoutUrl = userService.createLogoutURL(urlToRedirectTo);
       String loginMessage = "<p>Logged in as " + userEmail + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
-
+      
       Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
       DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -75,9 +75,8 @@ public class LoginServlet extends HttpServlet {
           SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
           String postTime = dateFormat.format(date);
           Key key = entity.getKey();
-
-          String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the
-                                                                  // numeric ID.
+          
+          String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
           String rssLink = BASE_URL + urlID;
 
           userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID, language));

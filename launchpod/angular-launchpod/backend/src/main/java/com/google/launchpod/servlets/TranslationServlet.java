@@ -118,7 +118,8 @@ public class TranslationServlet extends HttpServlet {
     rssFeed.getChannel().setTitle(translateText(sourceLanguage, targetLanguage, rssFeed.getChannel().getTitle()));
 
     // Channel description
-    rssFeed.getChannel().setDescription(translateText(sourceLanguage, targetLanguage, rssFeed.getChannel().getDescription()));
+    rssFeed.getChannel()
+        .setDescription(translateText(sourceLanguage, targetLanguage, rssFeed.getChannel().getDescription()));
 
     // Language
     rssFeed.getChannel().setLanguage(targetLanguage);
@@ -132,13 +133,18 @@ public class TranslationServlet extends HttpServlet {
     if (rssFeed.getChannel().getItems() != null) {
       for (Item item : rssFeed.getChannel().getItems()) {
         // Episode title
-        if(!Strings.isNullOrEmpty(item.getTitle())){
+        if (!Strings.isNullOrEmpty(item.getTitle())) {
           item.setTitle(translateText(sourceLanguage, targetLanguage, item.getTitle()));
         }
 
         // Episode description
-        if(!Strings.isNullOrEmpty(item.getDescription())){
+        if (!Strings.isNullOrEmpty(item.getDescription())) {
           item.setDescription(translateText(sourceLanguage, targetLanguage, item.getDescription()));
+        }
+
+        // Episode Language
+        if (!Strings.isNullOrEmpty(item.getLanguage())) {
+          item.setLanguage(targetLanguage);
         }
       }
     }
@@ -196,8 +202,7 @@ public class TranslationServlet extends HttpServlet {
       LocationName parent = LocationName.of(projectId, location);
 
       TranslateTextRequest request = TranslateTextRequest.newBuilder().setParent(parent.toString())
-          .setMimeType("text/html").setTargetLanguageCode(targetLanguage)
-          .addContents(text).build();
+          .setMimeType("text/html").setTargetLanguageCode(targetLanguage).addContents(text).build();
 
       TranslateTextResponse response = client.translateText(request);
       request.toBuilder().clearContents();

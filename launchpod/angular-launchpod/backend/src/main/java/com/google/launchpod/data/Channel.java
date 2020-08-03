@@ -10,6 +10,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JacksonXmlRootElement(localName = "channel")
@@ -48,6 +49,7 @@ public class Channel {
   private List<ItunesCategory> itunesCategory;
 
   @JacksonXmlElementWrapper(useWrapping = false)
+  @JacksonXmlProperty
   @JsonProperty("item")
   private List<Item> items;
 
@@ -72,7 +74,6 @@ public class Channel {
   public void setTitle(String newTitle){
     this.title = newTitle;
   }
-
   public void setLanguage(String newLanguage) {
     this.language = newLanguage;
   }
@@ -96,7 +97,7 @@ public class Channel {
   public List<Item> getItems() {
     return this.items;
   }
-
+    
   public List<ItunesCategory> getItunesCategory(){
     return this.itunesCategory;
   }
@@ -112,8 +113,9 @@ public class Channel {
   /**
   * Add an item to a channel.
   */
-  public void addItem(Item item) {
-    if(this.items.isEmpty() || this.items == null){
+  public void addItem(String podcastTitle, String description, String language, String email, String mp3Link) {
+    Item item = new Item(podcastTitle, description, language, email, mp3Link);
+    if (this.items == null || this.items.isEmpty()) {
       this.items = new ArrayList<>();
     }
     this.items.add(item);

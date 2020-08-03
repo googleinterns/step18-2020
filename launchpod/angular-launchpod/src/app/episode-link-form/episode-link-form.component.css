@@ -1,0 +1,17 @@
+button {
+    background-color: green;
+    color: white;
+}
+
+form {
+    display: inline-block;
+    text-align: center;
+}
+
+#message {
+    color: red;
+}
+
+.mat-form-field {
+    width:30vw;
+}
