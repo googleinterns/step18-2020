@@ -48,9 +48,10 @@ public class FileUploadServlet extends HttpServlet {
   public static final String BUCKET_NAME = "launchpod-mp3-files"; // The ID of the GCS bucket to upload to
 
   public static final String USER_FEED = "UserFeed";
-  public static final String PODCAST_TITLE = "title";
-  public static final String DESCRIPTION = "description";
-  public static final String LANGUAGE = "language";
+  // to-do: check for these strings on front end 
+  private static final String EPISODE_TITLE = "episodeTitle";
+  private static final String EPISODE_DESCRIPTION = "episodeDescription";
+  private static final String EPISODE_LANGUAGE = "episodeLanguage";
   public static final String EMAIL = "email";
   public static final String TIMESTAMP = "timestamp";
   public static final String MP3 = "mp3";
@@ -106,28 +107,31 @@ public class FileUploadServlet extends HttpServlet {
   }
 
   /**
-   * Requests user inputs in form fields, then creates Entity and places in Datastore.
+   * Requests user inputs in form fields, then updates XML associated with entity id in Datastore.
    * @throws ServletException
    */
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IllegalArgumentException, IOException {
-    String podcastTitle = req.getParameter(PODCAST_TITLE);
-    String description = req.getParameter(DESCRIPTION);
-    String language = req.getParameter(LANGUAGE);
-    String email = req.getParameter(EMAIL);
+    String episodeTitle = req.getParameter(EPISODE_TITLE);
+    String episodeDescription = req.getParameter(EPISODE_DESCRIPTION);
+    String episodeLanguage = req.getParameter(EPISODE_LANGUAGE);
+    String id = req.getParameter(ID);
 
     UserService userService = UserServiceFactory.getUserService();
+    String email = "";
     if (userService.isUserLoggedIn()) {
       email = userService.getCurrentUser().getEmail();
     }
 
-    // TO-DO after merging: move validation to common place 
-    if (Strings.isNullOrEmpty(podcastTitle)) {
-      throw new IllegalArgumentException("No Title inputted, please try again.");
-    } else if (Strings.isNullOrEmpty(description)) {
-      throw new IllegalArgumentException("No description inputted, please try again.");
-    } else if (Strings.isNullOrEmpty(language)) {
-      throw new IllegalArgumentException("No language inputted, please try again.");
+    // TO-DO after merging: move validation to common place
+    if (Strings.isNullOrEmpty(episodeTitle)) {
+      throw new IllegalArgumentException("No episode title inputted, please try again.");
+    } else if (Strings.isNullOrEmpty(episodeDescription)) {
+      throw new IllegalArgumentException("No episode description inputted, please try again.");
+    } else if (Strings.isNullOrEmpty(episodeLanguage)) {
+      throw new IllegalArgumentException("No episode language inputted, please try again.");
+    } else if (Strings.isNullOrEmpty(id)) {
+      throw new IllegalArgumentException("Sorry, no entity Id could be found.");
     } else if (Strings.isNullOrEmpty(email)) {
       throw new IllegalArgumentException("You are not logged in. Please try again.");
     }
