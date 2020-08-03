@@ -5,12 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JacksonXmlRootElement(localName = "channel")
 @JsonPropertyOrder({ "title", "link", "language", "description", "author", "owner", "category", "item" })
@@ -48,12 +46,13 @@ public class Channel {
   private List<ItunesCategory> itunesCategory;
 
   @JacksonXmlElementWrapper(useWrapping = false)
+  @JacksonXmlProperty
   @JsonProperty("item")
   private List<Item> items;
 
   /**
-   * constructor generated for serialization/deserialization. Ensures that a
-   * constructor is being read for object conversion
+   * Constructor generated for serialization/deserialization. Ensures that a
+   * constructor is being read for object conversion.
    */
   public Channel() {
   }
@@ -69,7 +68,7 @@ public class Channel {
     this.items = null;
   }
 
-  public void setTitle(String newTitle){
+  public void setTitle(String newTitle) {
     this.title = newTitle;
   }
 
@@ -81,7 +80,7 @@ public class Channel {
     this.description = newDescription;
   }
 
-  public String getTitle(){
+  public String getTitle() {
     return this.title;
   }
 
@@ -97,23 +96,24 @@ public class Channel {
     return this.items;
   }
 
-  public List<ItunesCategory> getItunesCategory(){
+  public List<ItunesCategory> getItunesCategory() {
     return this.itunesCategory;
   }
 
-  public List<ItunesOwner> getItunesOwner(){
+  public List<ItunesOwner> getItunesOwner() {
     return this.itunesOwner;
   }
 
-  public String getAuthor(){
+  public String getAuthor() {
     return this.author;
   }
 
   /**
-  * Add an item to a channel.
-  */
-  public void addItem(Item item) {
-    if(this.items.isEmpty() || this.items == null){
+   * Add an item to a channel.
+   */
+  public void addItem(String podcastTitle, String description, String language, String email, String mp3Link) {
+    Item item = new Item(podcastTitle, description, language, email, mp3Link);
+    if (this.items == null) {
       this.items = new ArrayList<>();
     }
     this.items.add(item);

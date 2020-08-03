@@ -26,9 +26,9 @@ public class RSS {
   private static final XmlMapper xmlMapper = new XmlMapper();
 
   /**
-   * constructor generated for serialization/deserialization. Ensures that a
-   * constructor is being read for object conversion
-   */
+  * Constructor generated for serialization/deserialization. Ensures that a
+  * constructor is being read for object conversion.
+  */
   public RSS() {
   }
 
