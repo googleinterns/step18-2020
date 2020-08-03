@@ -87,7 +87,7 @@ public class Channel {
   /**
   * Add an item to a channel.
   */
-  public static void addItem(Channel channel, String podcastTitle, String description, String language, String email, String mp3Link) {
+  public static void addItem(String podcastTitle, String description, String language, String email, String mp3Link) {
     Item item = new Item(podcastTitle, description, language, email, mp3Link);
     if (channel.getItems() == null) {
       channel.items = new ArrayList<>();
