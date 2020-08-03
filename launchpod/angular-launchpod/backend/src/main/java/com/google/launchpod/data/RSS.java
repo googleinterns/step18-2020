@@ -32,8 +32,8 @@ public class RSS {
   public RSS() {
   }
 
-  public RSS(String name, String email, String podcastTitle, String description, String category, String language) {
-    this.channel = new Channel(name, email, podcastTitle, description, category, language);
+  public RSS(String name, String email, String channelTitle, String description, String category, String language) {
+    this.channel = new Channel(name, email, channelTitle, description, category, language);
   }
 
   public Channel getChannel() {
