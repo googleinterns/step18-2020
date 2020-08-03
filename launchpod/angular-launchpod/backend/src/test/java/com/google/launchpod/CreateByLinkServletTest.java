@@ -214,10 +214,6 @@ public class CreateByLinkServletTest extends Mockito {
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
     when(request.getParameter(ID)).thenReturn(id);
 
-    // StringWriter stringWriter = new StringWriter();
-    // PrintWriter writer = new PrintWriter(stringWriter);
-    // when(response.getWriter()).thenReturn(writer);
-
     assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
     thrown.expect(IOException.class);
     thrown.expectMessage("You are trying to edit a feed that's not yours!");
