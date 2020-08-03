@@ -6,6 +6,7 @@ const FEED_URL = '/rss-feed';
 const UPLOAD_URL = 'create-by-upload';
 const TTS_URL = 'create-by-tts';
 const LOGIN_URL = '/login-status';
+const TRANSLATION_URL = "/translate-feed";
 
 @Injectable({
   providedIn: 'root'
@@ -84,6 +85,13 @@ export class FormHandlerService {
   */
   postEpisodeTTSData(formData): Observable<string> {
     return this.http.post(TTS_URL, formData, { responseType: 'text' });
+  }
+
+  /**
+   * Post form inputs to back-end and retrieve url for rss feed.
+   */
+  postTranslationData(formData): Observable<any> {
+    return this.http.post(TRANSLATION_URL, formData);
   }
 
   /**
