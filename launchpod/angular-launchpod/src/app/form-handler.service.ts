@@ -23,6 +23,9 @@ export class FormHandlerService {
   private readonly hasNewFeedSubject = new BehaviorSubject<boolean>(false);
   hasNewFeed = this.hasNewFeedSubject.asObservable();
 
+  private readonly currentFeedKeySubject = new BehaviorSubject<string>("");
+  currentFeedKey = this.currentFeedKeySubject.asObservable();
+
   constructor(private http: HttpClient) {}
 
   /**
@@ -51,6 +54,13 @@ export class FormHandlerService {
    */
   updateHasNewFeed() {
     this.hasNewFeedSubject.next(true);
+  }
+
+  /**
+   * Update the key of the feed the user is current editing.
+   */
+  sendCurrentFeedKey(key) {
+    this.currentFeedKeySubject.next(key);
   }
 
   /**

@@ -20,10 +20,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Mp3FormComponent } from './mp3-form/mp3-form.component'
 import { TranslateFormComponent } from './translate-form/translate-form.component';
-import { TranscribeFormComponent } from './transcribe-form/transcribe-form.component';
 import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
 import { LocationStrategy } from '@angular/common';
-import { LoginPopupComponent } from './login-popup/login-popup.component'
+import { LoginPopupComponent } from './login-popup/login-popup.component';
+import { EpisodeChoiceComponent } from './episode-choice/episode-choice.component'
 
 @NgModule({
   declarations: [
@@ -31,9 +31,9 @@ import { LoginPopupComponent } from './login-popup/login-popup.component'
     CreateFormComponent,
     Mp3FormComponent,
     TranslateFormComponent,
-    TranscribeFormComponent,
     MyFeedsPageComponent,
-    LoginPopupComponent
+    LoginPopupComponent,
+    EpisodeChoiceComponent
   ],
   imports: [
     AppRoutingModule,

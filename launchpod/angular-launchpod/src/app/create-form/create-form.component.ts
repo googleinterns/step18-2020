@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormHandlerService } from '../form-handler.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
-import { Router } from '@angular/router'
+import { Router } from '@angular/router';
 
 interface Category {
   value: string;
