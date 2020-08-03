@@ -167,11 +167,19 @@ public class FileUploadServlet extends HttpServlet {
     // Modify the xml string
     RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
     Channel channel = rssFeed.getChannel();
-    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
+      
+    String entityEmail = (String) desiredFeedEntity.getProperty(EMAIL);
+
+    // Verify that user is modifying a feed they created
+    if (entityEmail.equals(email)) {
+      channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
+    } else {
+      throw new IOException("You are trying to edit a feed that's not yours!");
+    }
+
     String modifiedXmlString = RSS.toXmlString(rssFeed);
     desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
     datastore.put(desiredFeedEntity);
-
 
     // Write the file upload form
     String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, id);

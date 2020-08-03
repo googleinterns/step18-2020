@@ -126,7 +126,7 @@ public class CreateByLinkServletTest extends Mockito {
   /**
    * Creates a test user feed entity.
    */
-  private Entity makeEntity(String title, String mp3Link, String xmlString) {
+  private static Entity makeEntity(String title, String mp3Link, String xmlString) {
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, title);
     userFeedEntity.setProperty(MP3_LINK, mp3Link);
@@ -137,9 +137,9 @@ public class CreateByLinkServletTest extends Mockito {
   /**
   * Given and RSS feed and episode details, adds that episode to the RSS Feed and returns the XML of that modified feed.
   */
-  private String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription, String episodeLanguage, String email, String mp3Link) throws JsonProcessingException {
+  private static String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription, String episodeLanguage, String email, String mp3Link) throws JsonProcessingException {
     Channel channel = rssFeed.getChannel();
-    channel.addItem(channel, episodeTitle, episodeDescription, episodeLanguage, email, mp3Link); // to-do: double check this
+    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link); // to-do: double check this
     String modifiedXmlString = RSS.toXmlString(rssFeed);
     return modifiedXmlString;
   }
@@ -479,136 +479,5 @@ public class CreateByLinkServletTest extends Mockito {
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("You are not logged in. Please try again.");
     servlet.doPost(request, response);
-  }
-
-  /**
-   * Asserts that doGet() returns correct XML string when given an entity ID, with
-   * one entity in Datstore.
-   */
-  @Test
-  public void doGet_SingleEntity_ReturnsCorrectXmlString() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
-    String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(TEST_TITLE, TEST_MP3_LINK, testXmlString);
-    ds.put(entity);
-
-    String id = KeyFactory.keyToString(entity.getKey());
-
-    when(request.getParameter(ID)).thenReturn(id);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doGet(request, response);
-
-    verify(response, times(1)).setContentType("text/xml");
-    writer.flush();
-    assertEquals(testXmlString, stringWriter.toString());
-  }
-
-  /**
-   * Asserts that doGet() returns correct XML string when given an entity ID, with
-   * multiple entities in Datastore.
-   */
-  @Test
-  public void doGet_MultipleEntities_ReturnsCorrectXmlString() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
-    String testXmlString = RSS.toXmlString(rss);
-
-    Entity entity = makeEntity(TEST_TITLE, TEST_MP3_LINK, testXmlString);
-    Entity entityTwo = makeEntity(TEST_TITLE, TEST_MP3_LINK, testXmlString);
-    ds.put(entity);
-    ds.put(entityTwo);
-
-    String id = KeyFactory.keyToString(entity.getKey());
-    String idTwo = KeyFactory.keyToString(entityTwo.getKey());
-
-    when(request.getParameter(ID)).thenReturn(id);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doGet(request, response);
-
-    verify(response, times(1)).setContentType("text/xml");
-    writer.flush();
-    assertEquals(testXmlString, stringWriter.toString());
-  }
-
-  /**
-  * Asserts that doGet() returns an error message by catching an IllegalArgumentException
-  * when an entity with request id cannot be converted to a key.
-  */
-  @Test
-  public void doGet_InvalidId_SendsErrorMessage() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
-    String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(TEST_TITLE, TEST_MP3_LINK, testXmlString);
-    ds.put(entity);
-    String id = "1234"; // incorrect id
-
-    when(request.getParameter(ID)).thenReturn(id);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doGet(request, response);
-
-    verify(response, times(1)).setContentType("text/html");
-    writer.flush();
-    assertEquals("Sorry, this is not a valid id.".trim(), stringWriter.toString().trim());
-    verify(response, times(1)).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-  }
-
-  /**
-   * Expects that doGet() returns an error message when an entity with request id
-   * does not exist in Datastore.
-   */
-  @Test
-  public void doGet_EntityNotFound() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
-    String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(TEST_TITLE, TEST_MP3_LINK, testXmlString);
-    ds.put(entity);
-    Key key = entity.getKey();
-    String id = KeyFactory.keyToString(key);
-    ds.delete(key);
-
-    when(request.getParameter(ID)).thenReturn(id);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    servlet.doGet(request, response);
-
-    verify(response, times(1)).setContentType("text/html");
-    writer.flush();
-    assertEquals("Your entity could not be found.".trim(), stringWriter.toString().trim());
-    verify(response, times(1)).setStatus(HttpServletResponse.SC_NOT_FOUND);
-  }
-
-  /**
-   * Asserts that doGet() returns a message asking for id if the id is null.
-   */
-  @Test
-  public void doGet_NullId_ThrowsErrorMessage() throws IOException {
-    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    when(request.getParameter(ID)).thenReturn(null);
-
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter writer = new PrintWriter(stringWriter);
-    when(response.getWriter()).thenReturn(writer);
-
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Sorry, no matching Id was found in Datastore.");
-    servlet.doGet(request, response);
   }
 }

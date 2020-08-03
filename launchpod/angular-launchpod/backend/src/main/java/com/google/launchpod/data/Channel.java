@@ -89,9 +89,9 @@ public class Channel {
   */
   public void addItem(String podcastTitle, String description, String language, String email, String mp3Link) {
     Item item = new Item(podcastTitle, description, language, email, mp3Link);
-    if (this.getItems() == null) {
+    if (this.items == null) {
       this.items = new ArrayList<>();
     }
-    this.getItems().add(item);
+    this.items.add(item);
   }
 }

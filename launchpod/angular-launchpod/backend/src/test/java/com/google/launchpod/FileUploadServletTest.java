@@ -140,7 +140,7 @@ public class FileUploadServletTest extends Mockito {
   /**
    * Creates a test user feed entity with an embedded entity for the MP3 object.
    */
-  private Entity makeEntity(String title, String description, String language, String email, String xmlString) {
+  private static Entity makeEntity(String title, String description, String language, String email, String xmlString) {
     Entity userFeedEntity = new Entity(USER_FEED);
     userFeedEntity.setProperty(PODCAST_TITLE, title);
     userFeedEntity.setProperty(DESCRIPTION, description);
@@ -153,7 +153,7 @@ public class FileUploadServletTest extends Mockito {
   /**
    * Creates a test user feed entity.
    */
-  private EmbeddedEntity makeEmbeddedEntity(String entityId, String email) {
+  private static EmbeddedEntity makeEmbeddedEntity(String entityId, String email) {
     EmbeddedEntity mp3 = new EmbeddedEntity();
     mp3.setProperty(ID, entityId);
     mp3.setProperty(MP3_LINK, makeMp3Link(entityId));
@@ -164,7 +164,7 @@ public class FileUploadServletTest extends Mockito {
   /**
   * Given and RSS feed and episode details, adds that episode to the RSS Feed and returns the XML of that modified feed.
   */
-  private String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription, String episodeLanguage, String email, String mp3Link) throws JsonProcessingException {
+  private static String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription, String episodeLanguage, String email, String mp3Link) throws JsonProcessingException {
     Channel channel = rssFeed.getChannel();
     channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
     String modifiedXmlString = RSS.toXmlString(rssFeed);
@@ -174,7 +174,7 @@ public class FileUploadServletTest extends Mockito {
   /**
   * Creates an entity with an XML string in Datastore.
   */
-  private Entity setUpEntityinDatastore() throws JsonProcessingException {
+  private static Entity setUpEntityinDatastore() throws JsonProcessingException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
@@ -187,7 +187,7 @@ public class FileUploadServletTest extends Mockito {
   /**
    * Creates a test MP3 link.
    */
-  private String makeMp3Link(String entityId) {
+  private static String makeMp3Link(String entityId) {
     String link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
     return link;
   }
@@ -259,6 +259,31 @@ public class FileUploadServletTest extends Mockito {
     // Verify embedded entity
     EmbeddedEntity testEmbeddedEntity = makeEmbeddedEntity(id, TEST_EMAIL);
     assertEquals(testEmbeddedEntity, desiredEntity.getProperty(MP3));
+  }
+
+  /**
+  * Expects doPost() to throw an IOException when a user tries to modify another user's feed.
+  */
+  @Test
+  public void doPost_CorrectlyVerifiesUser() throws IOException {
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL_TWO).setEnvAuthDomain("localhost");
+    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+    RSS rss = new RSS(TEST_NAME, TEST_EMAIL_TWO, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    String testXmlString = RSS.toXmlString(rss);
+    Entity entity = makeEntity(TEST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
+    ds.put(entity);
+    String id = KeyFactory.keyToString(entity.getKey());
+
+    when(request.getParameter(EPISODE_TITLE)).thenReturn(TEST_TITLE);
+    when(request.getParameter(EPISODE_DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
+    when(request.getParameter(EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(ID)).thenReturn(id);
+
+    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+    thrown.expect(IOException.class);
+    thrown.expectMessage("You are trying to edit a feed that's not yours!");
+    servlet.doPost(request, response);
   }
 
   /**
