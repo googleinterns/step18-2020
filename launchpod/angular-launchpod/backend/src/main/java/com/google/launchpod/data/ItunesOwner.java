@@ -21,9 +21,13 @@ public class ItunesOwner {
   */
   public ItunesOwner() {
   }
-
+  
   public ItunesOwner(String name, String email) {
     this.name = name;
     this.email = email;
+  }
+
+  public String getName(){
+    return this.name;
   }
 }

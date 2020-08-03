@@ -1,5 +1,6 @@
 package com.google.launchpod.data;
 
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.text.SimpleDateFormat;
@@ -39,12 +40,43 @@ public class Item {
 
   private static final SimpleDateFormat DATE_FORMATTER = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS z");
 
-  public Item(String podcastTitle, String description, String language, String email, String mp3Link) {
+  /**
+   * constructor generated for serialization/deserialization. Ensures that a
+   * constructor is being read for object conversion
+   */
+  public Item() {
+  }
+
+  public Item(String podcastTitle, String podcastDescription, String mp3Link) {
     this.title = podcastTitle;
-    this.description = description;
-    this.language = language;
+    this.description = podcastDescription;
+    this.language = language; 
     this.email = email;
     this.link = mp3Link;
-    this.pubDate = this.pubDate = DATE_FORMATTER.format(DateTimeUtils.currentTimeMillis());
+    this.pubDate = DATE_FORMATTER.format(DateTimeUtils.currentTimeMillis());
+  }
+
+  public void setTitle(String newTitle) {
+    this.title = newTitle;
+  }
+
+  public void setDescription(String newDescription) {
+    this.description = newDescription;
+  }
+
+  public void setLanguage(String newLanguage){
+    this.language = newLanguage;
+  }
+
+  public String getTitle() {
+    return this.title;
+  }
+
+  public String getDescription() {
+    return this.description;
+  }
+
+  public String getLanguage(){
+    return this.language;
   }
 }

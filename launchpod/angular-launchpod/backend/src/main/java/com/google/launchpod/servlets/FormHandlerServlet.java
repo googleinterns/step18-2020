@@ -1,28 +1,16 @@
-// Copyright 2019 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package com.google.launchpod.servlets;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -31,17 +19,15 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
-import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.LoginStatus;
+import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.ArrayList;
-import java.util.Date;
 
 @WebServlet("/rss-feed")
 public class FormHandlerServlet extends HttpServlet {
@@ -51,7 +37,7 @@ public class FormHandlerServlet extends HttpServlet {
   private static final String TITLE = "title";
   private static final String LANGUAGE = "language";
   private static final String USER_NAME = "name";
-  private static final String USER_EMAIL = "email";
+  public static final String USER_EMAIL = "email";
   private static final String TIMESTAMP = "timestamp";
   private static final String POST_TIME = "postTime";
   private static final String CATEGORY = "category";
@@ -63,7 +49,8 @@ public class FormHandlerServlet extends HttpServlet {
   private static final Gson GSON = new Gson();
 
   /**
-   * Requests user inputs in form fields, then creates Entity and places in Datastore.
+   * Requests user inputs in form fields, then creates Entity and places in
+   * Datastore.
    *
    * @throws IOException,IllegalArgumentException
    */
@@ -120,13 +107,12 @@ public class FormHandlerServlet extends HttpServlet {
 
     ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
     for (Entity entity : results.asIterable()) {
-      String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
-      if (email.equals(userFeedEmail)) {
+      if (email.equals(entity.getProperty(USER_EMAIL).toString())) {
         String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
         String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
         String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
         String userFeedLanguage = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
-
+        String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
         long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
         Date date = new Date(userFeedTimestamp);
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
@@ -146,6 +132,7 @@ public class FormHandlerServlet extends HttpServlet {
 
   /**
    * Display RSS feed xml string that user tries recalling with the given ID.
+   * 
    * @throws IOException
    */
   @Override
