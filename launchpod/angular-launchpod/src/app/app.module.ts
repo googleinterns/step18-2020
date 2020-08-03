@@ -25,6 +25,7 @@ import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
 import { LoginPopupComponent } from './login-popup/login-popup.component';
 import { EpisodeLinkFormComponent } from './episode-link-form/episode-link-form.component'
 import { LocationStrategy } from '@angular/common';
+import { EpisodeUploadFormComponent } from './episode-upload-form/episode-upload-form.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { LocationStrategy } from '@angular/common';
     TranscribeFormComponent,
     MyFeedsPageComponent,
     LoginPopupComponent,
-    EpisodeLinkFormComponent
+    EpisodeLinkFormComponent,
+    EpisodeUploadFormComponent
   ],
   imports: [
     AppRoutingModule,

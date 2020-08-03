@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.lang.SecurityException;
+import java.net.URL;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -17,7 +18,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -31,7 +32,7 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.auth.appengine.AppEngineCredentials;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.launchpod.data.RSS;
-import com.google.launchpod.data.UserFeed;
+import com.google.launchpod.data.Channel;
 import com.google.launchpod.data.MP3;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.PostPolicyV4;
@@ -65,6 +66,7 @@ public class FileUploadServlet extends HttpServlet {
 
   private static final String ID = "id";
   private static final String ACTION = "action";
+  private static final XmlMapper XML_MAPPER = new XmlMapper();
 
   // TO-DO after merging: move this to common place
   /*
@@ -163,16 +165,16 @@ public class FileUploadServlet extends HttpServlet {
       writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
       return;
     }
-    String mp3Link = makeMp3Link(entityId);
+    String mp3Link = makeMp3Link(id);
 
     // Create embedded entity to store MP3 data
     EmbeddedEntity mp3 = new EmbeddedEntity();
-    mp3.setProperty(ID, entityId);
+    mp3.setProperty(ID, id);
     mp3.setProperty(MP3_LINK, mp3Link);
     mp3.setProperty(EMAIL, email);
 
     // Update entity by adding embedded mp3 entity as a property
-    desiredEntity.setProperty(MP3, mp3);
+    desiredFeedEntity.setProperty(MP3, mp3);
 
     // try {
     //   desiredFeedEntity = datastore.get(entityKey);
@@ -189,7 +191,7 @@ public class FileUploadServlet extends HttpServlet {
     String modifiedXmlString = RSS.toXmlString(rssFeed);
     desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
     datastore.put(desiredFeedEntity);
-    // TO-DO in mp3 episode PR: name, email, podcastTitle, description, category, language
+
     // RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
     // String xmlString;
     // try {
@@ -198,11 +200,9 @@ public class FileUploadServlet extends HttpServlet {
     // } catch(IOException e){
     //   throw new IOException("Unable to create XML string.");
     // }
-    
-    datastore.put(desiredEntity);
 
     //write the file upload form
-    String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, entityId);
+    String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, id);
     res.setContentType("text/html");
     res.getWriter().println(formHtml);
   }
@@ -224,12 +224,16 @@ public class FileUploadServlet extends HttpServlet {
       // Prepare credentials and API key
       String keyFileName = "launchpod-step18-2020-47434aafba88.json";
       ClassLoader classLoader = getClass().getClassLoader();
-      File file = new File(classLoader.getResource(keyFileName).getFile());
+      URL keyFile = classLoader.getResource(keyFileName);
+      if (keyFile == null) {
+        throw new IOException("API key was not found.");
+      }
+      File file = new File(keyFile.getFile());
       GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(file));
 
       storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
 
-      myRedirectUrl = GENERATE_RSS_URL + blobName;
+      myRedirectUrl = GENERATE_RSS_URL + blobName; // to-do: change this to the My RSS Feeds page
       fields =
           PostPolicyV4.PostFieldsV4.newBuilder().setSuccessActionRedirect(myRedirectUrl).build();
 
@@ -301,17 +305,18 @@ public class FileUploadServlet extends HttpServlet {
           return;
         }
 
-        String podcastTitle = desiredFeedEntity.getProperty(PODCAST_TITLE).toString();
-        String description = desiredFeedEntity.getProperty(DESCRIPTION).toString();
-        String language = desiredFeedEntity.getProperty(LANGUAGE).toString();
-        String email = desiredFeedEntity.getProperty(EMAIL).toString();
+        // String episodeTitle = desiredFeedEntity.getProperty(EPISODE_TITLE).toString();
+        // String description = desiredFeedEntity.getProperty(EPISODE_DESCRIPTION).toString();
+        // String language = desiredFeedEntity.getProperty(EPISODE_LANGUAGE).toString();
+        // String email = desiredFeedEntity.getProperty(EMAIL).toString();
 
-        EmbeddedEntity mp3Entity = (EmbeddedEntity) desiredFeedEntity.getProperty(MP3);
-        String mp3Link = mp3Entity.getProperty(MP3_LINK).toString();
+        // EmbeddedEntity mp3Entity = (EmbeddedEntity) desiredFeedEntity.getProperty(MP3);
+        // String mp3Link = mp3Entity.getProperty(MP3_LINK).toString();
 
-        RSS rssFeed = new RSS(podcastTitle, description, language, email, mp3Link);
+        // RSS rssFeed = new RSS(episodeTitle, description, language, email, mp3Link);
 
-        String xmlString = RSS.toXmlString(rssFeed);
+        // String xmlString = RSS.toXmlString(rssFeed);
+        String xmlString = desiredFeedEntity.getProperty(XML_STRING).toString();
         res.setContentType("text/xml");
         res.getWriter().println(xmlString);
         break;

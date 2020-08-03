@@ -14,6 +14,7 @@ const routes: Routes = [
   { path: 'transcribe', component: TranscribeFormComponent },
   { path: 'translate', component: TranslateFormComponent },
   { path: 'my-feeds', component: MyFeedsPageComponent },
+  { path: ''}
   { path: '**', redirectTo: '/create', pathMatch: 'full' }
 ];
 
