@@ -8,20 +8,14 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
-import com.google.cloud.translate.Translate;
-import com.google.cloud.translate.Translate.TranslateOption;
-import com.google.cloud.translate.Translation;
-import com.google.cloud.translate.testing.RemoteTranslateHelper;
-import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
-import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
-import com.google.launchpod.data.Item;
+import com.google.cloud.translate.Translate;
+import com.google.cloud.translate.testing.RemoteTranslateHelper;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.servlets.TranslationServlet;
 
@@ -71,13 +65,14 @@ public class TranslationServletTest extends Mockito {
   private static final String TEST_EMAIL = "123@abc.com";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
 
-  private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_CATEGORY);
+  private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION,
+      TEST_LANGUAGE, TEST_CATEGORY);
   private RemoteTranslateHelper translateHelper = RemoteTranslateHelper
       .create("AIzaSyBlu9s7xFLjlHAdvlVuUISq_MbyELuCRZo");
   private Translate translateMock = translateHelper.getOptions().getService();
 
-  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig())
-  .setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(),
+      new LocalUserServiceTestConfig()).setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
 
   @Before
   public void setUp() {
@@ -90,7 +85,7 @@ public class TranslationServletTest extends Mockito {
     helper.tearDown();
   }
 
-  //TODO: Implement Translation Constructor
+  // TODO: Implement Translation Constructor
 
   /**
    * Expect doPost to throw IOException when language field is empty

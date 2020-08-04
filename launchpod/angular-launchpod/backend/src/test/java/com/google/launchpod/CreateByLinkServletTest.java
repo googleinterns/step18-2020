@@ -16,40 +16,35 @@ package com.google.launchpod;
 
 import static com.google.appengine.api.datastore.FetchOptions.Builder.withLimit;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.security.interfaces.DSAKey;
-import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.launchpod.servlets.CreateByLinkServlet;
-import com.google.launchpod.data.UserFeed;
-import com.google.launchpod.data.RSS;
-import com.google.launchpod.data.Channel;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
-import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
+import com.google.launchpod.data.Channel;
+import com.google.launchpod.data.RSS;
+import com.google.launchpod.servlets.CreateByLinkServlet;
 
-import org.junit.Assert;
+import org.joda.time.DateTimeUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.After;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
@@ -58,7 +53,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.joda.time.DateTimeUtils;
 
 /**
  * Runs unit tests for the FormHandlerServlet that contains doPost(), doGet(),
@@ -79,7 +73,8 @@ public class CreateByLinkServletTest extends Mockito {
   @Rule // JUnit 4 uses Rules for testing specific messages
   public ExpectedException thrown = ExpectedException.none();
 
-  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
+  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(),
+      new LocalUserServiceTestConfig());
 
   // keys
   private static final String USER_FEED = "UserFeed";
@@ -136,18 +131,20 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-  * Given and RSS feed and episode details, adds that episode to the RSS Feed and returns the XML of that modified feed.
-  */
-  private static String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription, String episodeLanguage, String email, String mp3Link) throws JsonProcessingException {
+   * Given and RSS feed and episode details, adds that episode to the RSS Feed and
+   * returns the XML of that modified feed.
+   */
+  private static String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription,
+      String episodeLanguage, String mp3Link) throws JsonProcessingException {
     Channel channel = rssFeed.getChannel();
-    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link); // to-do: double check this
+    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, mp3Link); // to-do: double check this
     String modifiedXmlString = RSS.toXmlString(rssFeed);
     return modifiedXmlString;
   }
 
   /**
-  * Creates an entity with an XML string in Datastore.
-  */
+   * Creates an entity with an XML string in Datastore.
+   */
   private static Entity setUpEntityinDatastore() throws JsonProcessingException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
@@ -190,14 +187,15 @@ public class CreateByLinkServletTest extends Mockito {
     PreparedQuery preparedQuery = ds.prepare(query);
     Entity desiredEntity = preparedQuery.asSingleEntity();
 
-    String expectedXmlString = createModifiedXml(rss, TEST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_MP3_LINK);
+    String expectedXmlString = createModifiedXml(rss, TEST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_MP3_LINK);
 
     assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
   }
 
   /**
-  * Expects doPost() to throw an IOException when a user tries to modify another user's feed.
-  */
+   * Expects doPost() to throw an IOException when a user tries to modify another
+   * user's feed.
+   */
   @Test
   public void doPost_CorrectlyVerifiesUser() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL_TWO).setEnvAuthDomain("localhost");
@@ -221,8 +219,8 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the episode title field is
-   * empty.
+   * Expects doPost() to throw an IllegalArgumentException when the episode title
+   * field is empty.
    */
   @Test
   public void doPost_FormInputEmptyEpisodeTitle_ThrowsErrorMessage() throws IOException {
@@ -241,8 +239,8 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the episode title field is
-   * null.
+   * Expects doPost() to throw an IllegalArgumentException when the episode title
+   * field is null.
    */
   @Test
   public void doPost_FormInputNullTitle_ThrowsErrorMessage() throws IOException {
@@ -262,9 +260,9 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the episode description field is
-  * empty.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the episode
+   * description field is empty.
+   */
   @Test
   public void doPost_FormInputEmptyEpisodeDescription_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -283,15 +281,15 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the episode description field is
-  * null.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the episode
+   * description field is null.
+   */
   @Test
   public void doPost_FormInputNullEpisodeDescription_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
-    
+
     when(request.getParameter(EPISODE_TITLE)).thenReturn(TEST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
     when(request.getParameter(EPISODE_DESCRIPTION)).thenReturn(null);
@@ -346,9 +344,9 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the language field
-  * is empty.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the language field
+   * is empty.
+   */
   @Test
   public void doPost_FormInputEmptyLanguage_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -367,9 +365,9 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the language field
-  * is null.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the language field
+   * is null.
+   */
   @Test
   public void doPost_FormInputNullLanguage_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -388,8 +386,8 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the id is empty.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the id is empty.
+   */
   @Test
   public void doPost_EmptyId_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -411,8 +409,8 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the id is null.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the id is null.
+   */
   @Test
   public void doPost_NullId_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -433,9 +431,9 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the email field
-  * is empty.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the email field is
+   * empty.
+   */
   @Test
   public void doPost_FormInputEmptyEmail_ThrowsErrorMessage() throws IOException {
     Entity entity = setUpEntityinDatastore();
@@ -443,7 +441,7 @@ public class CreateByLinkServletTest extends Mockito {
     when(request.getParameter(EPISODE_TITLE)).thenReturn(TEST_TITLE);
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
     when(request.getParameter(EPISODE_DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);  
+    when(request.getParameter(EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
     when(request.getParameter(ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -452,8 +450,8 @@ public class CreateByLinkServletTest extends Mockito {
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the email field
-   * is null.
+   * Expects doPost() to throw an IllegalArgumentException when the email field is
+   * null.
    */
   @Test
   public void doPost_FormInputNullEmail_ThrowsErrorMessage() throws IOException {
@@ -463,7 +461,7 @@ public class CreateByLinkServletTest extends Mockito {
     when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
     when(request.getParameter(EPISODE_DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
     when(request.getParameter(EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
-    when(request.getParameter(ID)).thenReturn(id); 
+    when(request.getParameter(ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("You are not logged in. Please try again.");

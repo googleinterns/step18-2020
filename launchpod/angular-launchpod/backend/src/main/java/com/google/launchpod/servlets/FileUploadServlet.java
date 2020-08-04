@@ -172,7 +172,7 @@ public class FileUploadServlet extends HttpServlet {
 
     // Verify that user is modifying a feed they created
     if (entityEmail.equals(email)) {
-      channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
+      channel.addItem(episodeTitle, episodeDescription, episodeLanguage, mp3Link);
     } else {
       throw new IOException("You are trying to edit a feed that's not yours!");
     }

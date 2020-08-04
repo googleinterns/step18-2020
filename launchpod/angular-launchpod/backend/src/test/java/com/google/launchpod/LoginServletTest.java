@@ -14,18 +14,18 @@
 
 package com.google.launchpod;
 
-import static com.google.appengine.api.datastore.FetchOptions.Builder.withLimit;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.security.interfaces.DSAKey;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 
-import com.google.appengine.api.users.UserService;
-import com.google.appengine.api.users.UserServiceFactory;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -33,29 +33,23 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
+import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
+import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
 import com.google.gson.Gson;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
 import com.google.gson.JsonParser;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.UserFeed;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import com.google.launchpod.servlets.LoginServlet;
-import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
-import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
-import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
-import org.junit.Assert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.After;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
@@ -83,7 +77,8 @@ public class LoginServletTest extends Mockito {
   @Rule // JUnit 4 uses Rules for testing specific messages
   public ExpectedException thrown = ExpectedException.none();
 
-  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
+  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(),
+      new LocalUserServiceTestConfig());
 
   private static final Gson GSON = new Gson();
   JsonParser parser = new JsonParser();
@@ -125,8 +120,8 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doGet() gets the user's email and successfully sends
-   * a corresponding loginStatus object as the response.
+   * Asserts that doGet() gets the user's email and successfully sends a
+   * corresponding loginStatus object as the response.
    */
   @Test
   public void doGet_GetsCorrectMessageLoggedIn() throws IOException {
@@ -148,8 +143,8 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doGet() gets the user's feeds and successfully sends
-   * a corresponding loginStatus object as the response.
+   * Asserts that doGet() gets the user's feeds and successfully sends a
+   * corresponding loginStatus object as the response.
    */
   @Test
   public void doGet_GetsCorrectFeedsLoggedIn() throws IOException {
@@ -167,8 +162,9 @@ public class LoginServletTest extends Mockito {
     String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
     String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
 
-    Query query =
-        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, TEST_EMAIL)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+    Query query = new Query(LoginStatus.USER_FEED_KEY)
+        .setFilter(new FilterPredicate("email", FilterOperator.EQUAL, TEST_EMAIL))
+        .addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
@@ -186,8 +182,9 @@ public class LoginServletTest extends Mockito {
       SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss");
       String postTime = dateFormat.format(date);
       Key key = entity.getKey();
-      
-      String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
+
+      String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the
+                                                              // numeric ID.
       String rssLink = BASE_URL + urlID;
 
       userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID, language));
@@ -216,8 +213,8 @@ public class LoginServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doGet() successfully sends a login url as the
-   * response when the user is not logged in.
+   * Asserts that doGet() successfully sends a login url as the response when the
+   * user is not logged in.
    */
   @Test
   public void doGet_GetsCorrectMessageLoggedOut() throws IOException {

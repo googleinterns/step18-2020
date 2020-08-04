@@ -148,7 +148,7 @@ public class TTSServlet extends HttpServlet {
         // Generate mp3 link
         String mp3Link = TTS_BASE_URL + feedKey + itemCount; // creates unique ID for each episode
 
-        rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage, userEmail, mp3Link);
+        rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage, mp3Link);
 
         desiredFeedEntity.setProperty(XML_STRING, RSS.toXmlString(rssFeed)); // update existing entity's XML string
 
@@ -158,8 +158,7 @@ public class TTSServlet extends HttpServlet {
 
         PreparedQuery results = datastore.prepare(query);
 
-        ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
-        queryUserFeeds(userFeeds, results, userEmail);
+        ArrayList<UserFeed> userFeeds = queryUserFeeds(results, userEmail);
 
         res.setContentType("application/json");
         res.getWriter().println(GSON.toJson(userFeeds));
@@ -189,7 +188,8 @@ public class TTSServlet extends HttpServlet {
         res.getOutputStream().write(blobBytes);
     }
 
-    public void queryUserFeeds(ArrayList<UserFeed> userFeeds, PreparedQuery results, String userEmail) {
+    public ArrayList<UserFeed> queryUserFeeds(PreparedQuery results, String userEmail) {
+        ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
         for (Entity entity : results.asIterable()) {
             if (userEmail.equals(entity.getProperty(EMAIL).toString())) {
                 String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
@@ -203,7 +203,7 @@ public class TTSServlet extends HttpServlet {
                 String postTime = dateFormat.format(date);
                 Key key = entity.getKey();
 
-                String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity,
+                String urlID = KeyFactory.keyToString(key); // the key string associated with the entity,
                                                                         // not the
                                                                         // numeric ID.
                 String rssLink = BASE_URL + urlID;
@@ -212,6 +212,7 @@ public class TTSServlet extends HttpServlet {
                         postTime, urlID, userFeedLanguage));
             }
         }
+        return userFeeds;
     }
 
     /**

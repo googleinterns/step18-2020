@@ -111,8 +111,11 @@ public class Channel {
   /**
    * Add an item to a channel.
    */
-  public void addItem(String podcastTitle, String description, String language, String email, String mp3Link) {
-    Item item = new Item(podcastTitle, description, language, email, mp3Link);
+  public void addItem(String podcastTitle, String description, String language, String mp3Link) {
+    Item item = new Item(podcastTitle, description, language, mp3Link);
+    if(this.items == null){
+      this.items = new ArrayList<>();
+    }
     this.items.add(item);
   }
 }

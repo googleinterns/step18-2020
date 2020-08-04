@@ -116,11 +116,6 @@ public class TranslationServlet extends HttpServlet {
     // Language
     rssFeed.getChannel().setLanguage(targetLanguage);
 
-    // Category
-    for (ItunesCategory category : rssFeed.getChannel().getItunesCategory()) {
-      category.setText(translateText(sourceLanguage, targetLanguage, category.getText()));
-    }
-
     // Episodes
     if (rssFeed.getChannel().getItems() != null) {
       for (Item item : rssFeed.getChannel().getItems()) {
