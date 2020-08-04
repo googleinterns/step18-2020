@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import javax.security.sasl.AuthenticationException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -73,7 +74,7 @@ public class TTSServlet extends HttpServlet {
     /**
      * Requests user inputs from the form field to add item to existing channel, and
      * synthesizes the podcast Text. Then returns original RSS feed with the updated
-     * item added by the user0
+     * item added by the user
      * 
      * @throws IOException
      */
@@ -112,6 +113,11 @@ public class TTSServlet extends HttpServlet {
             return;
         }
 
+        // Check if current user email matches feed user email
+        if (!userEmail.equals(desiredFeedEntity.getProperty(EMAIL).toString())) {
+            throw new AuthenticationException("This user does not have permission to modify this feed.");
+        }
+
         // Turn the xml string back into an object
         String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
         RSS rssFeed = null;
@@ -123,8 +129,6 @@ public class TTSServlet extends HttpServlet {
         }
 
         // Synthesize The podcast Text
-        String ttsFeedId = KeyFactory.keyToString(desiredFeedEntity.getKey()); // key for the entity that contains the
-                                                                               // channel to be modified
         ByteString synthesizedMp3 = null;
         try {
             synthesizedMp3 = synthesizeText(podcastText);
@@ -134,7 +138,7 @@ public class TTSServlet extends HttpServlet {
         }
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
         String itemCount = String.valueOf(rssFeed.getChannel().getItems().size());
-        BlobId blobId = BlobId.of(BUCKET_NAME, ttsFeedId + itemCount);
+        BlobId blobId = BlobId.of(BUCKET_NAME, feedKey + itemCount);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
 
         // create an uploadble array of bytes for blobstore
@@ -142,7 +146,7 @@ public class TTSServlet extends HttpServlet {
         storage.create(blobInfo, mp3Bytes);
 
         // Generate mp3 link
-        String mp3Link = TTS_BASE_URL + ttsFeedId + itemCount; // creates unique ID for each episode
+        String mp3Link = TTS_BASE_URL + feedKey + itemCount; // creates unique ID for each episode
 
         rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage, userEmail, mp3Link);
 
@@ -155,28 +159,7 @@ public class TTSServlet extends HttpServlet {
         PreparedQuery results = datastore.prepare(query);
 
         ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
-        for (Entity entity : results.asIterable()) {
-            if (userEmail.equals(entity.getProperty(EMAIL).toString())) {
-                String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
-                String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
-                String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
-                String userFeedLanguage = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
-                String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
-                long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
-                Date date = new Date(userFeedTimestamp);
-                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
-                String postTime = dateFormat.format(date);
-                Key key = entity.getKey();
-
-                String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity,
-                                                                        // not the
-                                                                        // numeric ID.
-                String rssLink = BASE_URL + urlID;
-
-                userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail,
-                        postTime, urlID, userFeedLanguage));
-            }
-        }
+        addToUserFeeds(userFeeds, results, userEmail);
 
         res.setContentType("application/json");
         res.getWriter().println(GSON.toJson(userFeeds));
@@ -204,16 +187,40 @@ public class TTSServlet extends HttpServlet {
 
         // Write bytes to servlet output stream
         res.getOutputStream().write(blobBytes);
-        res.getWriter().print(blobBytes.toString());
+    }
+
+    public void addToUserFeeds(ArrayList<UserFeed> userFeeds, PreparedQuery results, String userEmail) {
+        for (Entity entity : results.asIterable()) {
+            if (userEmail.equals(entity.getProperty(EMAIL).toString())) {
+                String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
+                String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
+                String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);
+                String userFeedLanguage = (String) entity.getProperty(LoginStatus.LANGUAGE_KEY);
+                String userFeedEmail = (String) entity.getProperty(LoginStatus.EMAIL_KEY);
+                long userFeedTimestamp = (long) entity.getProperty(LoginStatus.TIMESTAMP_KEY);
+                Date date = new Date(userFeedTimestamp);
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy  HH:mm:ss Z", Locale.getDefault());
+                String postTime = dateFormat.format(date);
+                Key key = entity.getKey();
+
+                String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity,
+                                                                        // not the
+                                                                        // numeric ID.
+                String rssLink = BASE_URL + urlID;
+
+                userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail,
+                        postTime, urlID, userFeedLanguage));
+            }
+        }
     }
 
     /**
-     * Demonstrates using the Text to Speech client to synthesize text or ssml.
+     * Synthesizes text into byte string using the text to speech client
      *
-     * @param text the raw text to be synthesized. (e.g., "Hello there!")
-     * @throws Exception on TextToSpeechClient Errors.
+     * @param text the raw text to be synthesized
+     * @throws IOException on TextToSpeechClient Errors.
      */
-    public static ByteString synthesizeText(String text) throws Exception {
+    public static ByteString synthesizeText(String text) throws IOException {
         // Instantiates a client
         try (TextToSpeechClient textToSpeechClient = TextToSpeechClient.create()) {
             // Synthesize text that is inputted
