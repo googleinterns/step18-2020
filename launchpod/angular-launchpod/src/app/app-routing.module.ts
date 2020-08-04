@@ -2,6 +2,8 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
 import { CreateFormComponent } from './create-form/create-form.component';
+import { EpisodeLinkFormComponent } from './episode-link-form/episode-link-form.component';
+import { EpisodeUploadFormComponent } from './episode-upload-form/episode-upload-form.component';
 import { Mp3FormComponent } from './mp3-form/mp3-form.component';
 import { TranscribeFormComponent } from './transcribe-form/transcribe-form.component';
 import { TranslateFormComponent } from './translate-form/translate-form.component';
