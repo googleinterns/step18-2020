@@ -1,0 +1,63 @@
+<body>
+<h2>Choose An Option for Adding Audio to Your Episode</h2>
+
+<div>
+  <mat-card>
+    <br />
+    <mat-card-header>
+      <mat-card-title>Link</mat-card-title>
+    </mat-card-header>
+    <br />
+    <mat-card-content>
+      <p>
+        Paste a link to a publicly accessible 
+        MP3 file for this episode.
+      </p>
+      <mat-icon>link</mat-icon>
+    </mat-card-content>
+    <br />
+    <mat-card-actions>
+      <button mat-raised-button color="primary" routerLink='/episode-link-form'>MP3 LINK</button>
+    </mat-card-actions>
+    <br />
+  </mat-card>
+  <mat-card>
+    <br />
+    <mat-card-header>
+      <mat-card-title>Upload</mat-card-title>
+    </mat-card-header>
+    <br />
+    <mat-card-content>
+      <p>
+        Upload a local MP3 file for this episode 
+        from your computer.
+      </p>
+      <mat-icon>upgrade</mat-icon>
+    </mat-card-content>
+    <br />
+    <mat-card-actions>
+      <button mat-raised-button color="primary" routerLink='/episode-upload-form'>MP3 File Upload</button>
+    </mat-card-actions>
+    <br />
+  </mat-card>
+  <mat-card>
+    <br />
+    <mat-card-header>
+      <mat-card-title>Text</mat-card-title>
+    </mat-card-header>
+    <br />
+    <mat-card-content>
+      <p>
+        Type in the text content of your episode 
+        and we’ll turn it into audio!
+      </p>
+      <mat-icon>text_fields</mat-icon>
+    </mat-card-content>
+    <br />
+    <mat-card-actions>
+      <button mat-raised-button color="primary" routerLink='/episode-tts-form'>Text To Speech</button>
+    </mat-card-actions>
+    <br />
+  </mat-card>
+</div>
+</body>

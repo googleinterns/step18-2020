@@ -3,10 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 
 const FEED_URL = '/rss-feed';
-const UPLOAD_URL = 'create-by-upload';
-const LINK_URL = 'create-by-link';
 const LOGIN_URL = '/login-status';
 const TRANSLATION_URL = "/translate-feed";
+const LINK_URL = 'create-by-link';
+const UPLOAD_URL = 'create-by-upload';
+const TTS_URL = 'create-by-tts';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +25,9 @@ export class FormHandlerService {
 
   private readonly hasNewFeedSubject = new BehaviorSubject<boolean>(false);
   hasNewFeed = this.hasNewFeedSubject.asObservable();
+
+  private readonly currentFeedKeySubject = new BehaviorSubject<string>("");
+  currentFeedKey = this.currentFeedKeySubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -56,7 +60,14 @@ export class FormHandlerService {
   }
 
   /**
-   * Post inputs from feed creation form to back end and retrieve URL for RSS feed.
+   * Update the key of the feed the user is current editing.
+   */
+  sendCurrentFeedKey(key) {
+    this.currentFeedKeySubject.next(key);
+  }
+
+  /**
+   * Post form inputs to back-end and add to the list of feeds.
    */
   postFormData(formData): Observable<any> {
     return this.http.post(FEED_URL, formData);
@@ -72,6 +83,13 @@ export class FormHandlerService {
 
   /**
    * Post input from episode by link creation form to back end and retrieve URL for RSS feed.
+  */
+  postEpisodeTTSData(formData): Observable<string> {
+    return this.http.post(TTS_URL, formData, { responseType: 'text' });
+  }
+
+  /**
+   * Post input from episode by tts creation form to back end and retrieve URL for RSS feed.
   */
   postEpisodeLinkData(formData): Observable<string> {
     return this.http.post(LINK_URL, formData, { responseType: 'text' });

@@ -8,6 +8,6 @@ form {
     text-align: center;
 }
 
-#message {
-    color: red;
+.mat-form-field {
+    width: 30vw;
 }

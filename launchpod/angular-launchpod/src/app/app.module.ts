@@ -20,11 +20,12 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Mp3FormComponent } from './mp3-form/mp3-form.component'
 import { TranslateFormComponent } from './translate-form/translate-form.component';
-import { TranscribeFormComponent } from './transcribe-form/transcribe-form.component';
 import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
 import { LoginPopupComponent } from './login-popup/login-popup.component';
 import { EpisodeLinkFormComponent } from './episode-link-form/episode-link-form.component'
 import { LocationStrategy } from '@angular/common';
+import { EpisodeChoiceComponent } from './episode-choice/episode-choice.component';
+import { EpisodeTtsFormComponent } from './episode-tts-form/episode-tts-form.component'
 import { EpisodeUploadFormComponent } from './episode-upload-form/episode-upload-form.component';
 
 @NgModule({
@@ -33,9 +34,10 @@ import { EpisodeUploadFormComponent } from './episode-upload-form/episode-upload
     CreateFormComponent,
     Mp3FormComponent,
     TranslateFormComponent,
-    TranscribeFormComponent,
     MyFeedsPageComponent,
     LoginPopupComponent,
+    EpisodeChoiceComponent,
+    EpisodeTtsFormComponent,
     EpisodeLinkFormComponent,
     EpisodeUploadFormComponent
   ],

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormHandlerService } from '../form-handler.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
-import { Router } from '@angular/router'
+import { Router } from '@angular/router';
 
 interface Category {
   value: string;
@@ -133,7 +133,9 @@ export class CreateFormComponent implements OnInit {
     this.formHandlerService.postFormData(formData)
     .subscribe((response) => {
       this.formHandlerService.sendMyFeeds(response);
-      this.formHandlerService.updateHasNewFeed();
+      setInterval(() => {
+        this.formHandlerService.updateHasNewFeed();
+      }, 1000); 
     });
 
     this.router.navigate(['/my-feeds']);

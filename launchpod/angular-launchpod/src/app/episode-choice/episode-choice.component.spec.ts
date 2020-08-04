@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TranscribeFormComponent } from './transcribe-form.component';
+import { EpisodeChoiceComponent } from './episode-choice.component';
 
-describe('TranscribeFormComponent', () => {
-  let component: TranscribeFormComponent;
-  let fixture: ComponentFixture<TranscribeFormComponent>;
+describe('EpisodeChoiceComponent', () => {
+  let component: EpisodeChoiceComponent;
+  let fixture: ComponentFixture<EpisodeChoiceComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ TranscribeFormComponent ]
+      declarations: [ EpisodeChoiceComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(TranscribeFormComponent);
+    fixture = TestBed.createComponent(EpisodeChoiceComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

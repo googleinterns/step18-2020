@@ -121,7 +121,7 @@ public class FormHandlerServlet extends HttpServlet {
         String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
         String rssLink = BASE_URL + urlID;
 
-        userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime, urlID, userFeedLanguage));
+        userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, email, postTime, urlID, userFeedLanguage));
       }
     }
 
