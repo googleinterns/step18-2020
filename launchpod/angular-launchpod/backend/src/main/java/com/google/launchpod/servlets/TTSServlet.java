@@ -1,13 +1,6 @@
 package com.google.launchpod.servlets;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,11 +10,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -35,7 +23,6 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
-import com.google.appengine.repackaged.com.google.api.client.http.FileContent;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Blob.BlobSourceOption;
@@ -109,6 +96,8 @@ public class TTSServlet extends HttpServlet {
             throw new IllegalArgumentException("Unable to get Podcast Description. Please try again");
         } else if (Strings.isNullOrEmpty(podcastText)) {
             throw new IllegalArgumentException("Unable to get Podcast Text. Please try again");
+        } else if (Strings.isNullOrEmpty(podcastLanguage)) {
+            throw new IllegalArgumentException("Unable to get Podcast Language. Please try again");
         }
 
         // Search for key from given feed id
@@ -144,7 +133,7 @@ public class TTSServlet extends HttpServlet {
             return;
         }
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-        String itemCount = String.valueOf(rssFeed.getChannel().getItems().size()); 
+        String itemCount = String.valueOf(rssFeed.getChannel().getItems().size());
         BlobId blobId = BlobId.of(BUCKET_NAME, ttsFeedId + itemCount);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
 
@@ -153,11 +142,11 @@ public class TTSServlet extends HttpServlet {
         storage.create(blobInfo, mp3Bytes);
 
         // Generate mp3 link
-        String mp3Link = TTS_BASE_URL + ttsFeedId + itemCount; //creates unique ID for each episode
+        String mp3Link = TTS_BASE_URL + ttsFeedId + itemCount; // creates unique ID for each episode
 
         rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage, userEmail, mp3Link);
 
-        desiredFeedEntity.setProperty(XML_STRING, RSS.toXmlString(rssFeed));
+        desiredFeedEntity.setProperty(XML_STRING, RSS.toXmlString(rssFeed)); // update existing entity's XML string
 
         datastore.put(desiredFeedEntity);
 
@@ -193,6 +182,13 @@ public class TTSServlet extends HttpServlet {
         res.getWriter().println(GSON.toJson(userFeeds));
     }
 
+    /**
+     * doGet obtains an ID from the link to search for specific blob in cloud
+     * storage. After obtaining the blob, we get the bytes then stream that to the
+     * client using the server outputstream
+     * 
+     * @throws IOException when unable to run doGet method
+     */
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         res.setContentType("audio/mpeg");
         String id = req.getParameter(ID);
@@ -205,12 +201,12 @@ public class TTSServlet extends HttpServlet {
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
         Blob desiredFeedBlob = storage.get(BUCKET_NAME, id);
         byte[] blobBytes = desiredFeedBlob.getContent(BlobSourceOption.generationMatch());
-        
-        //Write File to servlet output stream
+
+        // Write bytes to servlet output stream
         res.getOutputStream().write(blobBytes);
         res.getWriter().print(blobBytes.toString());
     }
-    
+
     /**
      * Demonstrates using the Text to Speech client to synthesize text or ssml.
      *
