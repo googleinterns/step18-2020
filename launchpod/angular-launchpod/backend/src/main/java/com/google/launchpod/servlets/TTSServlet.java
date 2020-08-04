@@ -159,7 +159,7 @@ public class TTSServlet extends HttpServlet {
         PreparedQuery results = datastore.prepare(query);
 
         ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
-        addToUserFeeds(userFeeds, results, userEmail);
+        queryUserFeeds(userFeeds, results, userEmail);
 
         res.setContentType("application/json");
         res.getWriter().println(GSON.toJson(userFeeds));
@@ -189,7 +189,7 @@ public class TTSServlet extends HttpServlet {
         res.getOutputStream().write(blobBytes);
     }
 
-    public void addToUserFeeds(ArrayList<UserFeed> userFeeds, PreparedQuery results, String userEmail) {
+    public void queryUserFeeds(ArrayList<UserFeed> userFeeds, PreparedQuery results, String userEmail) {
         for (Entity entity : results.asIterable()) {
             if (userEmail.equals(entity.getProperty(EMAIL).toString())) {
                 String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
