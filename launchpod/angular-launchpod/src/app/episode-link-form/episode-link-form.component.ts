@@ -35,6 +35,10 @@ export class EpisodeLinkFormComponent implements OnInit {
     formData = formData.set('episodeLanguage', this.selectedLanguage);
     formData = formData.set('mp3Link', (document.getElementById("mp3Link") as HTMLInputElement).value);
 
+    this.formHandlerService.currentFeedKey.subscribe((id) => {
+      formData = formData.set('id', id);
+    });
+
     this.formHandlerService.postEpisodeLinkData(formData)
       .subscribe((response) => {
         this.formHandlerService.sendFeedValue(response);

@@ -1,6 +1,8 @@
 package com.google.launchpod.servlets;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,6 +17,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -53,13 +60,13 @@ import com.google.protobuf.ByteString;
 public class TTSServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-    private static final String TITLE = "title";
-    private static final String LANGUAGE = "language";
-    private static final String DESCRIPTION = "description";
+    private static final String TITLE = "episodeTitle";
+    private static final String LANGUAGE = "episodeLanguage";
+    private static final String DESCRIPTION = "episodeDescription";
     private static final String EMAIL = "email";
     private static final String NAME = "name";
     private static final String CATEGORY = "category";
-    private static final String FEED_KEY = "feedKey";
+    private static final String FEED_KEY = "id";
     private static final String TEXT = "text";
     private static final String XML_STRING = "xmlString";
     private static final String ID = "id";
@@ -114,6 +121,7 @@ public class TTSServlet extends HttpServlet {
         } catch (EntityNotFoundException e) {
             e.printStackTrace();
             res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to find given URL key, Please try again");
+            return;
         }
 
         // Turn the xml string back into an object
@@ -123,6 +131,7 @@ public class TTSServlet extends HttpServlet {
             rssFeed = TranslationServlet.XML_MAPPER.readValue(xmlString, RSS.class);
         } catch (Exception e) {
             res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to translate. Try again");
+            return;
         }
 
         // Synthesize The podcast Text
@@ -133,9 +142,11 @@ public class TTSServlet extends HttpServlet {
             synthesizedMp3 = synthesizeText(podcastText);
         } catch (Exception e) {
             res.sendError(HttpServletResponse.SC_CONFLICT, "unable to create mp3 from request. Please try again.");
+            return;
         }
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-        BlobId blobId = BlobId.of(BUCKET_NAME, ttsFeedId);
+        String itemCount = String.valueOf(rssFeed.getChannel().getItems().size());
+        BlobId blobId = BlobId.of(BUCKET_NAME, ttsFeedId + itemCount);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
 
         // create an uploadble array of bytes for blobstore
@@ -143,9 +154,9 @@ public class TTSServlet extends HttpServlet {
         storage.create(blobInfo, mp3Bytes);
 
         // Generate mp3 link
-        String mp3Link = TTS_BASE_URL + ttsFeedId;
+        String mp3Link = TTS_BASE_URL + ttsFeedId + itemCount;
 
-        rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage, mp3Link, userEmail);
+        rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage,userEmail, mp3Link);
 
         desiredFeedEntity.setProperty(XML_STRING, RSS.toXmlString(rssFeed));
 
@@ -186,6 +197,7 @@ public class TTSServlet extends HttpServlet {
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         res.setContentType("audio/mpeg");
         String id = req.getParameter(ID);
+        String URI = "gs://launchpod-mp3-files/";
 
         if (Strings.isNullOrEmpty(id)) {
             throw new IllegalArgumentException("Invalid URL. Please try again");
@@ -195,27 +207,13 @@ public class TTSServlet extends HttpServlet {
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
         Blob desiredFeedBlob = storage.get(BUCKET_NAME, id);
         byte[] blobBytes = desiredFeedBlob.getContent(BlobSourceOption.generationMatch());
-
-        URL mp3Url = new URL(CLOUD_BASE_URL + id);
-        File mp3File = new File(mp3Url.getPath());
-        OutputStream os = new FileOutputStream(mp3File);
-        os.write(blobBytes);
-        os.close();
-        res.getWriter().print(mp3File);
-
-        /*
-         * ByteArrayInputStream bStream = new ByteArrayInputStream(blobBytes);
-         * AudioInputStream stream = null; try { stream =
-         * AudioSystem.getAudioInputStream(bStream); } catch
-         * (UnsupportedAudioFileException e) { // TODO Auto-generated catch block
-         * e.printStackTrace(); } Clip clip = null; try { clip = AudioSystem.getClip();
-         * } catch (LineUnavailableException e) { // TODO Auto-generated catch block
-         * e.printStackTrace(); } try { clip.open(stream); } catch
-         * (LineUnavailableException e) { // TODO Auto-generated catch block
-         * e.printStackTrace(); }
-         */
+        
+        //Write File to servlet output stream
+        res.getOutputStream().write(blobBytes);
+        res.setContentType("audio/mpeg");
+        res.getWriter().print(blobBytes.toString());
     }
-
+    
     /**
      * Demonstrates using the Text to Speech client to synthesize text or ssml.
      *

@@ -2,6 +2,7 @@ import { FormHandlerService } from '../form-handler.service';
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpParams } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 interface Feed {
   title: string;
@@ -22,7 +23,7 @@ export class MyFeedsPageComponent implements OnInit {
   hasNewFeed: boolean;
   myFeeds: Feed[];
 
-  constructor(private formHandlerService: FormHandlerService, public snackBar: MatSnackBar) {}
+  constructor(private formHandlerService: FormHandlerService, public snackBar: MatSnackBar, private router: Router) {}
 
   ngOnInit(): void {
     this.formHandlerService.myFeeds.subscribe((feeds) => {
@@ -31,9 +32,6 @@ export class MyFeedsPageComponent implements OnInit {
         this.hasNewFeed = result;
       });
     });
-   setInterval(() => {
-      this.formHandlerService.updateHasNewFeed();
-    }, 1000); 
   }
 
   // Send the key for the feed the user wants to delete to the backend.
@@ -48,6 +46,14 @@ export class MyFeedsPageComponent implements OnInit {
         this.myFeeds = feeds;
       });
     
+  }
+
+  // Send the key for the feed the user wants to edit to the backend.
+  public addEpisode(key) {
+    this.formHandlerService.sendCurrentFeedKey(key);
+    this.hasNewFeed = false;
+
+    this.router.navigate(['/episode-choice']);
   }
 
   openSnackBar() {
