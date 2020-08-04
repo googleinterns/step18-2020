@@ -21,10 +21,12 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Mp3FormComponent } from './mp3-form/mp3-form.component'
 import { TranslateFormComponent } from './translate-form/translate-form.component';
 import { MyFeedsPageComponent } from './my-feeds-page/my-feeds-page.component';
-import { LocationStrategy } from '@angular/common';
 import { LoginPopupComponent } from './login-popup/login-popup.component';
+import { EpisodeLinkFormComponent } from './episode-link-form/episode-link-form.component'
+import { LocationStrategy } from '@angular/common';
 import { EpisodeChoiceComponent } from './episode-choice/episode-choice.component';
 import { EpisodeTtsFormComponent } from './episode-tts-form/episode-tts-form.component'
+import { EpisodeUploadFormComponent } from './episode-upload-form/episode-upload-form.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +37,9 @@ import { EpisodeTtsFormComponent } from './episode-tts-form/episode-tts-form.com
     MyFeedsPageComponent,
     LoginPopupComponent,
     EpisodeChoiceComponent,
-    EpisodeTtsFormComponent
+    EpisodeTtsFormComponent,
+    EpisodeLinkFormComponent,
+    EpisodeUploadFormComponent
   ],
   imports: [
     AppRoutingModule,

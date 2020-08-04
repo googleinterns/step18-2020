@@ -3,10 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 
 const FEED_URL = '/rss-feed';
-const UPLOAD_URL = 'create-by-upload';
-const TTS_URL = 'create-by-tts';
 const LOGIN_URL = '/login-status';
 const TRANSLATION_URL = "/translate-feed";
+const LINK_URL = 'create-by-link';
+const UPLOAD_URL = 'create-by-upload';
+const TTS_URL = 'create-by-tts';
 
 @Injectable({
   providedIn: 'root'
@@ -45,15 +46,15 @@ export class FormHandlerService {
   }
 
   /**
-   * Update the list of "my feeds" with the feeds from post request.
-   */
+  * Update the list of "my feeds" with the feeds from post request.
+  */
   sendMyFeeds(feeds) {
     this.myFeedsSubject.next(feeds);
   }
 
   /**
-   * Update the newFeed boolean when a new feed is added.
-   */
+  * Update the newFeed boolean when a new feed is added.
+  */
   updateHasNewFeed() {
     this.hasNewFeedSubject.next(true);
   }
@@ -66,7 +67,7 @@ export class FormHandlerService {
   }
 
   /**
-   * Post form inputs to back-end and retrieve url for rss feed.
+   * Post form inputs to back-end and add to the list of feeds.
    */
   postFormData(formData): Observable<any> {
     return this.http.post(FEED_URL, formData);
@@ -75,7 +76,7 @@ export class FormHandlerService {
   /**
    * Post form inputs to back-end and retrieve url for rss feed for MP3 uploads.
    */
-  postUploadData(formData): Observable<string> {
+  postEpisodeUploadData(formData): Observable<string> {
     console.log("Form data: " + formData);
     return this.http.post(UPLOAD_URL, formData, { responseType: 'text' });
   }
@@ -88,7 +89,14 @@ export class FormHandlerService {
   }
 
   /**
-   * Post form inputs to back-end and retrieve url for rss feed.
+   * Post input from episode by tts creation form to back end and retrieve URL for RSS feed.
+  */
+  postEpisodeLinkData(formData): Observable<string> {
+    return this.http.post(LINK_URL, formData, { responseType: 'text' });
+  }
+
+   /**
+   * Post form inputs to Translation servlet and retrieve url for rss feed.
    */
   postTranslationData(formData): Observable<any> {
     return this.http.post(TRANSLATION_URL, formData);

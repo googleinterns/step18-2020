@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormHandlerService } from '../form-handler.service';
 import { HttpParams } from '@angular/common/http';
-import { Router } from '@angular/router';
 
 interface Language {
   value: string;
@@ -9,14 +8,13 @@ interface Language {
 }
 
 @Component({
-  selector: 'app-episode-tts-form',
-  templateUrl: './episode-tts-form.component.html',
-  styleUrls: ['./episode-tts-form.component.css']
+  selector: 'app-episode-link-form',
+  templateUrl: './episode-link-form.component.html',
+  styleUrls: ['./episode-link-form.component.css']
 })
-export class EpisodeTtsFormComponent implements OnInit {
-
-  key: String;
-
+// TO-DO: add tests for this
+export class EpisodeLinkFormComponent implements OnInit {
+  
   languages: Language[] = [
     {value: 'en', viewValue: 'English'},
     {value: 'es', viewValue: 'Spanish'},
@@ -24,22 +22,24 @@ export class EpisodeTtsFormComponent implements OnInit {
 
   selectedLanguage = this.languages[0].value;
 
-  constructor(private formHandlerService: FormHandlerService, private router: Router) {}
+  constructor(private formHandlerService: FormHandlerService) { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  }
 
+  // Sends episode creation data to back end when user clicks the "Add Episode" button.
   public postEpisodeLinkData() {
     let formData = new HttpParams();
     formData = formData.set('episodeTitle', (document.getElementById("episodeTitle") as HTMLInputElement).value);
     formData = formData.set('episodeDescription', (document.getElementById("episodeDescription") as HTMLInputElement).value);
     formData = formData.set('episodeLanguage', this.selectedLanguage);
-    formData = formData.set('text', (document.getElementById("text") as HTMLInputElement).value);
+    formData = formData.set('mp3Link', (document.getElementById("mp3Link") as HTMLInputElement).value);
 
     this.formHandlerService.currentFeedKey.subscribe((id) => {
       formData = formData.set('id', id);
     });
 
-    this.formHandlerService.postEpisodeTTSData(formData)
+    this.formHandlerService.postEpisodeLinkData(formData)
       .subscribe((response) => {
         this.formHandlerService.sendFeedValue(response);
       });

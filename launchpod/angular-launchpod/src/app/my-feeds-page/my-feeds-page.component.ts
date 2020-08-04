@@ -51,6 +51,7 @@ export class MyFeedsPageComponent implements OnInit {
   // Send the key for the feed the user wants to edit to the backend.
   public addEpisode(key) {
     this.formHandlerService.sendCurrentFeedKey(key);
+    this.hasNewFeed = false;
 
     this.router.navigate(['/episode-choice']);
   }
