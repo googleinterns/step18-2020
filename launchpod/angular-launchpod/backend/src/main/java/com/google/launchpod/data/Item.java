@@ -46,7 +46,7 @@ public class Item {
 
   public Item(String podcastTitle, String podcastDescription, String language, String email, String mp3Link) {
     this.title = podcastTitle;
-    this.description = description;
+    this.description = podcastDescription;
     this.link = mp3Link;
     this.pubDate = DATE_FORMATTER.format(DateTimeUtils.currentTimeMillis());
   }

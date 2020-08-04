@@ -78,7 +78,6 @@ public class TTSServlet extends HttpServlet {
     // Variables required for cloud storage
     private static final String PROJECT_ID = "launchpod-step18-2020"; // ID of GCP Project
     private static final String BUCKET_NAME = "launchpod-mp3-files"; // ID of GCS bucket to upload to
-    private static final String CLOUD_BASE_URL = "https://storage.googleapis.com/" + BUCKET_NAME + "/";
 
     static {
         TranslationServlet.XML_MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -145,7 +144,7 @@ public class TTSServlet extends HttpServlet {
             return;
         }
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-        String itemCount = String.valueOf(rssFeed.getChannel().getItems().size());
+        String itemCount = String.valueOf(rssFeed.getChannel().getItems().size()); 
         BlobId blobId = BlobId.of(BUCKET_NAME, ttsFeedId + itemCount);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
 
@@ -154,9 +153,9 @@ public class TTSServlet extends HttpServlet {
         storage.create(blobInfo, mp3Bytes);
 
         // Generate mp3 link
-        String mp3Link = TTS_BASE_URL + ttsFeedId + itemCount;
+        String mp3Link = TTS_BASE_URL + ttsFeedId + itemCount; //creates unique ID for each episode
 
-        rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage,userEmail, mp3Link);
+        rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage, userEmail, mp3Link);
 
         desiredFeedEntity.setProperty(XML_STRING, RSS.toXmlString(rssFeed));
 
@@ -197,7 +196,6 @@ public class TTSServlet extends HttpServlet {
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         res.setContentType("audio/mpeg");
         String id = req.getParameter(ID);
-        String URI = "gs://launchpod-mp3-files/";
 
         if (Strings.isNullOrEmpty(id)) {
             throw new IllegalArgumentException("Invalid URL. Please try again");
@@ -210,7 +208,6 @@ public class TTSServlet extends HttpServlet {
         
         //Write File to servlet output stream
         res.getOutputStream().write(blobBytes);
-        res.setContentType("audio/mpeg");
         res.getWriter().print(blobBytes.toString());
     }
     
@@ -231,7 +228,7 @@ public class TTSServlet extends HttpServlet {
                     .setSsmlGender(SsmlVoiceGender.FEMALE).build();
 
             // Select audio to be MP3
-            AudioConfig audioConfig = AudioConfig.newBuilder().setAudioEncoding(AudioEncoding.LINEAR16).build();
+            AudioConfig audioConfig = AudioConfig.newBuilder().setAudioEncoding(AudioEncoding.MP3).build();
 
             // Perform the text-to-speech request
             SynthesizeSpeechResponse response = textToSpeechClient.synthesizeSpeech(input, voice, audioConfig);
