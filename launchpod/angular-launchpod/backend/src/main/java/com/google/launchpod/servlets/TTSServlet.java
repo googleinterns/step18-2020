@@ -1,6 +1,10 @@
 package com.google.launchpod.servlets;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,6 +28,7 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.google.appengine.repackaged.com.google.api.client.http.FileContent;
 import com.google.appengine.repackaged.com.google.gson.Gson;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Blob.BlobSourceOption;
@@ -179,6 +184,7 @@ public class TTSServlet extends HttpServlet {
     }
 
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        res.setContentType("audio/mpeg");
         String id = req.getParameter(ID);
 
         if (Strings.isNullOrEmpty(id)) {
@@ -190,32 +196,24 @@ public class TTSServlet extends HttpServlet {
         Blob desiredFeedBlob = storage.get(BUCKET_NAME, id);
         byte[] blobBytes = desiredFeedBlob.getContent(BlobSourceOption.generationMatch());
 
-        res.setContentType("text/html");
-        res.getWriter().println("<h1>MP3 Bytes: </h1>" + blobBytes);
+        URL mp3Url = new URL(CLOUD_BASE_URL + id);
+        File mp3File = new File(mp3Url.getPath());
+        OutputStream os = new FileOutputStream(mp3File);
+        os.write(blobBytes);
+        os.close();
+        res.getWriter().print(mp3File);
 
         /*
-        ByteArrayInputStream bStream = new ByteArrayInputStream(blobBytes);
-        AudioInputStream stream = null;
-        try {
-            stream = AudioSystem.getAudioInputStream(bStream);
-        } catch (UnsupportedAudioFileException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        Clip clip = null;
-        try {
-            clip = AudioSystem.getClip();
-        } catch (LineUnavailableException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        try {
-            clip.open(stream);
-        } catch (LineUnavailableException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } 
-        */
+         * ByteArrayInputStream bStream = new ByteArrayInputStream(blobBytes);
+         * AudioInputStream stream = null; try { stream =
+         * AudioSystem.getAudioInputStream(bStream); } catch
+         * (UnsupportedAudioFileException e) { // TODO Auto-generated catch block
+         * e.printStackTrace(); } Clip clip = null; try { clip = AudioSystem.getClip();
+         * } catch (LineUnavailableException e) { // TODO Auto-generated catch block
+         * e.printStackTrace(); } try { clip.open(stream); } catch
+         * (LineUnavailableException e) { // TODO Auto-generated catch block
+         * e.printStackTrace(); }
+         */
     }
 
     /**
