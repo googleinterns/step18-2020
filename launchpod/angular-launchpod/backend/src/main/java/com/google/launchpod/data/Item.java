@@ -80,4 +80,8 @@ public class Item {
   public String getLanguage(){
     return this.language;
   }
+
+  public String getLink(){
+    return this.link;
+  }
 }

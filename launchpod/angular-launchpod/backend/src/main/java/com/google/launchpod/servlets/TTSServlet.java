@@ -60,7 +60,7 @@ public class TTSServlet extends HttpServlet {
     private static final String ID = "id";
     private static final String USER_FEED = "UserFeed";
     private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-    private static final String TTS_BASE_URL = "https://launchpod-step18-2020.appspot.com/create-by-tts?id=";
+    public static final String TTS_BASE_URL = "https://launchpod-step18-2020.appspot.com/create-by-tts?id=";
     private static final Gson GSON = new Gson();
 
     // Variables required for cloud storage
