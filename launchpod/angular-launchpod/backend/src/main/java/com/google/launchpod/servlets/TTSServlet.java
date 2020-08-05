@@ -137,7 +137,12 @@ public class TTSServlet extends HttpServlet {
             return;
         }
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-        String itemCount = String.valueOf(rssFeed.getChannel().getItems().size());
+        String itemCount;
+        if(rssFeed.getChannel().getItems().isEmpty() || rssFeed.getChannel().getItems() == null){
+            itemCount = "0";
+        }else{
+            itemCount = String.valueOf(rssFeed.getChannel().getItems().size());
+        }
         BlobId blobId = BlobId.of(BUCKET_NAME, feedKey + itemCount);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
 
