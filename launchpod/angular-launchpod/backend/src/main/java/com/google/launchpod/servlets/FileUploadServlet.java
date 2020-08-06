@@ -163,10 +163,10 @@ public class FileUploadServlet extends HttpServlet {
     mp3.setProperty(EMAIL, email);
     desiredFeedEntity.setProperty(MP3, mp3);
 
-    String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+    Text xmlString = (Text) desiredFeedEntity.getProperty(XML_STRING);
 
     // Modify the xml string
-    RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
+    RSS rssFeed = XML_MAPPER.readValue(xmlString.getValue(), RSS.class);
     Channel channel = rssFeed.getChannel();
       
     String entityEmail = (String) desiredFeedEntity.getProperty(EMAIL);
