@@ -25,6 +25,7 @@ import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
+import com.google.launchpod.data.Keys;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
@@ -32,15 +33,6 @@ import com.google.launchpod.data.UserFeed;
 @WebServlet("/rss-feed")
 public class FormHandlerServlet extends HttpServlet {
 
-  private static final long serialVersionUID = 1L;
-  private static final String TIMESTAMP = "timestamp";
-  private static final String POST_TIME = "postTime";
-  private static final String CATEGORY = "category";
-  private static final String DESCRIPTION = "description";
-  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  private static final String ID = "id";
-  // public variable to allow creation of UserFeed objects
-  public static final String XML_STRING = "xmlString";
   private static final Gson GSON = new Gson();
 
   /**
@@ -55,8 +47,8 @@ public class FormHandlerServlet extends HttpServlet {
 
     String title = req.getParameter(Keys.TITLE);
     String name = req.getParameter(Keys.USER_NAME);
-    String category = req.getParameter(CATEGORY);
-    String description = req.getParameter(DESCRIPTION);
+    String category = req.getParameter(Keys.CATEGORY);
+    String description = req.getParameter(Keys.DESCRIPTION);
     String language = req.getParameter(Keys.LANGUAGE);
     String email = userService.getCurrentUser().getEmail();
 
@@ -80,15 +72,15 @@ public class FormHandlerServlet extends HttpServlet {
     userFeedEntity.setProperty(Keys.TITLE, title);
     userFeedEntity.setProperty(Keys.USER_NAME, name);
     userFeedEntity.setProperty(Keys.USER_EMAIL, email);
-    userFeedEntity.setProperty(TIMESTAMP, timestamp);
-    userFeedEntity.setProperty(DESCRIPTION, description);
+    userFeedEntity.setProperty(Keys.TIMESTAMP, timestamp);
+    userFeedEntity.setProperty(Keys.DESCRIPTION, description);
     userFeedEntity.setProperty(Keys.LANGUAGE, language);
 
     // Generate xml string
     RSS rssFeed = new RSS(name, email, title, description, category, language);
     try {
       String xmlString = RSS.toXmlString(rssFeed);
-      userFeedEntity.setProperty(XML_STRING, xmlString);
+      userFeedEntity.setProperty(Keys.XML_STRING, xmlString);
     } catch (IOException e) {
       throw new IOException("Unable to create XML string.");
     }
@@ -114,7 +106,7 @@ public class FormHandlerServlet extends HttpServlet {
         Key key = entity.getKey();
         
         String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
-        String rssLink = BASE_URL + urlID;
+        String rssLink = Keys.BASE_URL + urlID;
 
         userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, email, postTime, urlID, userFeedLanguage));
       }
@@ -132,7 +124,7 @@ public class FormHandlerServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
     // Get ID passed in request
-    String id = req.getParameter(ID);
+    String id = req.getParameter(Keys.ID);
     if (id == null) {
       throw new IllegalArgumentException("Sorry, no matching Id was found in Datastore.");
     }
@@ -144,7 +136,7 @@ public class FormHandlerServlet extends HttpServlet {
       Entity desiredFeedEntity = datastore.get(urlID);
 
       // generate xml string
-      String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+      String xmlString = (String) desiredFeedEntity.getProperty(Keys.XML_STRING);
       res.setContentType("text/xml");
       res.getWriter().print(xmlString);
 

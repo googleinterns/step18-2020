@@ -15,12 +15,24 @@
 package com.google.launchpod.data;
 
 /*
- * Store Keys used in servlets.
+ * Store keys used in servlets.
  */
 public final class Keys {
   public static final String USER_FEED = "UserFeed";
   public static final String TITLE = "title";
+  public static final String DESCRIPTION = "description";
+  public static final String TIMESTAMP = "timestamp";
+  public static final String CATEGORY = "category";
   public static final String LANGUAGE = "language";
+  public static final String EPISODE_TITLE = "episodeTitle";
+  public static final String EPISODE_DESCRIPTION = "episodeDescription";
+  public static final String EPISODE_LANGUAGE = "episodeLanguage";
   public static final String USER_NAME = "name";
   public static final String USER_EMAIL = "email";
+  public static final String ID = "id";
+  public static final String XML_STRING = "xmlString";
+  public static final String MP3 = "mp3";
+  public static final String MP3_LINK = "mp3Link";
+  public static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
+  public static final long serialVersionUID = 1L; // may not need this 
 }

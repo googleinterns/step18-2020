@@ -39,6 +39,7 @@ import com.google.cloud.texttospeech.v1.SynthesizeSpeechResponse;
 import com.google.cloud.texttospeech.v1.TextToSpeechClient;
 import com.google.cloud.texttospeech.v1.VoiceSelectionParams;
 import com.google.common.base.Strings;
+import com.google.launchpod.data.Keys;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.UserFeed;
@@ -47,15 +48,7 @@ import com.google.protobuf.ByteString;
 @WebServlet("/create-by-tts")
 public class TTSServlet extends HttpServlet {
 
-    private static final long serialVersionUID = 1L;
-    private static final String LANGUAGE = "episodeLanguage";
-    private static final String DESCRIPTION = "episodeDescription";
-    private static final String CATEGORY = "category";
-    private static final String FEED_KEY = "id";
     private static final String TEXT = "text";
-    private static final String XML_STRING = "xmlString";
-    private static final String ID = "id";
-    private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
     private static final String TTS_BASE_URL = "https://launchpod-step18-2020.appspot.com/create-by-tts?id=";
     private static final Gson GSON = new Gson();
 
@@ -78,10 +71,10 @@ public class TTSServlet extends HttpServlet {
         UserService userService = UserServiceFactory.getUserService();
 
         String userEmail = userService.getCurrentUser().getEmail();
-        String feedKey = request.getParameter(FEED_KEY);
-        String podcastTitle = request.getParameter(Keys.TITLE);
-        String podcastDescription = request.getParameter(DESCRIPTION);
-        String podcastLanguage = request.getParameter(LANGUAGE);
+        String feedKey = request.getParameter(Keys.ID); // FEED_KEY = "id"
+        String podcastTitle = request.getParameter(Keys.EPISODE_TITLE);
+        String podcastDescription = request.getParameter(Keys.EPISODE_DESCRIPTION);
+        String podcastLanguage = request.getParameter(Keys.EPISODE_LANGUAGE);
         String podcastText = request.getParameter(TEXT);
 
         // throw exception when parameters are empty or null
@@ -115,7 +108,7 @@ public class TTSServlet extends HttpServlet {
         }
 
         // Turn the xml string back into an object
-        String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+        String xmlString = (String) desiredFeedEntity.getProperty(Keys.XML_STRING);
         RSS rssFeed = null;
         try {
             rssFeed = TranslationServlet.XML_MAPPER.readValue(xmlString, RSS.class);
@@ -146,7 +139,7 @@ public class TTSServlet extends HttpServlet {
 
         rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage, userEmail, mp3Link);
 
-        desiredFeedEntity.setProperty(XML_STRING, RSS.toXmlString(rssFeed)); // update existing entity's XML string
+        desiredFeedEntity.setProperty(Keys.XML_STRING, RSS.toXmlString(rssFeed)); // update existing entity's XML string
 
         datastore.put(desiredFeedEntity);
 
@@ -170,7 +163,7 @@ public class TTSServlet extends HttpServlet {
      */
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
         res.setContentType("audio/mpeg");
-        String id = req.getParameter(ID);
+        String id = req.getParameter(Keys.ID);
 
         if (Strings.isNullOrEmpty(id)) {
             throw new IllegalArgumentException("Invalid URL. Please try again");
@@ -202,7 +195,7 @@ public class TTSServlet extends HttpServlet {
                 String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity,
                                                                         // not the
                                                                         // numeric ID.
-                String rssLink = BASE_URL + urlID;
+                String rssLink = Keys.BASE_URL + urlID;
 
                 userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail,
                         postTime, urlID, userFeedLanguage));

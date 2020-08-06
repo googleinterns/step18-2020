@@ -17,7 +17,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.launchpod.data.Keys;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -35,6 +34,7 @@ import com.google.cloud.translate.v3.TranslateTextResponse;
 import com.google.cloud.translate.v3.TranslationServiceClient;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
+import com.google.launchpod.data.Keys;
 import com.google.launchpod.data.Item;
 import com.google.launchpod.data.ItunesCategory;
 import com.google.launchpod.data.LoginStatus;
@@ -44,15 +44,7 @@ import com.google.launchpod.data.UserFeed;
 @WebServlet("/translate-feed")
 public class TranslationServlet extends HttpServlet {
 
-  private static final long serialVersionUID = 1L;
   private static final String RSS_FEED_LINK = "rssFeedLink";
-  private static final String TIMESTAMP = "timestamp";
-  private static final String POST_TIME = "postTime";
-  private static final String CATEGORY = "category";
-  private static final String DESCRIPTION = "description";
-  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  private static final String ID = "id";
-  private static final String XML_STRING = "xmlString";
   public static final XmlMapper XML_MAPPER = new XmlMapper();
   private static final Gson GSON = new Gson();
 
@@ -91,7 +83,7 @@ public class TranslationServlet extends HttpServlet {
       e.printStackTrace();
       res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to find given URL key, Please try again");
     }
-    String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+    String xmlString = (String) desiredFeedEntity.getProperty(Keys.XML_STRING);
 
     RSS rssFeed = null;
     try {
@@ -143,10 +135,10 @@ public class TranslationServlet extends HttpServlet {
     translatedUserFeedEntity.setProperty(Keys.TITLE, rssFeed.getChannel().getTitle());
     translatedUserFeedEntity.setProperty(Keys.USER_NAME, rssFeed.getChannel().getAuthor());
     translatedUserFeedEntity.setProperty(Keys.USER_EMAIL, email);
-    translatedUserFeedEntity.setProperty(TIMESTAMP, timestamp);
-    translatedUserFeedEntity.setProperty(DESCRIPTION, rssFeed.getChannel().getDescription());
+    translatedUserFeedEntity.setProperty(Keys.TIMESTAMP, timestamp);
+    translatedUserFeedEntity.setProperty(Keys.DESCRIPTION, rssFeed.getChannel().getDescription());
     translatedUserFeedEntity.setProperty(Keys.LANGUAGE, targetLanguage);
-    translatedUserFeedEntity.setProperty(XML_STRING, translatedXmlString);
+    translatedUserFeedEntity.setProperty(Keys.XML_STRING, translatedXmlString);
     datastore.put(translatedUserFeedEntity);
 
     Query query = new Query(LoginStatus.USER_FEED_KEY).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
@@ -169,7 +161,7 @@ public class TranslationServlet extends HttpServlet {
 
         String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the
                                                                 // numeric ID.
-        String rssLink = BASE_URL + urlID;
+        String rssLink = Keys.BASE_URL + urlID;
 
         userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime,
             urlID, userFeedLanguage));

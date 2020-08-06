@@ -36,13 +36,14 @@ import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
+import com.google.launchpod.data.Keys;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.UserFeed;
 
 @WebServlet("/login-status")
 public class LoginServlet extends HttpServlet {
+
   private static final Gson GSON = new Gson();
-  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -77,7 +78,7 @@ public class LoginServlet extends HttpServlet {
           Key key = entity.getKey();
           
           String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
-          String rssLink = BASE_URL + urlID;
+          String rssLink = Keys.BASE_URL + urlID;
 
           userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID, language));
         }
@@ -128,7 +129,7 @@ public class LoginServlet extends HttpServlet {
 
         String feedUrlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not
                                                                     // the numeric ID.
-        String feedRssLink = BASE_URL + feedUrlID;
+        String feedRssLink = Keys.BASE_URL + feedUrlID;
 
         userFeeds.add(new UserFeed(feedTitle, feedName, feedRssLink, feedDescription, feedEmail, feedPostTime,
             feedUrlID, feedLanguage));
