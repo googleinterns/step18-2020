@@ -33,11 +33,6 @@ import com.google.launchpod.data.UserFeed;
 public class FormHandlerServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
-  private static final String USER_FEED = "UserFeed";
-  private static final String TITLE = "title";
-  private static final String LANGUAGE = "language";
-  private static final String USER_NAME = "name";
-  public static final String USER_EMAIL = "email";
   private static final String TIMESTAMP = "timestamp";
   private static final String POST_TIME = "postTime";
   private static final String CATEGORY = "category";
@@ -58,11 +53,11 @@ public class FormHandlerServlet extends HttpServlet {
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IllegalArgumentException, IOException {
     UserService userService = UserServiceFactory.getUserService();
 
-    String title = req.getParameter(TITLE);
-    String name = req.getParameter(USER_NAME);
+    String title = req.getParameter(Keys.TITLE);
+    String name = req.getParameter(Keys.USER_NAME);
     String category = req.getParameter(CATEGORY);
     String description = req.getParameter(DESCRIPTION);
-    String language = req.getParameter(LANGUAGE);
+    String language = req.getParameter(Keys.LANGUAGE);
     String email = userService.getCurrentUser().getEmail();
 
     long timestamp = System.currentTimeMillis();
@@ -80,14 +75,14 @@ public class FormHandlerServlet extends HttpServlet {
     }
 
     // Creates entity with all desired attributes
-    Entity userFeedEntity = new Entity(USER_FEED);
+    Entity userFeedEntity = new Entity(Keys.USER_FEED);
 
-    userFeedEntity.setProperty(TITLE, title);
-    userFeedEntity.setProperty(USER_NAME, name);
-    userFeedEntity.setProperty(USER_EMAIL, email);
+    userFeedEntity.setProperty(Keys.TITLE, title);
+    userFeedEntity.setProperty(Keys.USER_NAME, name);
+    userFeedEntity.setProperty(Keys.USER_EMAIL, email);
     userFeedEntity.setProperty(TIMESTAMP, timestamp);
     userFeedEntity.setProperty(DESCRIPTION, description);
-    userFeedEntity.setProperty(LANGUAGE, language);
+    userFeedEntity.setProperty(Keys.LANGUAGE, language);
 
     // Generate xml string
     RSS rssFeed = new RSS(name, email, title, description, category, language);
@@ -107,7 +102,7 @@ public class FormHandlerServlet extends HttpServlet {
 
     ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
     for (Entity entity : results.asIterable()) {
-      if (email.equals(entity.getProperty(USER_EMAIL).toString())) {
+      if (email.equals(entity.getProperty(Keys.USER_EMAIL).toString())) {
         String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
         String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
         String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);

@@ -48,17 +48,13 @@ import com.google.protobuf.ByteString;
 public class TTSServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-    private static final String TITLE = "episodeTitle";
     private static final String LANGUAGE = "episodeLanguage";
     private static final String DESCRIPTION = "episodeDescription";
-    private static final String EMAIL = "email";
-    private static final String NAME = "name";
     private static final String CATEGORY = "category";
     private static final String FEED_KEY = "id";
     private static final String TEXT = "text";
     private static final String XML_STRING = "xmlString";
     private static final String ID = "id";
-    private static final String USER_FEED = "UserFeed";
     private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
     private static final String TTS_BASE_URL = "https://launchpod-step18-2020.appspot.com/create-by-tts?id=";
     private static final Gson GSON = new Gson();
@@ -83,7 +79,7 @@ public class TTSServlet extends HttpServlet {
 
         String userEmail = userService.getCurrentUser().getEmail();
         String feedKey = request.getParameter(FEED_KEY);
-        String podcastTitle = request.getParameter(TITLE);
+        String podcastTitle = request.getParameter(Keys.TITLE);
         String podcastDescription = request.getParameter(DESCRIPTION);
         String podcastLanguage = request.getParameter(LANGUAGE);
         String podcastText = request.getParameter(TEXT);
@@ -114,7 +110,7 @@ public class TTSServlet extends HttpServlet {
         }
 
         // Check if current user email matches feed user email
-        if (!userEmail.equals(desiredFeedEntity.getProperty(EMAIL).toString())) {
+        if (!userEmail.equals(desiredFeedEntity.getProperty(Keys.USER_EMAIL).toString())) {
             throw new AuthenticationException("This user does not have permission to modify this feed.");
         }
 
@@ -191,7 +187,7 @@ public class TTSServlet extends HttpServlet {
 
     public void queryUserFeeds(ArrayList<UserFeed> userFeeds, PreparedQuery results, String userEmail) {
         for (Entity entity : results.asIterable()) {
-            if (userEmail.equals(entity.getProperty(EMAIL).toString())) {
+            if (userEmail.equals(entity.getProperty(Keys.USER_EMAIL).toString())) {
                 String userFeedTitle = (String) entity.getProperty(LoginStatus.TITLE_KEY);
                 String userFeedName = (String) entity.getProperty(LoginStatus.NAME_KEY);
                 String userFeedDescription = (String) entity.getProperty(LoginStatus.DESCRIPTION_KEY);

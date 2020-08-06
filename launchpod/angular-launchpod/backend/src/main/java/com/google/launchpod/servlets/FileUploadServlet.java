@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.launchpod.data.Keys;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -51,7 +52,6 @@ public class FileUploadServlet extends HttpServlet {
   private static final String EPISODE_TITLE = "episodeTitle";
   private static final String EPISODE_DESCRIPTION = "episodeDescription";
   private static final String EPISODE_LANGUAGE = "episodeLanguage";
-  public static final String EMAIL = "email";
   public static final String TIMESTAMP = "timestamp";
   public static final String MP3 = "mp3";
   public static final String MP3_LINK = "mp3Link";
@@ -159,7 +159,7 @@ public class FileUploadServlet extends HttpServlet {
     EmbeddedEntity mp3 = new EmbeddedEntity();
     mp3.setProperty(ID, id);
     mp3.setProperty(MP3_LINK, mp3Link);
-    mp3.setProperty(EMAIL, email);
+    mp3.setProperty(Keys.USER_EMAIL, email);
     desiredFeedEntity.setProperty(MP3, mp3);
 
     String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
@@ -168,7 +168,7 @@ public class FileUploadServlet extends HttpServlet {
     RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
     Channel channel = rssFeed.getChannel();
       
-    String entityEmail = (String) desiredFeedEntity.getProperty(EMAIL);
+    String entityEmail = (String) desiredFeedEntity.getProperty(Keys.USER_EMAIL);
 
     // Verify that user is modifying a feed they created
     if (entityEmail.equals(email)) {
@@ -213,7 +213,7 @@ public class FileUploadServlet extends HttpServlet {
 
       storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
 
-      myRedirectUrl = BASE_URL + "/my-feeds";
+      myRedirectUrl = BASE_URL + "#/my-feeds";
       fields =
           PostPolicyV4.PostFieldsV4.newBuilder().setSuccessActionRedirect(myRedirectUrl).build();
 
