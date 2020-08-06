@@ -82,16 +82,12 @@ public class FileUploadServletTest extends Mockito {
   private static final String TEST_EMAIL = "123@google.com";
   private static final String TEST_INCORRECT_EMAIL = "123@cde.com";
   private static final String TEST_EMAIL_TWO = "456@abc.com";
-  private static final String EMPTY_STRING = "";
   private static final String TEST_XML_STRING = "test";
   private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
   private static final String GENERATE_XML = "GENERATE_XML";
   private static final String GENERATE_RSS_LINK = "GENERATE_RSS_LINK";
   private static final String OTHER_ACTION = "OTHER_ACTION";
   private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS");
-
-  private static final String PROJECT_ID = "launchpod-step18-2020"; // The ID of your GCP project
-  private static final String BUCKET_NAME = "launchpod-mp3-files"; // The ID of the GCS bucket to upload to
 
   @Before
   public void setUp() throws ParseException {
@@ -160,7 +156,7 @@ public class FileUploadServletTest extends Mockito {
   */
   private static Entity setUpEntityinDatastore() throws JsonProcessingException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
 
     Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
@@ -172,7 +168,7 @@ public class FileUploadServletTest extends Mockito {
    * Creates a test MP3 link.
    */
   private static String makeMp3Link(String entityId) {
-    String link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
+    String link = "https://storage.googleapis.com/" + Keys.BUCKET_NAME + "/" + entityId;
     return link;
   }
 
@@ -185,7 +181,7 @@ public class FileUploadServletTest extends Mockito {
   public void doPost_StoresCorrectFormInput_CorrectlyModifiesXmlString() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
     Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
     ds.put(entity);
@@ -219,7 +215,7 @@ public class FileUploadServletTest extends Mockito {
   public void doPost_StoresCorrectFormInput_StoresCorrectMp3Info() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
     Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
     ds.put(entity);
@@ -252,7 +248,7 @@ public class FileUploadServletTest extends Mockito {
   public void doPost_CorrectlyVerifiesUser() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL_TWO).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL_TWO, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL_TWO, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
     Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
     ds.put(entity);
@@ -277,7 +273,7 @@ public class FileUploadServletTest extends Mockito {
   public void doPost_ReturnsHtmlForm() throws IOException, Exception {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
     Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
     ds.put(entity);
@@ -316,7 +312,7 @@ public class FileUploadServletTest extends Mockito {
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn("");
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.EMPTY_STRING);
     when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
     when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
@@ -357,7 +353,7 @@ public class FileUploadServletTest extends Mockito {
     String id = KeyFactory.keyToString(entity.getKey());
 
     when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn("");
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.EMPTY_STRING);
     when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
@@ -398,7 +394,7 @@ public class FileUploadServletTest extends Mockito {
 
     when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
     when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn("");
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.EMPTY_STRING);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -437,7 +433,7 @@ public class FileUploadServletTest extends Mockito {
     when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
     when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
     when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
-    when(request.getParameter(Keys.ID)).thenReturn("");
+    when(request.getParameter(Keys.ID)).thenReturn(Keys.EMPTY_STRING);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -542,7 +538,7 @@ public class FileUploadServletTest extends Mockito {
   @Test
   public void doGet_SingleEntity_ReturnsCorrectXmlString() throws IOException, EntityNotFoundException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
     Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
     ds.put(entity);
@@ -579,7 +575,7 @@ public class FileUploadServletTest extends Mockito {
   @Test
   public void doGet_MultipleEntities_ReturnsCorrectXmlString() throws IOException, EntityNotFoundException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
     Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
     Entity entityTwo = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL_TWO, testXmlString);

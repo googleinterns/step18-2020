@@ -43,5 +43,7 @@ public final class Keys {
   public static final String TEST_TITLE = "TEST_TITLE";
   public static final String TEST_DESCRIPTION = "TEST_DESCRIPTION";
   public static final String TEST_NAME = "TEST_NAME";
-  
+  public static final String TEST_CATEGORY = "Business";
+  public static final String TEST_LANGUAGE = "en";
+  public static final String TEST_EMAIL = "123@abc.com";
 }
