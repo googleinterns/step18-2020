@@ -16,6 +16,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.launchpod.data.Keys;
+import com.google.launchpod.data.Helper;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.Channel;
 import com.google.common.base.Strings;
@@ -24,15 +25,6 @@ import com.google.common.base.Strings;
 public class CreateByLinkServlet extends HttpServlet {
 
   private static final XmlMapper XML_MAPPER = new XmlMapper();
-
-  /**
-  * Helper method for repeated code in catching exceptions.
-  */
-  private static void writeResponse(HttpServletResponse res, String message, int statusCode) throws IOException {
-    res.setContentType("text/html");
-    res.getWriter().println(message);
-    res.setStatus(statusCode);
-  }
 
   /**
    * Requests user inputs in form fields, then creates Entity and places in Datastore.
@@ -52,6 +44,7 @@ public class CreateByLinkServlet extends HttpServlet {
       email = userService.getCurrentUser().getEmail();
     }
 
+    // to-do after merging: move this common place
     if (Strings.isNullOrEmpty(episodeTitle)) {
       throw new IllegalArgumentException("No episode title inputted, please try again.");
     } else if (Strings.isNullOrEmpty(episodeDescription)) {
@@ -75,11 +68,11 @@ public class CreateByLinkServlet extends HttpServlet {
       desiredFeedEntity = datastore.get(entityKey);
     } catch (IllegalArgumentException e) {
       // If entityId cannot be converted into a key
-      writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
+      Helper.writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
       return;
     } catch (EntityNotFoundException e) {
       // No matching entity in Datastore
-      writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
+      Helper.writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
       return;
     }
 

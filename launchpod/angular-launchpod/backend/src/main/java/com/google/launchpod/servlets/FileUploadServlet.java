@@ -45,9 +45,6 @@ import com.google.common.base.Strings;
 @MultipartConfig
 public class FileUploadServlet extends HttpServlet {
 
-  public static final String PROJECT_ID = "launchpod-step18-2020"; // The ID of your GCP project
-  public static final String BUCKET_NAME = "launchpod-mp3-files"; // The ID of the GCS bucket to upload to
-
   public static final String MP3_BASE_URL = "https://launchpod-step18-2020.appspot.com/";
   public static final String LINK_TO_XML_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=";
   public static final String HTML_FORM_END = "  <input type='file' name='file'/><br />\n"
@@ -82,17 +79,8 @@ public class FileUploadServlet extends HttpServlet {
   * Creates an MP3 link from GCS bucket name and the object name (entity id).
   */
   private String makeMp3Link(String entityId) {
-    String link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
+    String link = "https://storage.googleapis.com/" + Keys.BUCKET_NAME + "/" + entityId;
     return link;
-  }
-
-  /**
-  * Helper method for repeated code in catching exceptions.
-  */
-  private void writeResponse(HttpServletResponse res, String message, int statusCode) throws IOException {
-    res.setContentType("text/html");
-    res.getWriter().println(message);
-    res.setStatus(statusCode);
   }
 
   /**
@@ -112,7 +100,6 @@ public class FileUploadServlet extends HttpServlet {
       email = userService.getCurrentUser().getEmail();
     }
 
-    // TO-DO after merging: move validation to common place
     if (Strings.isNullOrEmpty(episodeTitle)) {
       throw new IllegalArgumentException("No episode title inputted, please try again.");
     } else if (Strings.isNullOrEmpty(episodeDescription)) {
@@ -134,11 +121,11 @@ public class FileUploadServlet extends HttpServlet {
       desiredFeedEntity = datastore.get(entityKey);
     } catch (IllegalArgumentException e) {
       // If entityId cannot be converted into a key
-      writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
+      Helper.writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
       return;
     } catch (EntityNotFoundException e) {
       // No matching entity in Datastore
-      writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
+      Helper.writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
       return;
     }
     String mp3Link = makeMp3Link(id);
@@ -170,7 +157,7 @@ public class FileUploadServlet extends HttpServlet {
     datastore.put(desiredFeedEntity);
 
     // Write the file upload form
-    String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, id);
+    String formHtml = generateSignedPostPolicyV4(Keys.PROJECT_ID, Keys.BUCKET_NAME, id);
     res.setContentType("text/html");
     res.getWriter().println(formHtml);
   }
@@ -237,7 +224,7 @@ public class FileUploadServlet extends HttpServlet {
     String id = req.getParameter(Keys.ID);
 
     if (actionString == null || id == null) {
-      writeResponse(res, "Please specify action and/or id.", HttpServletResponse.SC_BAD_REQUEST);
+      Helper.writeResponse(res, "Please specify action and/or id.", HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
@@ -245,7 +232,7 @@ public class FileUploadServlet extends HttpServlet {
     try {
       action = Action.valueOf(actionString);
     } catch (IllegalArgumentException e) {
-      writeResponse(res, "Illegal argument for action.", HttpServletResponse.SC_BAD_REQUEST);
+      Helper.writeResponse(res, "Illegal argument for action.", HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
@@ -265,11 +252,11 @@ public class FileUploadServlet extends HttpServlet {
           desiredFeedEntity = datastore.get(entityKey);
         } catch (IllegalArgumentException e) {
           // If entityId cannot be converted into a key
-          writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
+          Helper.writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
           return;
         } catch (EntityNotFoundException e) {
           // No matching entity in Datastore
-          writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
+          Helper.writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
           return;
         }
         String xmlString = desiredFeedEntity.getProperty(Keys.XML_STRING).toString();
@@ -277,7 +264,7 @@ public class FileUploadServlet extends HttpServlet {
         res.getWriter().println(xmlString);
         break;
       default: 
-        writeResponse(res, "Sorry, this is not a valid action.", HttpServletResponse.SC_BAD_REQUEST);
+        Helper.writeResponse(res, "Sorry, this is not a valid action.", HttpServletResponse.SC_BAD_REQUEST);
     }
   }
 }

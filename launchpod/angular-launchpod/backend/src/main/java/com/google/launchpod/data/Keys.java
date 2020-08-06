@@ -20,6 +20,7 @@ package com.google.launchpod.data;
 public final class Keys {
   public static final String USER_FEED = "UserFeed";
   public static final String TITLE = "title";
+  public static final String PODCAST_TITLE = "podcastTitle";
   public static final String DESCRIPTION = "description";
   public static final String TIMESTAMP = "timestamp";
   public static final String CATEGORY = "category";
@@ -34,5 +35,13 @@ public final class Keys {
   public static final String MP3 = "mp3";
   public static final String MP3_LINK = "mp3Link";
   public static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  public static final long serialVersionUID = 1L; // may not need this 
+  public static final String EMPTY_STRING = "";
+  // Variables required for cloud storage
+  public static final String PROJECT_ID = "launchpod-step18-2020"; // ID of GCP Project
+  public static final String BUCKET_NAME = "launchpod-mp3-files"; // ID of GCS bucket to upload to
+
+  public static final String TEST_TITLE = "TEST_TITLE";
+  public static final String TEST_DESCRIPTION = "TEST_DESCRIPTION";
+  public static final String TEST_NAME = "TEST_NAME";
+  
 }

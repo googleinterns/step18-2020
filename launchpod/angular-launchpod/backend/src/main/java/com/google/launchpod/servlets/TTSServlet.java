@@ -52,12 +52,8 @@ public class TTSServlet extends HttpServlet {
     private static final String TTS_BASE_URL = "https://launchpod-step18-2020.appspot.com/create-by-tts?id=";
     private static final Gson GSON = new Gson();
 
-    // Variables required for cloud storage
-    private static final String PROJECT_ID = "launchpod-step18-2020"; // ID of GCP Project
-    private static final String BUCKET_NAME = "launchpod-mp3-files"; // ID of GCS bucket to upload to
-
     static {
-        TranslationServlet.XML_MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      TranslationServlet.XML_MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
     /**
