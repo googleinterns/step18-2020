@@ -23,6 +23,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PropertyContainer;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
@@ -177,7 +178,8 @@ public class FileUploadServlet extends HttpServlet {
       throw new IOException("You are trying to edit a feed that's not yours!");
     }
 
-    String modifiedXmlString = RSS.toXmlString(rssFeed);
+    String modifiedXmlValue = RSS.toXmlString(rssFeed);
+    Text modifiedXmlString = new Text(modifiedXmlValue);
     desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
     datastore.put(desiredFeedEntity);
 

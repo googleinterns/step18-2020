@@ -25,6 +25,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -95,11 +96,11 @@ public class TranslationServlet extends HttpServlet {
       e.printStackTrace();
       res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to find given URL key, Please try again");
     }
-    String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+    Text xmlString = (Text) desiredFeedEntity.getProperty(XML_STRING);
 
     RSS rssFeed = null;
     try {
-      rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
+      rssFeed = XML_MAPPER.readValue(xmlString.getValue(), RSS.class);
     } catch (Exception e) {
       res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to translate. Try again");
     }
@@ -142,7 +143,8 @@ public class TranslationServlet extends HttpServlet {
     }
 
     // Generate Translated XML string then place it into datastore
-    String translatedXmlString = RSS.toXmlString(rssFeed);
+    String translatedXmlValue = RSS.toXmlString(rssFeed);
+    Text translatedXmlString = new Text(translatedXmlValue);
     Entity translatedUserFeedEntity = new Entity(USER_FEED);
     translatedUserFeedEntity.setProperty(TITLE, rssFeed.getChannel().getTitle());
     translatedUserFeedEntity.setProperty(USER_NAME, rssFeed.getChannel().getAuthor());

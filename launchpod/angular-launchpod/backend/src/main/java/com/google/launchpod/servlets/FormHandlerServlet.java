@@ -19,6 +19,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
@@ -92,7 +93,8 @@ public class FormHandlerServlet extends HttpServlet {
     // Generate xml string
     RSS rssFeed = new RSS(name, email, title, description, category, language);
     try {
-      String xmlString = RSS.toXmlString(rssFeed);
+      String xmlValue = RSS.toXmlString(rssFeed);
+      Text xmlString = new Text(xmlValue);
       userFeedEntity.setProperty(XML_STRING, xmlString);
     } catch (IOException e) {
       throw new IOException("Unable to create XML string.");
@@ -149,9 +151,9 @@ public class FormHandlerServlet extends HttpServlet {
       Entity desiredFeedEntity = datastore.get(urlID);
 
       // generate xml string
-      String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+      Text xmlString = (Text) desiredFeedEntity.getProperty(XML_STRING);
       res.setContentType("text/xml");
-      res.getWriter().print(xmlString);
+      res.getWriter().print(xmlString.getValue());
 
       // If there is no entity that matches the key
     } catch (EntityNotFoundException e) {

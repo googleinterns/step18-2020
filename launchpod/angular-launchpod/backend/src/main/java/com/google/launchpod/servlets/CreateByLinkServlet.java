@@ -13,6 +13,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.launchpod.data.RSS;
@@ -93,10 +94,10 @@ public class CreateByLinkServlet extends HttpServlet {
       return;
     }
 
-    String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+    Text xmlString = (Text) desiredFeedEntity.getProperty(XML_STRING);
 
     // Modify the xml string
-    RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
+    RSS rssFeed = XML_MAPPER.readValue(xmlString.getValue(), RSS.class);
     Channel channel = rssFeed.getChannel();
 
     String entityEmail = (String) desiredFeedEntity.getProperty(EMAIL);
@@ -108,7 +109,8 @@ public class CreateByLinkServlet extends HttpServlet {
       throw new IOException("You are trying to edit a feed that's not yours!");
     }
     
-    String modifiedXmlString = RSS.toXmlString(rssFeed);
+    String modifiedXmlValue = RSS.toXmlString(rssFeed);
+    Text modifiedXmlString = new Text(modifiedXmlValue);
     desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
     datastore.put(desiredFeedEntity);
 
