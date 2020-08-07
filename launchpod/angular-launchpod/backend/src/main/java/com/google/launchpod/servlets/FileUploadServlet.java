@@ -31,6 +31,8 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.auth.appengine.AppEngineCredentials;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.launchpod.data.Keys;
+import com.google.launchpod.data.Helper;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.Channel;
 import com.google.launchpod.data.MP3;
@@ -44,30 +46,14 @@ import com.google.common.base.Strings;
 @MultipartConfig
 public class FileUploadServlet extends HttpServlet {
 
-  // TO-DO after merging: move these to common place
-  public static final String PROJECT_ID = "launchpod-step18-2020"; // The ID of your GCP project
-  public static final String BUCKET_NAME = "launchpod-mp3-files"; // The ID of the GCS bucket to upload to
-
-  private static final String EPISODE_TITLE = "episodeTitle";
-  private static final String EPISODE_DESCRIPTION = "episodeDescription";
-  private static final String EPISODE_LANGUAGE = "episodeLanguage";
-  public static final String EMAIL = "email";
-  public static final String TIMESTAMP = "timestamp";
-  public static final String MP3 = "mp3";
-  public static final String MP3_LINK = "mp3Link";
-  public static final String XML_STRING = "xmlString";
-  public static final String PUB_DATE = "pubDate";
-  public static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/";
+  public static final String MP3_BASE_URL = "https://launchpod-step18-2020.appspot.com/";
   public static final String LINK_TO_XML_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=";
   public static final String HTML_FORM_END = "  <input type='file' name='file'/><br />\n"
                                              + "<input type='submit' value='Upload File' name='submit'/><br />\n"
                                              + "</form>\n";
-
-  private static final String ID = "id";
   private static final String ACTION = "action";
   private static final XmlMapper XML_MAPPER = new XmlMapper();
 
-  // TO-DO after merging: move this to common place
   /*
   * Outlines actions for doGet() method.
   * GENERATE_RSS_LINK: action for creating the URL to an RSS feed.
@@ -94,17 +80,8 @@ public class FileUploadServlet extends HttpServlet {
   * Creates an MP3 link from GCS bucket name and the object name (entity id).
   */
   private String makeMp3Link(String entityId) {
-    String link = "https://storage.googleapis.com/" + BUCKET_NAME + "/" + entityId;
+    String link = "https://storage.googleapis.com/" + Keys.BUCKET_NAME + "/" + entityId;
     return link;
-  }
-
-  /**
-  * Helper method for repeated code in catching exceptions.
-  */
-  private void writeResponse(HttpServletResponse res, String message, int statusCode) throws IOException {
-    res.setContentType("text/html");
-    res.getWriter().println(message);
-    res.setStatus(statusCode);
   }
 
   /**
@@ -113,10 +90,10 @@ public class FileUploadServlet extends HttpServlet {
    */
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse res) throws IllegalArgumentException, IOException {
-    String episodeTitle = req.getParameter(EPISODE_TITLE);
-    String episodeDescription = req.getParameter(EPISODE_DESCRIPTION);
-    String episodeLanguage = req.getParameter(EPISODE_LANGUAGE);
-    String id = req.getParameter(ID);
+    String episodeTitle = req.getParameter(Keys.EPISODE_TITLE);
+    String episodeDescription = req.getParameter(Keys.EPISODE_DESCRIPTION);
+    String episodeLanguage = req.getParameter(Keys.EPISODE_LANGUAGE);
+    String id = req.getParameter(Keys.ID);
 
     UserService userService = UserServiceFactory.getUserService();
     String email = "";
@@ -124,7 +101,6 @@ public class FileUploadServlet extends HttpServlet {
       email = userService.getCurrentUser().getEmail();
     }
 
-    // TO-DO after merging: move validation to common place
     if (Strings.isNullOrEmpty(episodeTitle)) {
       throw new IllegalArgumentException("No episode title inputted, please try again.");
     } else if (Strings.isNullOrEmpty(episodeDescription)) {
@@ -146,43 +122,42 @@ public class FileUploadServlet extends HttpServlet {
       desiredFeedEntity = datastore.get(entityKey);
     } catch (IllegalArgumentException e) {
       // If entityId cannot be converted into a key
-      writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
+      Helper.writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
       return;
     } catch (EntityNotFoundException e) {
       // No matching entity in Datastore
-      writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
+      Helper.writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
       return;
     }
     String mp3Link = makeMp3Link(id);
 
     // Create embedded entity to store MP3 data in desired entity as a property
     EmbeddedEntity mp3 = new EmbeddedEntity();
-    mp3.setProperty(ID, id);
-    mp3.setProperty(MP3_LINK, mp3Link);
-    mp3.setProperty(EMAIL, email);
-    desiredFeedEntity.setProperty(MP3, mp3);
+    mp3.setProperty(Keys.ID, id);
+    mp3.setProperty(Keys.MP3_LINK, mp3Link);
+    mp3.setProperty(Keys.USER_EMAIL, email);
+    desiredFeedEntity.setProperty(Keys.MP3, mp3);
 
-    String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+    String xmlString = (String) desiredFeedEntity.getProperty(Keys.XML_STRING);
 
     // Modify the xml string
     RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
-    Channel channel = rssFeed.getChannel();
       
-    String entityEmail = (String) desiredFeedEntity.getProperty(EMAIL);
+    String entityEmail = (String) desiredFeedEntity.getProperty(Keys.USER_EMAIL);
 
     // Verify that user is modifying a feed they created
     if (entityEmail.equals(email)) {
-      channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
+      rssFeed.getChannel().addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
     } else {
       throw new IOException("You are trying to edit a feed that's not yours!");
     }
 
     String modifiedXmlString = RSS.toXmlString(rssFeed);
-    desiredFeedEntity.setProperty(XML_STRING, modifiedXmlString);
+    desiredFeedEntity.setProperty(Keys.XML_STRING, modifiedXmlString);
     datastore.put(desiredFeedEntity);
 
     // Write the file upload form
-    String formHtml = generateSignedPostPolicyV4(PROJECT_ID, BUCKET_NAME, id);
+    String formHtml = generateSignedPostPolicyV4(Keys.PROJECT_ID, Keys.BUCKET_NAME, id);
     res.setContentType("text/html");
     res.getWriter().println(formHtml);
   }
@@ -213,7 +188,7 @@ public class FileUploadServlet extends HttpServlet {
 
       storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
 
-      myRedirectUrl = BASE_URL + "/my-feeds";
+      myRedirectUrl = MP3_BASE_URL + "#/my-feeds";
       fields =
           PostPolicyV4.PostFieldsV4.newBuilder().setSuccessActionRedirect(myRedirectUrl).build();
 
@@ -246,10 +221,10 @@ public class FileUploadServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
     String actionString = req.getParameter(ACTION);
-    String id = req.getParameter(ID);
+    String id = req.getParameter(Keys.ID);
 
     if (actionString == null || id == null) {
-      writeResponse(res, "Please specify action and/or id.", HttpServletResponse.SC_BAD_REQUEST);
+      Helper.writeResponse(res, "Please specify action and/or id.", HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
@@ -257,7 +232,7 @@ public class FileUploadServlet extends HttpServlet {
     try {
       action = Action.valueOf(actionString);
     } catch (IllegalArgumentException e) {
-      writeResponse(res, "Illegal argument for action.", HttpServletResponse.SC_BAD_REQUEST);
+      Helper.writeResponse(res, "Illegal argument for action.", HttpServletResponse.SC_BAD_REQUEST);
       return;
     }
 
@@ -277,19 +252,19 @@ public class FileUploadServlet extends HttpServlet {
           desiredFeedEntity = datastore.get(entityKey);
         } catch (IllegalArgumentException e) {
           // If entityId cannot be converted into a key
-          writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
+          Helper.writeResponse(res, "Sorry, this is not a valid id.", HttpServletResponse.SC_BAD_REQUEST);
           return;
         } catch (EntityNotFoundException e) {
           // No matching entity in Datastore
-          writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
+          Helper.writeResponse(res, "Your entity could not be found.", HttpServletResponse.SC_NOT_FOUND);
           return;
         }
-        String xmlString = desiredFeedEntity.getProperty(XML_STRING).toString();
+        String xmlString = desiredFeedEntity.getProperty(Keys.XML_STRING).toString();
         res.setContentType("text/xml");
         res.getWriter().println(xmlString);
         break;
       default: 
-        writeResponse(res, "Sorry, this is not a valid action.", HttpServletResponse.SC_BAD_REQUEST);
+        Helper.writeResponse(res, "Sorry, this is not a valid action.", HttpServletResponse.SC_BAD_REQUEST);
     }
   }
 }

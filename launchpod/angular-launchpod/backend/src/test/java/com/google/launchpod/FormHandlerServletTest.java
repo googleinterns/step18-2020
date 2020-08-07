@@ -28,6 +28,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.google.launchpod.servlets.FormHandlerServlet;
+import com.google.launchpod.data.Keys;
+import com.google.launchpod.data.TestKeys;
 import com.google.launchpod.data.UserFeed;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.LoginStatus;
@@ -86,39 +88,12 @@ public class FormHandlerServletTest extends Mockito {
   @Rule // JUnit 4 uses Rules for testing specific messages
   public ExpectedException thrown = ExpectedException.none();
 
-  // keys
-  private static final String USER_FEED = "UserFeed";
-  private static final String PODCAST_TITLE = "title";
-  private static final String XML_STRING = "xmlString";
-  private static final String TIMESTAMP = "timestamp";
-  private static final String NAME = "name";
-  private static final String EMAIL = "email";
-  private static final String ID = "id";
-  private static final String CATEGORY = "category";
-  private static final String DESCRIPTION = "description";
-  private static final String LANGUAGE = "language";
-
-  private static final String TEST_PODCAST_TITLE = "TEST_PODCAST_TITLE";
-  private static final String TEST_LANGUAGE = "en";
-  private static final String TEST_DESCRIPTION = "TEST_DESCRIPTION";
-  private static final long TEST_TIMESTAMP = System.currentTimeMillis();
-  private static final String TEST_ID = "123456";
-  private static final String TEST_ID_TWO = "789012";
-  private static final String TEST_PUBDATE = "2020/06/26 01:32:06";
-  private static final String TEST_NAME = "John Doe";
-  private static final String TEST_EMAIL = "123@abc.com";
-  private static final String TEST_INCORRECT_EMAIL = "123@cde.com";
-  private static final String TEST_EMAIL_TWO = "456@abc.com";
-  private static final String TEST_CATEGORY = "Technology";
-  private static final String EMPTY_STRING = "";
-  private static final String TEST_XML_STRING = "test";
-  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  private static final RSS TEST_RSS_FEED = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+  private static final RSS TEST_RSS_FEED = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
   private static final Gson GSON = new Gson();
   JsonParser parser = new JsonParser();
 
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig())
-  .setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+  .setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
 
   @Before
   public void setUp() {
@@ -135,14 +110,14 @@ public class FormHandlerServletTest extends Mockito {
    * Creates a test user feed entity.
    */
   private Entity makeEntity(String name, String email, String title, String description, String category, String language, String xmlString) {
-    Entity userFeedEntity = new Entity(USER_FEED);
-    userFeedEntity.setProperty(NAME, name);
-    userFeedEntity.setProperty(EMAIL, email);
-    userFeedEntity.setProperty(PODCAST_TITLE, title);
-    userFeedEntity.setProperty(DESCRIPTION, description);
-    userFeedEntity.setProperty(CATEGORY, category);
-    userFeedEntity.setProperty(LANGUAGE, language);
-    userFeedEntity.setProperty(XML_STRING, xmlString);
+    Entity userFeedEntity = new Entity(Keys.USER_FEED);
+    userFeedEntity.setProperty(Keys.USER_NAME, name);
+    userFeedEntity.setProperty(Keys.USER_EMAIL, email);
+    userFeedEntity.setProperty(Keys.TITLE, title);
+    userFeedEntity.setProperty(Keys.DESCRIPTION, description);
+    userFeedEntity.setProperty(Keys.CATEGORY, category);
+    userFeedEntity.setProperty(Keys.LANGUAGE, language);
+    userFeedEntity.setProperty(Keys.XML_STRING, xmlString);
     return userFeedEntity;
   }
 
@@ -155,11 +130,11 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
-    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
-    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
+    when(request.getParameter(Keys.TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.USER_NAME)).thenReturn(TestKeys.TEST_NAME);
+    when(request.getParameter(Keys.CATEGORY)).thenReturn(TestKeys.TEST_CATEGORY);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -167,15 +142,15 @@ public class FormHandlerServletTest extends Mockito {
 
     servlet.doPost(request, response);
 
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+    assertEquals(1, ds.prepare(new Query(Keys.USER_FEED)).countEntities(withLimit(10)));
 
-    Query query = new Query(USER_FEED);
+    Query query = new Query(Keys.USER_FEED);
     PreparedQuery preparedQuery = ds.prepare(query);
     Entity desiredEntity = preparedQuery.asSingleEntity();
 
     String expectedXmlString = RSS.toXmlString(TEST_RSS_FEED);
 
-    assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
+    assertEquals(expectedXmlString, desiredEntity.getProperty(Keys.XML_STRING).toString());
   }
 
   /**
@@ -189,11 +164,11 @@ public class FormHandlerServletTest extends Mockito {
     UserService userService = UserServiceFactory.getUserService();
     String email = userService.getCurrentUser().getEmail();
 
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
-    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.USER_NAME)).thenReturn(TestKeys.TEST_NAME);
+    when(request.getParameter(Keys.CATEGORY)).thenReturn(TestKeys.TEST_CATEGORY);
+    when(request.getParameter(Keys.LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -201,7 +176,7 @@ public class FormHandlerServletTest extends Mockito {
 
     servlet.doPost(request, response);
 
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+    assertEquals(1, ds.prepare(new Query(Keys.USER_FEED)).countEntities(withLimit(10)));
 
     Query query =
         new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, email)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
@@ -223,7 +198,7 @@ public class FormHandlerServletTest extends Mockito {
       Key key = entity.getKey();
       
       String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
-      String rssLink = BASE_URL + urlID;
+      String rssLink = Keys.BASE_URL + urlID;
 
       userFeeds.add(new UserFeed(userFeedTitle, userFeedName, rssLink, userFeedDescription, userFeedEmail, postTime, urlID, userFeedLanguage));
     }
@@ -241,17 +216,17 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    when(request.getParameter(PODCAST_TITLE)).thenReturn("");
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
-    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.TITLE)).thenReturn(Keys.EMPTY_STRING);
+    when(request.getParameter(Keys.DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.USER_NAME)).thenReturn(TestKeys.TEST_NAME);
+    when(request.getParameter(Keys.CATEGORY)).thenReturn(TestKeys.TEST_CATEGORY);
+    when(request.getParameter(Keys.LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Title inputted, please try again.");
     servlet.doPost(request, response);
 
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+    assertEquals(1, ds.prepare(new Query(Keys.USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
@@ -263,17 +238,17 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(null);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
-    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.TITLE)).thenReturn(null);
+    when(request.getParameter(Keys.DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.USER_NAME)).thenReturn(TestKeys.TEST_NAME);
+    when(request.getParameter(Keys.CATEGORY)).thenReturn(TestKeys.TEST_CATEGORY);
+    when(request.getParameter(Keys.LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Title inputted, please try again.");
     servlet.doPost(request, response);
 
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+    assertEquals(1, ds.prepare(new Query(Keys.USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
@@ -285,17 +260,17 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
-    when(request.getParameter(CATEGORY)).thenReturn("");
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.USER_NAME)).thenReturn(TestKeys.TEST_NAME);
+    when(request.getParameter(Keys.CATEGORY)).thenReturn(Keys.EMPTY_STRING);
+    when(request.getParameter(Keys.LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Category inputted, please try again.");
     servlet.doPost(request, response);
 
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+    assertEquals(1, ds.prepare(new Query(Keys.USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
@@ -307,17 +282,17 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(NAME)).thenReturn(TEST_NAME);
-    when(request.getParameter(CATEGORY)).thenReturn(null);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.USER_NAME)).thenReturn(TestKeys.TEST_NAME);
+    when(request.getParameter(Keys.CATEGORY)).thenReturn(null);
+    when(request.getParameter(Keys.LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Category inputted, please try again.");
     servlet.doPost(request, response);
 
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+    assertEquals(1, ds.prepare(new Query(Keys.USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
@@ -329,17 +304,17 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(NAME)).thenReturn("");
-    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.USER_NAME)).thenReturn(Keys.EMPTY_STRING);
+    when(request.getParameter(Keys.CATEGORY)).thenReturn(TestKeys.TEST_CATEGORY);
+    when(request.getParameter(Keys.LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Name inputted, please try again.");
     servlet.doPost(request, response);
 
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+    assertEquals(1, ds.prepare(new Query(Keys.USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
@@ -351,17 +326,17 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    when(request.getParameter(PODCAST_TITLE)).thenReturn(TEST_PODCAST_TITLE);
-    when(request.getParameter(DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(NAME)).thenReturn(null);
-    when(request.getParameter(CATEGORY)).thenReturn(TEST_CATEGORY);
-    when(request.getParameter(LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.USER_NAME)).thenReturn(null);
+    when(request.getParameter(Keys.CATEGORY)).thenReturn(TestKeys.TEST_CATEGORY);
+    when(request.getParameter(Keys.LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No Name inputted, please try again.");
     servlet.doPost(request, response);
 
-    assertEquals(1, ds.prepare(new Query(USER_FEED)).countEntities(withLimit(10)));
+    assertEquals(1, ds.prepare(new Query(Keys.USER_FEED)).countEntities(withLimit(10)));
   }
 
   /**
@@ -373,14 +348,14 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE, testXmlString);
     ds.put(entity);
 
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(ID)).thenReturn(id);
+    when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -402,18 +377,18 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
 
-    Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE, testXmlString);
-    Entity entityTwo = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE, testXmlString);
+    Entity entityTwo = makeEntity(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE, testXmlString);
     ds.put(entity);
     ds.put(entityTwo);
 
     String id = KeyFactory.keyToString(entity.getKey());
     String idTwo = KeyFactory.keyToString(entityTwo.getKey());
 
-    when(request.getParameter(ID)).thenReturn(id);
+    when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -435,12 +410,12 @@ public class FormHandlerServletTest extends Mockito {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
-    Entity entity = makeEntity(TEST_NAME, TEST_EMAIL, TEST_PODCAST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE, TEST_XML_STRING);
+    Entity entity = makeEntity(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE, TestKeys.TEST_XML_STRING);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
     ds.delete(entity.getKey());
 
-    when(request.getParameter(ID)).thenReturn(id);
+    when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
