@@ -64,7 +64,7 @@ public class LoginServlet extends HttpServlet {
 
       ArrayList<UserFeed> userFeeds = new ArrayList<UserFeed>();
       for (Entity entity : results.asIterable()) {
-        if (userEmail.equals(entity.getProperty(FormHandlerServlet.USER_EMAIL).toString())) {
+        if (userEmail.equals(entity.getProperty(Keys.USER_EMAIL).toString())) {
           String userFeedEmail = String.valueOf(entity.getProperty(LoginStatus.EMAIL_KEY));
           String title = (String) entity.getProperty(LoginStatus.TITLE_KEY);
           String name = (String) entity.getProperty(LoginStatus.NAME_KEY);

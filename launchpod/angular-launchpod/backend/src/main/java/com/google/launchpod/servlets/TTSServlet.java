@@ -121,9 +121,9 @@ public class TTSServlet extends HttpServlet {
             res.sendError(HttpServletResponse.SC_CONFLICT, "unable to create mp3 from request. Please try again.");
             return;
         }
-        Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
+        Storage storage = StorageOptions.newBuilder().setProjectId(Keys.PROJECT_ID).build().getService();
         String itemCount = String.valueOf(rssFeed.getChannel().getItems().size());
-        BlobId blobId = BlobId.of(BUCKET_NAME, feedKey + itemCount);
+        BlobId blobId = BlobId.of(Keys.BUCKET_NAME, feedKey + itemCount);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
 
         // create an uploadble array of bytes for blobstore
@@ -166,8 +166,8 @@ public class TTSServlet extends HttpServlet {
         }
 
         // Search for id in cloud storage from parameter ID
-        Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-        Blob desiredFeedBlob = storage.get(BUCKET_NAME, id);
+        Storage storage = StorageOptions.newBuilder().setProjectId(Keys.PROJECT_ID).build().getService();
+        Blob desiredFeedBlob = storage.get(Keys.BUCKET_NAME, id);
         byte[] blobBytes = desiredFeedBlob.getContent(BlobSourceOption.generationMatch());
 
         // Write bytes to servlet output stream

@@ -20,6 +20,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.launchpod.servlets.FileUploadServlet;
 import com.google.launchpod.data.Keys;
+import com.google.launchpod.data.TestKeys;
+import com.google.launchpod.data.Helper;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.Channel;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -69,24 +71,6 @@ public class FileUploadServletTest extends Mockito {
   public ExpectedException thrown = ExpectedException.none();
 
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
-
-  // Keys
-  private static final String ACTION = "action";
-  private static final String TEST_LANGUAGE= "en";
-  private static final String TEST_CATEGORY = "Business";
-  private static final String TEST_MP3_LINK = "http://www.gstatic.com/podcasts/test-podcast/audio/test-episode-4.mp3";
-  private static final long TEST_TIMESTAMP = System.currentTimeMillis();
-  private static final String TEST_ID = "123456";
-  private static final String TEST_ID_TWO = "789012";
-  private static final String TEST_PUBDATE = "2020/06/26 01:32:06";
-  private static final String TEST_EMAIL = "123@google.com";
-  private static final String TEST_INCORRECT_EMAIL = "123@cde.com";
-  private static final String TEST_EMAIL_TWO = "456@abc.com";
-  private static final String TEST_XML_STRING = "test";
-  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
-  private static final String GENERATE_XML = "GENERATE_XML";
-  private static final String GENERATE_RSS_LINK = "GENERATE_RSS_LINK";
-  private static final String OTHER_ACTION = "OTHER_ACTION";
   private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS");
 
   @Before
@@ -136,19 +120,9 @@ public class FileUploadServletTest extends Mockito {
   private static EmbeddedEntity makeEmbeddedEntity(String entityId, String email) {
     EmbeddedEntity mp3 = new EmbeddedEntity();
     mp3.setProperty(Keys.ID, entityId);
-    mp3.setProperty(Keys.MP3_LINK, makeMp3Link(entityId));
+    mp3.setProperty(Keys.MP3_LINK, Helper.makeMp3Link(entityId));
     mp3.setProperty(Keys.USER_EMAIL, email);
     return mp3;
-  }
-
-  /**
-  * Given and RSS feed and episode details, adds that episode to the RSS Feed and returns the XML of that modified feed.
-  */
-  private static String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription, String episodeLanguage, String email, String mp3Link) throws JsonProcessingException {
-    Channel channel = rssFeed.getChannel();
-    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
-    String modifiedXmlString = RSS.toXmlString(rssFeed);
-    return modifiedXmlString;
   }
 
   /**
@@ -156,20 +130,12 @@ public class FileUploadServletTest extends Mockito {
   */
   private static Entity setUpEntityinDatastore() throws JsonProcessingException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
 
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, testXmlString);
     ds.put(entity);
     return entity;
-  }
-
-  /**
-   * Creates a test MP3 link.
-   */
-  private static String makeMp3Link(String entityId) {
-    String link = "https://storage.googleapis.com/" + Keys.BUCKET_NAME + "/" + entityId;
-    return link;
   }
 
   /**
@@ -179,17 +145,17 @@ public class FileUploadServletTest extends Mockito {
    */
   @Test
   public void doPost_StoresCorrectFormInput_CorrectlyModifiesXmlString() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, testXmlString);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
@@ -203,7 +169,7 @@ public class FileUploadServletTest extends Mockito {
     Entity desiredEntity = preparedQuery.asSingleEntity();
 
     // Verify xml string modification
-    String expectedXmlString = createModifiedXml(rss, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, makeMp3Link(id));
+    String expectedXmlString = Helper.createModifiedXml(rss, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, Helper.makeMp3Link(id));
     assertEquals(expectedXmlString, desiredEntity.getProperty(Keys.XML_STRING).toString());
   }
 
@@ -213,17 +179,17 @@ public class FileUploadServletTest extends Mockito {
    */
   @Test
   public void doPost_StoresCorrectFormInput_StoresCorrectMp3Info() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, testXmlString);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
@@ -237,7 +203,7 @@ public class FileUploadServletTest extends Mockito {
     Entity desiredEntity = preparedQuery.asSingleEntity();
 
     // Verify embedded entity
-    EmbeddedEntity testEmbeddedEntity = makeEmbeddedEntity(id, TEST_EMAIL);
+    EmbeddedEntity testEmbeddedEntity = makeEmbeddedEntity(id, TestKeys.TEST_EMAIL);
     assertEquals(testEmbeddedEntity, desiredEntity.getProperty(Keys.MP3));
   }
 
@@ -246,18 +212,18 @@ public class FileUploadServletTest extends Mockito {
   */
   @Test
   public void doPost_CorrectlyVerifiesUser() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL_TWO).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL_TWO).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL_TWO, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL_TWO, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, testXmlString);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     assertEquals(1, ds.prepare(new Query(Keys.USER_FEED)).countEntities(withLimit(10)));
@@ -271,17 +237,17 @@ public class FileUploadServletTest extends Mockito {
    */
   @Test
   public void doPost_ReturnsHtmlForm() throws IOException, Exception {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, testXmlString);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
@@ -308,13 +274,13 @@ public class FileUploadServletTest extends Mockito {
    */
   @Test
   public void doPost_FormInputEmptyEpisodeTitle_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
     when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.EMPTY_STRING);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -328,13 +294,13 @@ public class FileUploadServletTest extends Mockito {
    */
   @Test
   public void doPost_FormInputNullTitle_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
     when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(null);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -348,13 +314,13 @@ public class FileUploadServletTest extends Mockito {
   */
   @Test
   public void doPost_FormInputEmptyEpisodeDescription_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
     when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.EMPTY_STRING);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -368,13 +334,13 @@ public class FileUploadServletTest extends Mockito {
   */
   @Test
   public void doPost_FormInputNullEpisodeDescription_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
     
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
     when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(null);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -388,12 +354,12 @@ public class FileUploadServletTest extends Mockito {
   */
   @Test
   public void doPost_FormInputEmptyLanguage_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
     when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.EMPTY_STRING);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
@@ -408,12 +374,12 @@ public class FileUploadServletTest extends Mockito {
   */
   @Test
   public void doPost_FormInputNullLanguage_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
     when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(null);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
@@ -427,12 +393,12 @@ public class FileUploadServletTest extends Mockito {
   */
   @Test
   public void doPost_EmptyId_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(Keys.EMPTY_STRING);
 
     StringWriter stringWriter = new StringWriter();
@@ -449,11 +415,11 @@ public class FileUploadServletTest extends Mockito {
   */
   @Test
   public void doPost_NullId_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(null);
 
     StringWriter stringWriter = new StringWriter();
@@ -473,9 +439,9 @@ public class FileUploadServletTest extends Mockito {
   public void doPost_FormInputEmptyEmail_ThrowsErrorMessage() throws IOException {
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);  
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);  
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -491,9 +457,9 @@ public class FileUploadServletTest extends Mockito {
   public void doPost_FormInputNullEmail_ThrowsErrorMessage() throws IOException {
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id); 
 
     thrown.expect(IllegalArgumentException.class);
@@ -509,13 +475,13 @@ public class FileUploadServletTest extends Mockito {
   public void doGet_ReturnsRSSLink() throws IOException {
 
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, TestKeys.TEST_XML_STRING);
     ds.put(entity);
 
-    String action = GENERATE_RSS_LINK;
+    String action = Keys.GENERATE_RSS_LINK;
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(ACTION)).thenReturn(action);
+    when(request.getParameter(Keys.ACTION)).thenReturn(action);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     String testRSSLink = "https://launchpod-step18-2020.appspot.com/rss-feed?action=generateXml&id=" + id;
@@ -538,24 +504,24 @@ public class FileUploadServletTest extends Mockito {
   @Test
   public void doGet_SingleEntity_ReturnsCorrectXmlString() throws IOException, EntityNotFoundException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, testXmlString);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
 
     Entity desiredEntity = ds.get(entity.getKey());
-    EmbeddedEntity mp3 = makeEmbeddedEntity(id, TEST_EMAIL);
+    EmbeddedEntity mp3 = makeEmbeddedEntity(id, TestKeys.TEST_EMAIL);
     desiredEntity.setProperty(Keys.MP3, mp3);
     ds.put(desiredEntity);
 
-    when(request.getParameter(ACTION)).thenReturn(GENERATE_XML);
-    when(request.getParameter(Keys.)).thenReturn(id);
+    when(request.getParameter(Keys.ACTION)).thenReturn(Keys.GENERATE_XML);
+    when(request.getParameter(Keys.ID)).thenReturn(id);
     
-    assertEquals(Keys.TEST_TITLE, desiredEntity.getProperty(Keys.PODCAST_TITLE).toString());
-    assertEquals(Keys.TEST_DESCRIPTION, desiredEntity.getProperty(Keys.DESCRIPTION).toString());
-    assertEquals(TEST_LANGUAGE, desiredEntity.getProperty(Keys.LANGUAGE).toString());
-    assertEquals(TEST_EMAIL, desiredEntity.getProperty(Keys.USER_EMAIL).toString());
+    assertEquals(TestKeys.TEST_TITLE, desiredEntity.getProperty(Keys.PODCAST_TITLE).toString());
+    assertEquals(TestKeys.TEST_DESCRIPTION, desiredEntity.getProperty(Keys.DESCRIPTION).toString());
+    assertEquals(TestKeys.TEST_LANGUAGE, desiredEntity.getProperty(Keys.LANGUAGE).toString());
+    assertEquals(TestKeys.TEST_EMAIL, desiredEntity.getProperty(Keys.USER_EMAIL).toString());
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -575,26 +541,26 @@ public class FileUploadServletTest extends Mockito {
   @Test
   public void doGet_MultipleEntities_ReturnsCorrectXmlString() throws IOException, EntityNotFoundException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, testXmlString);
-    Entity entityTwo = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL_TWO, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, testXmlString);
+    Entity entityTwo = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL_TWO, testXmlString);
     ds.put(entity);
     ds.put(entityTwo);
     String id = KeyFactory.keyToString(entity.getKey());
 
-    EmbeddedEntity mp3 = makeEmbeddedEntity(id, TEST_EMAIL);
+    EmbeddedEntity mp3 = makeEmbeddedEntity(id, TestKeys.TEST_EMAIL);
     Entity desiredEntity = ds.get(entity.getKey());
     desiredEntity.setProperty(Keys.MP3, mp3);
     ds.put(desiredEntity);
 
-    when(request.getParameter(ACTION)).thenReturn(GENERATE_XML);
+    when(request.getParameter(Keys.ACTION)).thenReturn(Keys.GENERATE_XML);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
-    assertEquals(Keys.TEST_TITLE, desiredEntity.getProperty(Keys.PODCAST_TITLE).toString());
-    assertEquals(Keys.TEST_DESCRIPTION, desiredEntity.getProperty(Keys.DESCRIPTION).toString());
-    assertEquals(TEST_LANGUAGE, desiredEntity.getProperty(Keys.LANGUAGE).toString());
-    assertEquals(TEST_EMAIL, desiredEntity.getProperty(Keys.USER_EMAIL).toString());
+    assertEquals(TestKeys.TEST_TITLE, desiredEntity.getProperty(Keys.PODCAST_TITLE).toString());
+    assertEquals(TestKeys.TEST_DESCRIPTION, desiredEntity.getProperty(Keys.DESCRIPTION).toString());
+    assertEquals(TestKeys.TEST_LANGUAGE, desiredEntity.getProperty(Keys.LANGUAGE).toString());
+    assertEquals(TestKeys.TEST_EMAIL, desiredEntity.getProperty(Keys.USER_EMAIL).toString());
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);
@@ -614,12 +580,12 @@ public class FileUploadServletTest extends Mockito {
   @Test
   public void doGet_EntityNotFound_SendsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, TestKeys.TEST_XML_STRING);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
     ds.delete(entity.getKey());
 
-    when(request.getParameter(ACTION)).thenReturn(GENERATE_XML);
+    when(request.getParameter(Keys.ACTION)).thenReturn(Keys.GENERATE_XML);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
@@ -641,11 +607,11 @@ public class FileUploadServletTest extends Mockito {
   @Test
   public void doGet_InvalidId_SendsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, TestKeys.TEST_XML_STRING);
     ds.put(entity);
     String id = "1234"; // incorrect id
 
-    when(request.getParameter(ACTION)).thenReturn(GENERATE_XML);
+    when(request.getParameter(Keys.ACTION)).thenReturn(Keys.GENERATE_XML);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
@@ -667,11 +633,11 @@ public class FileUploadServletTest extends Mockito {
   @Test
   public void doGet_NonexistentAction_SendsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, TestKeys.TEST_XML_STRING);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(ACTION)).thenReturn("generateFake");
+    when(request.getParameter(Keys.ACTION)).thenReturn("generateFake");
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
@@ -693,11 +659,11 @@ public class FileUploadServletTest extends Mockito {
   @Test
   public void doGet_OtherAction_SendsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    Entity entity = makeEntity(Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, TEST_XML_STRING);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, TestKeys.TEST_XML_STRING);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(ACTION)).thenReturn("otherAction");
+    when(request.getParameter(Keys.ACTION)).thenReturn("otherAction");
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
@@ -718,7 +684,7 @@ public class FileUploadServletTest extends Mockito {
   @Test
   public void doGet_NullAction_SendsErrorMessage() throws IOException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    when(request.getParameter(ACTION)).thenReturn(null);
+    when(request.getParameter(Keys.ACTION)).thenReturn(null);
 
     StringWriter stringWriter = new StringWriter();
     PrintWriter writer = new PrintWriter(stringWriter);

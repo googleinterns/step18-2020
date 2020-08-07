@@ -42,6 +42,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import com.google.gson.JsonParser;
+import com.google.launchpod.data.Keys;
+import com.google.launchpod.data.TestKeys;
 import com.google.launchpod.data.LoginStatus;
 import com.google.launchpod.data.UserFeed;
 import javax.servlet.http.HttpServlet;
@@ -84,15 +86,8 @@ public class LoginServletTest extends Mockito {
   public ExpectedException thrown = ExpectedException.none();
 
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
-
   private static final Gson GSON = new Gson();
   JsonParser parser = new JsonParser();
-
-  private static final String EMAIL = "email";
-
-  private static final String TEST_EMAIL = "123@google.com";
-
-  private static final String BASE_URL = "https://launchpod-step18-2020.appspot.com/rss-feed?id=";
 
   @Before
   public void setUp() {
@@ -110,7 +105,7 @@ public class LoginServletTest extends Mockito {
    */
   @Test
   public void doGet_GetsCorrectStatusLoggedIn() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
@@ -130,7 +125,7 @@ public class LoginServletTest extends Mockito {
    */
   @Test
   public void doGet_GetsCorrectMessageLoggedIn() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
@@ -142,7 +137,7 @@ public class LoginServletTest extends Mockito {
 
     String urlToRedirectToAfterUserLogsOut = "/index.html";
     String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
-    String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
+    String loginMessage = "<p>Logged in as " + TestKeys.TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
     verify(response).setContentType("application/json");
     assertEquals(loginMessage, GSON.fromJson(stringWriter.toString(), LoginStatus.class).message);
   }
@@ -153,7 +148,7 @@ public class LoginServletTest extends Mockito {
    */
   @Test
   public void doGet_GetsCorrectFeedsLoggedIn() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     UserService userService = UserServiceFactory.getUserService();
 
@@ -165,10 +160,10 @@ public class LoginServletTest extends Mockito {
 
     String urlToRedirectToAfterUserLogsOut = "/index.html";
     String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
-    String loginMessage = "<p>Logged in as " + TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
+    String loginMessage = "<p>Logged in as " + TestKeys.TEST_EMAIL + ". <a href=\"" + logoutUrl + "\">Logout</a>.</p>";
 
     Query query =
-        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, TEST_EMAIL)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
+        new Query(LoginStatus.USER_FEED_KEY).setFilter(new FilterPredicate("email", FilterOperator.EQUAL, TestKeys.TEST_EMAIL)).addSort(LoginStatus.TIMESTAMP_KEY, SortDirection.DESCENDING);
 
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
@@ -188,7 +183,7 @@ public class LoginServletTest extends Mockito {
       Key key = entity.getKey();
       
       String urlID = KeyFactory.keyToString(entity.getKey()); // the key string associated with the entity, not the numeric ID.
-      String rssLink = BASE_URL + urlID;
+      String rssLink = Keys.BASE_URL + urlID;
 
       userFeeds.add(new UserFeed(title, name, rssLink, description, email, postTime, urlID, language));
     }

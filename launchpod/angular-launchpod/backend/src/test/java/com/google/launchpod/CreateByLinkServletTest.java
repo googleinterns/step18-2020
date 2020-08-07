@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.launchpod.servlets.CreateByLinkServlet;
 import com.google.launchpod.data.Keys;
+import com.google.launchpod.data.TestKeys;
+import com.google.launchpod.data.Helper;
 import com.google.launchpod.data.UserFeed;
 import com.google.launchpod.data.RSS;
 import com.google.launchpod.data.Channel;
@@ -81,13 +83,6 @@ public class CreateByLinkServletTest extends Mockito {
   public ExpectedException thrown = ExpectedException.none();
 
   private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
-
-  // keys
-  private static final String TEST_MP3_LINK = "http://www.gstatic.com/podcasts/test-podcast/audio/test-episode-4.mp3";
-  private static final long TEST_TIMESTAMP = System.currentTimeMillis();
-  private static final String TEST_ID = "123456";
-  private static final String TEST_ID_TWO = "789012";
-  private static final String TEST_EMAIL_TWO = "456@abc.com";
   private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS");
 
   @Before
@@ -108,10 +103,10 @@ public class CreateByLinkServletTest extends Mockito {
   */
   private static Entity setUpEntityinDatastore() throws JsonProcessingException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(Keys.TEST_NAME, Keys.TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, Keys.TEST_CATEGORY, Keys.TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
 
-    Entity entity = makeEntity(Keys.TEST_TITLE, TEST_MP3_LINK, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_MP3_LINK, testXmlString);
     ds.put(entity);
     return entity;
   }
@@ -124,7 +119,7 @@ public class CreateByLinkServletTest extends Mockito {
     userFeedEntity.setProperty(Keys.PODCAST_TITLE, title);
     userFeedEntity.setProperty(Keys.MP3_LINK, mp3Link);
     userFeedEntity.setProperty(Keys.XML_STRING, xmlString);
-    userFeedEntity.setProperty(Keys.USER_EMAIL, Keys.TEST_EMAIL);
+    userFeedEntity.setProperty(Keys.USER_EMAIL, TestKeys.TEST_EMAIL);
     return userFeedEntity;
   }
 
@@ -134,18 +129,18 @@ public class CreateByLinkServletTest extends Mockito {
    */
   @Test
   public void doPost_CorrectlyModifiesXml() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(Keys.TEST_NAME, Keys.TEST_EMAIL, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, Keys.TEST_CATEGORY, Keys.TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(Keys.TEST_TITLE, TEST_MP3_LINK, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_MP3_LINK, testXmlString);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     StringWriter stringWriter = new StringWriter();
@@ -160,7 +155,7 @@ public class CreateByLinkServletTest extends Mockito {
     PreparedQuery preparedQuery = ds.prepare(query);
     Entity desiredEntity = preparedQuery.asSingleEntity();
 
-    String expectedXmlString = Helper.createModifiedXml(rss, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, Keys.TEST_LANGUAGE, Keys.TEST_EMAIL, TEST_MP3_LINK);
+    String expectedXmlString = Helper.createModifiedXml(rss, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_LANGUAGE, TestKeys.TEST_EMAIL, TestKeys.TEST_MP3_LINK);
 
     assertEquals(expectedXmlString, desiredEntity.getProperty(Keys.XML_STRING).toString());
   }
@@ -170,18 +165,18 @@ public class CreateByLinkServletTest extends Mockito {
   */
   @Test
   public void doPost_CorrectlyVerifiesUser() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL_TWO).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL_TWO).setEnvAuthDomain("localhost");
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-    RSS rss = new RSS(Keys.TEST_NAME, TEST_EMAIL_TWO, Keys.TEST_TITLE, Keys.TEST_DESCRIPTION, Keys.TEST_CATEGORY, Keys.TEST_LANGUAGE);
+    RSS rss = new RSS(TestKeys.TEST_NAME, TestKeys.TEST_EMAIL_TWO, TestKeys.TEST_TITLE, TestKeys.TEST_DESCRIPTION, TestKeys.TEST_CATEGORY, TestKeys.TEST_LANGUAGE);
     String testXmlString = RSS.toXmlString(rss);
-    Entity entity = makeEntity(Keys.TEST_TITLE, TEST_MP3_LINK, testXmlString);
+    Entity entity = makeEntity(TestKeys.TEST_TITLE, TestKeys.TEST_MP3_LINK, testXmlString);
     ds.put(entity);
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     assertEquals(1, ds.prepare(new Query(Keys.USER_FEED)).countEntities(withLimit(10)));
@@ -196,15 +191,15 @@ public class CreateByLinkServletTest extends Mockito {
    */
   @Test
   public void doPost_FormInputEmptyEpisodeTitle_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
     when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.EMPTY_STRING);
-    when(request.getParameter(MP3_LINK)).thenReturn(TEST_MP3_LINK);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
-    when(request.getParameter(ID)).thenReturn(id);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.ID)).thenReturn(id);
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("No episode title inputted, please try again.");
     servlet.doPost(request, response);
@@ -216,14 +211,14 @@ public class CreateByLinkServletTest extends Mockito {
    */
   @Test
   public void doPost_FormInputNullTitle_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
     when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(null);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -237,14 +232,14 @@ public class CreateByLinkServletTest extends Mockito {
   */
   @Test
   public void doPost_FormInputEmptyEpisodeDescription_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
     when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.EMPTY_STRING);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -258,14 +253,14 @@ public class CreateByLinkServletTest extends Mockito {
   */
   @Test
   public void doPost_FormInputNullEpisodeDescription_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
     
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
     when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(null);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -279,14 +274,14 @@ public class CreateByLinkServletTest extends Mockito {
    */
   @Test
   public void doPost_FormInputEmptyMp3Link_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
     when(request.getParameter(Keys.MP3_LINK)).thenReturn(Keys.EMPTY_STRING);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -300,14 +295,14 @@ public class CreateByLinkServletTest extends Mockito {
    */
   @Test
   public void doPost_FormInputNullMp3Link_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
     when(request.getParameter(Keys.MP3_LINK)).thenReturn(null);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -321,14 +316,14 @@ public class CreateByLinkServletTest extends Mockito {
   */
   @Test
   public void doPost_FormInputEmptyLanguage_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(EPISODE_LANGUAGE)).thenReturn(Keys.EMPTY_STRING);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.EMPTY_STRING);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -342,13 +337,13 @@ public class CreateByLinkServletTest extends Mockito {
   */
   @Test
   public void doPost_FormInputNullLanguage_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
     when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(null);
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
@@ -362,13 +357,13 @@ public class CreateByLinkServletTest extends Mockito {
   */
   @Test
   public void doPost_EmptyId_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
 
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(Keys.EMPTY_STRING);
 
     StringWriter stringWriter = new StringWriter();
@@ -385,12 +380,12 @@ public class CreateByLinkServletTest extends Mockito {
   */
   @Test
   public void doPost_NullId_ThrowsErrorMessage() throws IOException {
-    helper.setEnvIsLoggedIn(true).setEnvEmail(Keys.TEST_EMAIL).setEnvAuthDomain("localhost");
+    helper.setEnvIsLoggedIn(true).setEnvEmail(TestKeys.TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(null);
 
     StringWriter stringWriter = new StringWriter();
@@ -410,10 +405,10 @@ public class CreateByLinkServletTest extends Mockito {
   public void doPost_FormInputEmptyEmail_ThrowsErrorMessage() throws IOException {
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);  
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);  
     when(request.getParameter(Keys.ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -429,10 +424,10 @@ public class CreateByLinkServletTest extends Mockito {
   public void doPost_FormInputNullEmail_ThrowsErrorMessage() throws IOException {
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
-    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(Keys.TEST_TITLE);
-    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TEST_MP3_LINK);
-    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(Keys.TEST_DESCRIPTION);
-    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(Keys.TEST_LANGUAGE);
+    when(request.getParameter(Keys.EPISODE_TITLE)).thenReturn(TestKeys.TEST_TITLE);
+    when(request.getParameter(Keys.MP3_LINK)).thenReturn(TestKeys.TEST_MP3_LINK);
+    when(request.getParameter(Keys.EPISODE_DESCRIPTION)).thenReturn(TestKeys.TEST_DESCRIPTION);
+    when(request.getParameter(Keys.EPISODE_LANGUAGE)).thenReturn(TestKeys.TEST_LANGUAGE);
     when(request.getParameter(Keys.ID)).thenReturn(id); 
 
     thrown.expect(IllegalArgumentException.class);

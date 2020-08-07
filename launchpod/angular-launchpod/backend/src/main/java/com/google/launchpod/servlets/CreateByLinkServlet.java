@@ -82,7 +82,7 @@ public class CreateByLinkServlet extends HttpServlet {
     RSS rssFeed = XML_MAPPER.readValue(xmlString, RSS.class);
     Channel channel = rssFeed.getChannel();
 
-    String entityEmail = (String) desiredFeedEntity.getProperty(Keys.EMAIL);
+    String entityEmail = (String) desiredFeedEntity.getProperty(Keys.USER_EMAIL);
 
     // Verify that user is modifying a feed they created
     if (entityEmail.equals(email)) {
