@@ -36,11 +36,6 @@ public class Item {
   private String language;
 
   @JacksonXmlProperty
-  @JsonProperty("email")
-  @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  private String email;
-
-  @JacksonXmlProperty
   @JsonProperty("pubDate")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private String pubDate;
@@ -54,11 +49,10 @@ public class Item {
   public Item() {
   }
 
-  public Item(String podcastTitle, String podcastDescription, String language, String email, String mp3Link) {
+  public Item(String podcastTitle, String podcastDescription, String language, String mp3Link) {
     this.title = podcastTitle;
     this.description = podcastDescription;
     this.language = language;
-    this.email = email;
     this.link = mp3Link;
     this.pubDate = DATE_FORMATTER.format(DateTimeUtils.currentTimeMillis());
   }
@@ -85,5 +79,9 @@ public class Item {
 
   public String getLanguage(){
     return this.language;
+  }
+
+  public String getLink(){
+    return this.link;
   }
 }

@@ -4,41 +4,36 @@ import static com.google.appengine.api.datastore.FetchOptions.Builder.withLimit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.beans.Transient;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.security.interfaces.DSAKey;
-import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.launchpod.servlets.FileUploadServlet;
-import com.google.launchpod.data.RSS;
-import com.google.launchpod.data.Channel;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EmbeddedEntity;
-import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
-import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
-import com.google.cloud.storage.testing.RemoteStorageHelper;
+import com.google.appengine.tools.development.testing.LocalUserServiceTestConfig;
+import com.google.launchpod.data.Channel;
+import com.google.launchpod.data.RSS;
+import com.google.launchpod.servlets.FileUploadServlet;
 
-import org.junit.Assert;
+import org.joda.time.DateTimeUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.After;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
@@ -47,10 +42,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.joda.time.DateTimeUtils;
 
 /**
- * Runs unit tests for the FileUploadServlet that contains doPost() and doGet() methods.
+ * Runs unit tests for the FileUploadServlet that contains doPost() and doGet()
+ * methods.
  */
 @RunWith(JUnit4.class)
 public class FileUploadServletTest extends Mockito {
@@ -67,7 +62,8 @@ public class FileUploadServletTest extends Mockito {
   @Rule // JUnit 4 uses Rules for testing specific messages
   public ExpectedException thrown = ExpectedException.none();
 
-  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(), new LocalUserServiceTestConfig());
+  private final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(),
+      new LocalUserServiceTestConfig());
 
   // Keys
   private static final String USER_FEED = "UserFeed";
@@ -86,8 +82,8 @@ public class FileUploadServletTest extends Mockito {
   private static final String ACTION = "action";
 
   private static final String TEST_TITLE = "TEST_TITLE";
-  private static final String TEST_DESCRIPTION= "TEST_DESCRIPTION";
-  private static final String TEST_LANGUAGE= "en";
+  private static final String TEST_DESCRIPTION = "TEST_DESCRIPTION";
+  private static final String TEST_LANGUAGE = "en";
   private static final String TEST_NAME = "TEST_NAME";
   private static final String TEST_CATEGORY = "Business";
   private static final String TEST_MP3_LINK = "http://www.gstatic.com/podcasts/test-podcast/audio/test-episode-4.mp3";
@@ -126,9 +122,9 @@ public class FileUploadServletTest extends Mockito {
     GENERATE_RSS_LINK("generateRSSLink"), GENERATE_XML("generateXml");
 
     private String action;
- 
+
     Action(String action) {
-        this.action = action;
+      this.action = action;
     }
 
     @Override
@@ -162,18 +158,20 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Given and RSS feed and episode details, adds that episode to the RSS Feed and returns the XML of that modified feed.
-  */
-  private static String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription, String episodeLanguage, String email, String mp3Link) throws JsonProcessingException {
+   * Given and RSS feed and episode details, adds that episode to the RSS Feed and
+   * returns the XML of that modified feed.
+   */
+  private static String createModifiedXml(RSS rssFeed, String episodeTitle, String episodeDescription,
+      String episodeLanguage, String mp3Link) throws JsonProcessingException {
     Channel channel = rssFeed.getChannel();
-    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, email, mp3Link);
+    channel.addItem(episodeTitle, episodeDescription, episodeLanguage, mp3Link);
     String modifiedXmlString = RSS.toXmlString(rssFeed);
     return modifiedXmlString;
   }
 
   /**
-  * Creates an entity with an XML string in Datastore.
-  */
+   * Creates an entity with an XML string in Datastore.
+   */
   private static Entity setUpEntityinDatastore() throws JsonProcessingException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
     RSS rss = new RSS(TEST_NAME, TEST_EMAIL, TEST_TITLE, TEST_DESCRIPTION, TEST_CATEGORY, TEST_LANGUAGE);
@@ -193,9 +191,9 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() takes in form inputs from client, successfully
-   * stores that information in the Datastore entity associated with the id,
-   * and correctly modifies the entity's XML string.
+   * Asserts that doPost() takes in form inputs from client, successfully stores
+   * that information in the Datastore entity associated with the id, and
+   * correctly modifies the entity's XML string.
    */
   @Test
   public void doPost_StoresCorrectFormInput_CorrectlyModifiesXmlString() throws IOException {
@@ -223,7 +221,7 @@ public class FileUploadServletTest extends Mockito {
     Entity desiredEntity = preparedQuery.asSingleEntity();
 
     // Verify xml string modification
-    String expectedXmlString = createModifiedXml(rss, TEST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, TEST_EMAIL, makeMp3Link(id));
+    String expectedXmlString = createModifiedXml(rss, TEST_TITLE, TEST_DESCRIPTION, TEST_LANGUAGE, makeMp3Link(id));
     assertEquals(expectedXmlString, desiredEntity.getProperty(XML_STRING).toString());
   }
 
@@ -262,8 +260,9 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IOException when a user tries to modify another user's feed.
-  */
+   * Expects doPost() to throw an IOException when a user tries to modify another
+   * user's feed.
+   */
   @Test
   public void doPost_CorrectlyVerifiesUser() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL_TWO).setEnvAuthDomain("localhost");
@@ -287,7 +286,8 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doPost() takes in form inputs from client and returns an HTML form.
+   * Asserts that doPost() takes in form inputs from client and returns an HTML
+   * form.
    */
   @Test
   public void doPost_ReturnsHtmlForm() throws IOException, Exception {
@@ -323,8 +323,8 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the episode title field is
-   * empty.
+   * Expects doPost() to throw an IllegalArgumentException when the episode title
+   * field is empty.
    */
   @Test
   public void doPost_FormInputEmptyEpisodeTitle_ThrowsErrorMessage() throws IOException {
@@ -343,8 +343,8 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the episode title field is
-   * null.
+   * Expects doPost() to throw an IllegalArgumentException when the episode title
+   * field is null.
    */
   @Test
   public void doPost_FormInputNullTitle_ThrowsErrorMessage() throws IOException {
@@ -363,9 +363,9 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the episode description field is
-  * empty.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the episode
+   * description field is empty.
+   */
   @Test
   public void doPost_FormInputEmptyEpisodeDescription_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -383,15 +383,15 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the episode description field is
-  * null.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the episode
+   * description field is null.
+   */
   @Test
   public void doPost_FormInputNullEpisodeDescription_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
-    
+
     when(request.getParameter(EPISODE_TITLE)).thenReturn(TEST_TITLE);
     when(request.getParameter(EPISODE_DESCRIPTION)).thenReturn(null);
     when(request.getParameter(EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
@@ -403,9 +403,9 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the language field
-  * is empty.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the language field
+   * is empty.
+   */
   @Test
   public void doPost_FormInputEmptyLanguage_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -423,9 +423,9 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the language field
-  * is null.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the language field
+   * is null.
+   */
   @Test
   public void doPost_FormInputNullLanguage_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -443,8 +443,8 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the id is empty.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the id is empty.
+   */
   @Test
   public void doPost_EmptyId_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -465,8 +465,8 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the id is null.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the id is null.
+   */
   @Test
   public void doPost_NullId_ThrowsErrorMessage() throws IOException {
     helper.setEnvIsLoggedIn(true).setEnvEmail(TEST_EMAIL).setEnvAuthDomain("localhost");
@@ -486,16 +486,16 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Expects doPost() to throw an IllegalArgumentException when the email field
-  * is empty.
-  */
+   * Expects doPost() to throw an IllegalArgumentException when the email field is
+   * empty.
+   */
   @Test
   public void doPost_FormInputEmptyEmail_ThrowsErrorMessage() throws IOException {
     Entity entity = setUpEntityinDatastore();
     String id = KeyFactory.keyToString(entity.getKey());
     when(request.getParameter(EPISODE_TITLE)).thenReturn(TEST_TITLE);
     when(request.getParameter(EPISODE_DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
-    when(request.getParameter(EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);  
+    when(request.getParameter(EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
     when(request.getParameter(ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
@@ -504,8 +504,8 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-   * Expects doPost() to throw an IllegalArgumentException when the email field
-   * is null.
+   * Expects doPost() to throw an IllegalArgumentException when the email field is
+   * null.
    */
   @Test
   public void doPost_FormInputNullEmail_ThrowsErrorMessage() throws IOException {
@@ -514,7 +514,7 @@ public class FileUploadServletTest extends Mockito {
     when(request.getParameter(EPISODE_TITLE)).thenReturn(TEST_TITLE);
     when(request.getParameter(EPISODE_DESCRIPTION)).thenReturn(TEST_DESCRIPTION);
     when(request.getParameter(EPISODE_LANGUAGE)).thenReturn(TEST_LANGUAGE);
-    when(request.getParameter(ID)).thenReturn(id); 
+    when(request.getParameter(ID)).thenReturn(id);
 
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("You are not logged in. Please try again.");
@@ -522,8 +522,8 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doGet() successfully creates link to the RSS feed when given an action and entity ID,
-   * with one entity in Datastore.
+   * Asserts that doGet() successfully creates link to the RSS feed when given an
+   * action and entity ID, with one entity in Datastore.
    */
   @Test
   public void doGet_ReturnsRSSLink() throws IOException {
@@ -552,9 +552,9 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Asserts that doGet() successfully returns an XML string from an entity
-  * in Datastore when given an action and entity ID.
-  */
+   * Asserts that doGet() successfully returns an XML string from an entity in
+   * Datastore when given an action and entity ID.
+   */
   @Test
   public void doGet_SingleEntity_ReturnsCorrectXmlString() throws IOException, EntityNotFoundException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
@@ -571,7 +571,7 @@ public class FileUploadServletTest extends Mockito {
 
     when(request.getParameter(ACTION)).thenReturn(GENERATE_XML);
     when(request.getParameter(ID)).thenReturn(id);
-    
+
     assertEquals(TEST_TITLE, desiredEntity.getProperty(PODCAST_TITLE).toString());
     assertEquals(TEST_DESCRIPTION, desiredEntity.getProperty(DESCRIPTION).toString());
     assertEquals(TEST_LANGUAGE, desiredEntity.getProperty(LANGUAGE).toString());
@@ -589,9 +589,10 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-  * Asserts that doGet() successfully returns an XML string from an entity
-  * in Datastore when given an action and entity ID, with multiple entities in Datastore.
-  */
+   * Asserts that doGet() successfully returns an XML string from an entity in
+   * Datastore when given an action and entity ID, with multiple entities in
+   * Datastore.
+   */
   @Test
   public void doGet_MultipleEntities_ReturnsCorrectXmlString() throws IOException, EntityNotFoundException {
     DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
@@ -655,8 +656,9 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doGet() returns an error message by catching an IllegalArgumentException
-   * when an entity with request id cannot be converted to a key.
+   * Asserts that doGet() returns an error message by catching an
+   * IllegalArgumentException when an entity with request id cannot be converted
+   * to a key.
    */
   @Test
   public void doGet_InvalidId_SendsErrorMessage() throws IOException {
@@ -707,8 +709,8 @@ public class FileUploadServletTest extends Mockito {
   }
 
   /**
-   * Asserts that doGet() returns an error message when the action parameter is not
-   * generateRSSLink or generateXml. (Goes to else branch in servlet) 
+   * Asserts that doGet() returns an error message when the action parameter is
+   * not generateRSSLink or generateXml. (Goes to else branch in servlet)
    */
   @Test
   public void doGet_OtherAction_SendsErrorMessage() throws IOException {
