@@ -48,7 +48,7 @@ public class Channel {
   @JacksonXmlElementWrapper(useWrapping = false)
   @JacksonXmlProperty
   @JsonProperty("item")
-  private List<Item> items;
+  private List<Item> items = new ArrayList<Item>();
 
   /**
    * Constructor generated for serialization/deserialization. Ensures that a
@@ -65,7 +65,6 @@ public class Channel {
     this.author = name;
     this.language = language;
     this.description = description;
-    this.items = new ArrayList<>();
   }
 
   public void setTitle(String newTitle) {

@@ -21,6 +21,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -119,10 +120,10 @@ public class TTSServlet extends HttpServlet {
         }
 
         // Turn the xml string back into an object
-        String xmlString = (String) desiredFeedEntity.getProperty(XML_STRING);
+        Text xmlString = (Text) desiredFeedEntity.getProperty(XML_STRING);
         RSS rssFeed = null;
         try {
-            rssFeed = TranslationServlet.XML_MAPPER.readValue(xmlString, RSS.class);
+            rssFeed = TranslationServlet.XML_MAPPER.readValue(xmlString.getValue(), RSS.class);
         } catch (Exception e) {
             res.sendError(HttpServletResponse.SC_CONFLICT, "Unable to translate. Try again");
             return;
@@ -137,7 +138,12 @@ public class TTSServlet extends HttpServlet {
             return;
         }
         Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-        String itemCount = String.valueOf(rssFeed.getChannel().getItems().size());
+        String itemCount;
+        if(rssFeed.getChannel().getItems().isEmpty() || rssFeed.getChannel().getItems() == null){
+            itemCount = "0" ;
+        }else{
+            itemCount = Integer.toString(rssFeed.getChannel().getItems().size());
+        }
         BlobId blobId = BlobId.of(BUCKET_NAME, feedKey + itemCount);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
 
@@ -150,7 +156,8 @@ public class TTSServlet extends HttpServlet {
 
         rssFeed.getChannel().addItem(podcastTitle, podcastDescription, podcastLanguage, userEmail, mp3Link);
 
-        desiredFeedEntity.setProperty(XML_STRING, RSS.toXmlString(rssFeed)); // update existing entity's XML string
+        Text synthesizedXmlString = new Text(RSS.toXmlString(rssFeed));
+        desiredFeedEntity.setProperty(XML_STRING, synthesizedXmlString); // update existing entity's XML string
 
         datastore.put(desiredFeedEntity);
 
